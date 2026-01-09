@@ -10,6 +10,7 @@ import { EditarOS } from './pages/EditarOS';
 import { Relatorios } from './pages/Relatorios';
 import { Configuracoes } from './pages/Configuracoes';
 import { DashboardMock } from './pages/DashboardMock';
+import { DebugService } from './pages/DebugService';
 import { Alertas } from './pages/Alertas';
 import { PendenciasOS } from './pages/PendenciasOS';
 
@@ -149,6 +150,15 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <DashboardMock />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/debug"
+                            element={
+                                <ProtectedRoute>
+                                    <DebugService />
                                 </ProtectedRoute>
                             }
                         />
