@@ -3,16 +3,19 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from './hooks/useAuth';
 import { Login } from './pages/Login';
-import { Dashboard } from './pages/Dashboard';
-import { NovaOS } from './pages/NovaOS';
-import { ListaOS } from './pages/ListaOS';
-import { EditarOS } from './pages/EditarOS';
-import { Relatorios } from './pages/Relatorios';
-import { Configuracoes } from './pages/Configuracoes';
-import { DashboardMock } from './pages/DashboardMock';
-import { DebugService } from './pages/DebugService';
-import { Alertas } from './pages/Alertas';
-import { PendenciasOS } from './pages/PendenciasOS';
+import { DashboardNovo } from './pages/DashboardNovo';
+
+// ... existing imports ...
+
+// ... inside App component ...
+<Route
+    path="/dashboard-novo"
+    element={
+        <ProtectedRoute>
+            <DashboardNovo />
+        </ProtectedRoute>
+    }
+/>
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -149,7 +152,7 @@ function App() {
                             path="/dashboard-novo"
                             element={
                                 <ProtectedRoute>
-                                    <Dashboard />
+                                    <DashboardNovo />
                                 </ProtectedRoute>
                             }
                         />
