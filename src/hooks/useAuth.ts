@@ -31,7 +31,13 @@ export function useAuth() {
                             } catch (error) {
                                 console.warn('Falha ao carregar perfil (AdBlock ou Rede):', error);
                                 // Define perfil básico/mock se falhar
-                                setProfile({ ...session.user, role: 'consultor' } as any);
+                                setProfile({
+                                    ...session.user,
+                                    role: 'consultor',
+                                    first_name: 'Usuário',
+                                    last_name: '(Offline/Mock)',
+                                    username: session.user.email?.split('@')[0] || 'usuario'
+                                } as any);
                             }
                         }
                     })(),

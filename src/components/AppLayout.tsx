@@ -72,12 +72,12 @@ export function AppLayout({ children }: AppLayoutProps) {
                         <div className="flex items-center space-x-3 mb-2">
                             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                                 <span className="text-white font-semibold text-sm">
-                                    {profile?.first_name?.charAt(0)}{profile?.last_name?.charAt(0)}
+                                    {profile?.first_name || 'Usuário'}{profile?.last_name ? '' : ''}
                                 </span>
                             </div>
                             <div className="flex-1">
                                 <p className="text-white text-sm font-medium">
-                                    {profile?.first_name} {profile?.last_name}
+                                    {profile?.first_name || 'Usuário'} {profile?.last_name || ''}
                                 </p>
                                 <p className="text-white/60 text-xs capitalize">
                                     {profile?.role?.toLowerCase().replace('_', ' ')}
