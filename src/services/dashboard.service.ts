@@ -91,9 +91,9 @@ class DashboardService {
         };
 
         try {
-            // Timeout de 10 segundos (para dar chance em conexões lentas, mas não infinitas)
+            // Timeout de 30 segundos (aumentado para conexões lentas)
             const timeoutPromise = new Promise<{ kpis: DashboardKPIs; historico: any[] }>((_, reject) => {
-                setTimeout(() => reject(new Error('Timeout ao buscar KPIs')), 10000);
+                setTimeout(() => reject(new Error('Timeout ao buscar KPIs')), 30000);
             });
 
             return await Promise.race([dataFetch(), timeoutPromise]);
