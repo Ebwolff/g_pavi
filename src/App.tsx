@@ -149,7 +149,7 @@ function App() {
                             path="/dashboard-novo"
                             element={
                                 <ProtectedRoute>
-                                    <DashboardMock />
+                                    <Dashboard />
                                 </ProtectedRoute>
                             }
                         />

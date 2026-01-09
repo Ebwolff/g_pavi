@@ -72,8 +72,8 @@ export const statsService = {
             const osData = await supabase
                 .from('vw_os_estatisticas')
                 .select('*')
-                .gte('data_abertura', oneYearAgo.toISOString())
-                .limit(50); // LIMIT PROVISÓRIO PARA EVITAR TIMEOUT
+                .gte('data_abertura', oneYearAgo.toISOString());
+            //.limit(50); // LIMIT PROVISÓRIO REMOVIDO VINDO DO CRASH HANDLE
 
             if (osData.error) throw osData.error;
 
