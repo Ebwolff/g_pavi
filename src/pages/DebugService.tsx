@@ -34,6 +34,24 @@ export function DebugService() {
         }
     };
 
+    const runLocalClientTest = async () => {
+        try {
+            const url = import.meta.env.VITE_SUPABASE_URL;
+            const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+            addLog(`🔎 Env Check: URL=${url?.slice(0, 10)}... Key=${key?.slice(0, 5)}...`);
+
+            if (!url || !key) throw new Error("Env vars missing!");
+
+            const { createClient } = await import('@supabase/supabase-js');
+            const localClient = createClient(url, key);
+
+            await runTest('Local Client (Clientes)', async () => localClient.from('clientes').select('id').limit(1));
+
+        } catch (e: any) {
+            addLog(`❌ Local Client Setup Error: ${e.message}`);
+        }
+    }
+
     return (
         <AppLayout>
             <div className="p-8">
@@ -51,10 +69,10 @@ export function DebugService() {
                                     Clientes (5)
                                 </button>
                                 <button
-                                    onClick={() => runTest('Tabela OS (Simples)', async () => supabase.from('ordens_servico').select('id, numero_os').limit(5))}
-                                    className="px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200"
+                                    onClick={() => runLocalClientTest()}
+                                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
                                 >
-                                    Ordens Serviço (5)
+                                    TESTE NOVO CLIENTE (LOCAL)
                                 </button>
                             </div>
                         </div>
