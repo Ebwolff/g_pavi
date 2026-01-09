@@ -9,7 +9,7 @@ import { ListaOS } from './pages/ListaOS';
 import { EditarOS } from './pages/EditarOS';
 import { Relatorios } from './pages/Relatorios';
 import { Configuracoes } from './pages/Configuracoes';
-import { DashboardNovo } from './pages/DashboardNovo';
+import { DashboardMock } from './pages/DashboardMock';
 import { Alertas } from './pages/Alertas';
 import { PendenciasOS } from './pages/PendenciasOS';
 
@@ -148,7 +148,7 @@ function App() {
                             path="/dashboard-novo"
                             element={
                                 <ProtectedRoute>
-                                    <DashboardNovo />
+                                    <DashboardMock />
                                 </ProtectedRoute>
                             }
                         />
