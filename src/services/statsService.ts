@@ -64,7 +64,14 @@ export const statsService = {
      */
     async getDashboardStats(): Promise<DashboardStats> {
         // Buscar dados com tratamento de erro individual
-        const osData = await supabase.from('vw_os_estatisticas').select('*');
+        // OTIMIZAÇÃO: Filtrar apenas OS dos últimos 12 meses para evitar payload gigante/timeout
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+        const osData = await supabase
+            .from('vw_os_estatisticas')
+            .select('*')
+            .gte('data_abertura', oneYearAgo.toISOString());
 
         if (osData.error) throw osData.error;
 
