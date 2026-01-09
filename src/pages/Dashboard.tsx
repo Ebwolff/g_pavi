@@ -164,6 +164,94 @@ export function Dashboard() {
                             </div>
                         </div>
 
+                        {/* Novidades - Acesso Rápido */}
+                        <div className="premium-card mb-8 bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-gray-900 mb-1">🎉 Novidades Disponíveis!</h2>
+                                    <p className="text-sm text-gray-600">Novas funcionalidades para melhorar sua gestão</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <a
+                                    href="/dashboard-novo"
+                                    className="group p-6 bg-white rounded-xl border-2 border-transparent hover:border-indigo-500 transition-all hover:shadow-lg"
+                                >
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="p-3 bg-indigo-100 rounded-lg group-hover:bg-indigo-500 transition-colors">
+                                            <TrendingUp className="w-6 h-6 text-indigo-600 group-hover:text-white" />
+                                        </div>
+                                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                                            NOVO
+                                        </span>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-2">Dashboard Analítico</h3>
+                                    <p className="text-sm text-gray-600 mb-3">Visualize gráficos, tendências e KPIs avançados</p>
+                                    <div className="text-indigo-600 text-sm font-medium group-hover:underline">
+                                        Acessar →
+                                    </div>
+                                </a>
+
+                                <a
+                                    href="/alertas"
+                                    className="group p-6 bg-white rounded-xl border-2 border-transparent hover:border-orange-500 transition-all hover:shadow-lg"
+                                >
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="p-3 bg-orange-100 rounded-lg group-hover:bg-orange-500 transition-colors">
+                                            <AlertCircle className="w-6 h-6 text-orange-600 group-hover:text-white" />
+                                        </div>
+                                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                                            NOVO
+                                        </span>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-2">Central de Alertas</h3>
+                                    <p className="text-sm text-gray-600 mb-3">Notificações de OS vencidas e pendências</p>
+                                    <div className="text-orange-600 text-sm font-medium group-hover:underline">
+                                        Acessar →
+                                    </div>
+                                </a>
+
+                                <a
+                                    href="/pendencias"
+                                    className="group p-6 bg-white rounded-xl border-2 border-transparent hover:border-purple-500 transition-all hover:shadow-lg"
+                                >
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-500 transition-colors">
+                                            <Clock className="w-6 h-6 text-purple-600 group-hover:text-white" />
+                                        </div>
+                                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                                            NOVO
+                                        </span>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-2">Gestão de Pendências</h3>
+                                    <p className="text-sm text-gray-600 mb-3">Acompanhe pendências de peças e serviços</p>
+                                    <div className="text-purple-600 text-sm font-medium group-hover:underline">
+                                        Acessar →
+                                    </div>
+                                </a>
+
+                                <a
+                                    href="/os/lista"
+                                    className="group p-6 bg-white rounded-xl border-2 border-transparent hover:border-blue-500 transition-all hover:shadow-lg"
+                                >
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-500 transition-colors">
+                                            <Calendar className="w-6 h-6 text-blue-600 group-hover:text-white" />
+                                        </div>
+                                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">
+                                            MELHORADO
+                                        </span>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-2">Filtros Avançados</h3>
+                                    <p className="text-sm text-gray-600 mb-3">11 filtros combinados na lista de OS</p>
+                                    <div className="text-blue-600 text-sm font-medium group-hover:underline">
+                                        Ver OS →
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+
                         {/* Bem-vindo Banner */}
                         <div className="premium-card bg-gradient-to-r from-[#14532d] to-[#064e3b] text-white">
                             <div className="flex items-center justify-between">
