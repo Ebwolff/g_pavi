@@ -14,18 +14,24 @@ class DashboardService {
     async getKPIs(): Promise<{ kpis: DashboardKPIs; historico: any[] }> {
         // Envolver toda a lógica em um Promise.race para timeout
         const dataFetch = async () => {
+            console.log('📊 [dashboardService] Iniciando getKPIs...');
+
             // 1. Total de OS abertas (não faturadas)
-            const { count: totalOsAbertas } = await supabase
+            const { count: totalOsAbertas, error: err1 } = await supabase
                 .from('ordens_servico')
                 .select('*', { count: 'exact', head: true })
                 .is('data_faturamento', null);
 
+            console.log('📊 [dashboardService] totalOsAbertas:', totalOsAbertas, 'erro:', err1);
+
             // 2. OS Normal (não faturadas)
-            const { data: osNormal } = await supabase
+            const { data: osNormal, error: err2 } = await supabase
                 .from('ordens_servico')
                 .select('valor_liquido_total')
                 .eq('tipo_os', 'NORMAL')
                 .is('data_faturamento', null);
+
+            console.log('📊 [dashboardService] osNormal:', osNormal?.length, 'erro:', err2);
 
             // 3. OS Garantia (não faturadas)
             const { data: osGarantia } = await supabase
