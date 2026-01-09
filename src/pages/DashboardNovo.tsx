@@ -33,9 +33,11 @@ export function DashboardNovo() {
     const [topClientes, setTopClientes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [atualizando, setAtualizando] = useState(false);
+    const [erro, setErro] = useState<string | null>(null);
 
     const carregarDados = async () => {
         try {
+            setErro(null);
             setAtualizando(true);
             const [statsData, tendenciaData, distribuicaoData, consultoresData, clientesData] = await Promise.all([
                 statsService.getDashboardStats(),
@@ -50,8 +52,15 @@ export function DashboardNovo() {
             setDistribuicao(distribuicaoData);
             setConsultores(consultoresData);
             setTopClientes(clientesData);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Erro ao carregar dashboard:', error);
+
+            // Detectar se é erro de tabela/view inexistente
+            if (error?.message?.includes('relation') || error?.message?.includes('does not exist') || error?.code === '42P01') {
+                setErro('migration');
+            } else {
+                setErro('generico');
+            }
         } finally {
             setLoading(false);
             setAtualizando(false);
@@ -90,6 +99,71 @@ export function DashboardNovo() {
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
                     <p className="text-gray-600">Carregando dashboard...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Mostrar erro de migration não executada
+    if (erro === 'migration') {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+                <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg border-2 border-orange-200 p-8">
+                    <div className="text-center mb-6">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-4">
+                            <AlertCircle className="w-8 h-8 text-orange-600" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Migration Pendente</h2>
+                        <p className="text-gray-600">As novas tabelas ainda não foram criadas no Supabase</p>
+                    </div>
+
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                        <h3 className="font-semibold text-orange-900 mb-2">📋 Para corrigir:</h3>
+                        <ol className="text-sm text-orange-800 space-y-2 list-decimal list-inside">
+                            <li>Acesse o Supabase SQL Editor</li>
+                            <li>Execute a migration: <code className="bg-orange-100 px-2 py-1 rounded">03_novas_tabelas_melhorias.sql</code></li>
+                            <li>Aguarde a execução completar</li>
+                            <li>Volte aqui e clique em "Tentar Novamente"</li>
+                        </ol>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => navigate('/dashboard')}
+                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                        >
+                            ← Voltar ao Dashboard
+                        </button>
+                        <button
+                            onClick={carregarDados}
+                            className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2"
+                        >
+                            <RefreshCw className="w-4 h-4" />
+                            Tentar Novamente
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Erro genérico
+    if (erro) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+                <div className="max-w-md w-full bg-white rounded-lg shadow-lg border border-gray-200 p-8 text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                        <AlertCircle className="w-8 h-8 text-red-600" />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">Erro ao Carregar Dados</h2>
+                    <p className="text-gray-600 mb-6">Ocorreu um erro ao buscar os dados do dashboard</p>
+                    <button
+                        onClick={carregarDados}
+                        className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2"
+                    >
+                        <RefreshCw className="w-4 h-4" />
+                        Tentar Novamente
+                    </button>
                 </div>
             </div>
         );
