@@ -37,23 +37,39 @@ export function DashboardNovo() {
 
     const carregarDados = async () => {
         try {
+            console.log('🔄 Iniciando carregamento de dados...');
             setErro(null);
             setAtualizando(true);
-            const [statsData, tendenciaData, distribuicaoData, consultoresData, clientesData] = await Promise.all([
-                statsService.getDashboardStats(),
-                statsService.getTendenciaOS(30),
-                statsService.getDistribuicaoStatus(),
-                statsService.getConsultorPerformance(),
-                statsService.getTopClientes(10),
-            ]);
+
+            console.log('📊 Buscando dashboard stats...');
+            const statsData = await statsService.getDashboardStats();
+            console.log('✅ Stats recebidos:', statsData);
+
+            console.log('📈 Buscando tendência...');
+            const tendenciaData = await statsService.getTendenciaOS(30);
+            console.log('✅ Tendência recebida');
+
+            console.log('📊 Buscando distribuição...');
+            const distribuicaoData = await statsService.getDistribuicaoStatus();
+            console.log('✅ Distribuição recebida');
+
+            console.log('👥 Buscando consultores...');
+            const consultoresData = await statsService.getConsultorPerformance();
+            console.log('✅ Consultores recebidos');
+
+            console.log('🏆 Buscando top clientes...');
+            const clientesData = await statsService.getTopClientes(10);
+            console.log('✅ Clientes recebidos');
 
             setStats(statsData);
             setTendencia(tendenciaData);
             setDistribuicao(distribuicaoData);
             setConsultores(consultoresData);
             setTopClientes(clientesData);
+
+            console.log('✅ Todos os dados carregados com sucesso!');
         } catch (error: any) {
-            console.error('Erro ao carregar dashboard:', error);
+            console.error('❌ Erro ao carregar dashboard:', error);
 
             // Detectar se é erro de tabela/view inexistente
             if (error?.message?.includes('relation') || error?.message?.includes('does not exist') || error?.code === '42P01') {
@@ -64,6 +80,7 @@ export function DashboardNovo() {
         } finally {
             setLoading(false);
             setAtualizando(false);
+            console.log('🏁 Carregamento finalizado');
         }
     };
 
