@@ -10,8 +10,6 @@ import { EditarOS } from './pages/EditarOS';
 import { Relatorios } from './pages/Relatorios';
 import { Configuracoes } from './pages/Configuracoes';
 import { DashboardNovo } from './pages/DashboardNovo';
-import { DashboardNovoTest } from './pages/DashboardNovoTest';
-import { DashboardSimples } from './pages/DashboardSimples';
 import { Alertas } from './pages/Alertas';
 import { PendenciasOS } from './pages/PendenciasOS';
 
@@ -169,24 +167,6 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <PendenciasOS />
-                                </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path="/dashboard-simples"
-                            element={
-                                <ProtectedRoute>
-                                    <DashboardSimples />
-                                </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path="/dashboard-novo-test"
-                            element={
-                                <ProtectedRoute>
-                                    <DashboardNovoTest />
                                 </ProtectedRoute>
                             }
                         />
