@@ -109,69 +109,52 @@ class DashboardService {
             };
         }
     }
-} catch (error) {
-    console.error('Erro no dashboardService.getKPIs:', error);
-    // FAILOVER: Retornar zelos para não travar a UI (AdBlock protection)
-    return {
-        kpis: {
-            totalOsAbertas: 0,
-            totalOsNormal: 0,
-            totalOsGarantia: 0,
-            valorTotalNormal: 0,
-            valorTotalGarantia: 0,
-            valorTotalAberto: 0,
-            tempoMedioExecucaoDias: 0,
-        },
-        historico: [],
-    };
-}
-    }
 
     async getOSByStatus() {
-    const { data, error } = await supabase
-        .from('ordens_servico')
-        .select('status_atual')
-        .is('data_faturamento', null);
+        const { data, error } = await supabase
+            .from('ordens_servico')
+            .select('status_atual')
+            .is('data_faturamento', null);
 
-    if (error) throw error;
+        if (error) throw error;
 
-    const statusCount: Record<string, number> = {};
-    data?.forEach((os) => {
-        statusCount[os.status_atual] = (statusCount[os.status_atual] || 0) + 1;
-    });
+        const statusCount: Record<string, number> = {};
+        data?.forEach((os) => {
+            statusCount[os.status_atual] = (statusCount[os.status_atual] || 0) + 1;
+        });
 
-    return statusCount;
-}
+        return statusCount;
+    }
 
     async getTopTecnicos(limit = 5) {
-    const { data, error } = await supabase
-        .from('ordens_servico')
-        .select(`
+        const { data, error } = await supabase
+            .from('ordens_servico')
+            .select(`
         tecnico_id,
         tecnico:tecnicos(nome_completo)
       `)
-        .not('tecnico_id', 'is', null)
-        .is('data_faturamento', null);
+            .not('tecnico_id', 'is', null)
+            .is('data_faturamento', null);
 
-    if (error) throw error;
+        if (error) throw error;
 
-    const tecnicoCount: Record<string, { nome: string; count: number }> = {};
+        const tecnicoCount: Record<string, { nome: string; count: number }> = {};
 
-    data?.forEach((os: any) => {
-        const id = os.tecnico_id;
-        if (!tecnicoCount[id]) {
-            tecnicoCount[id] = {
-                nome: os.tecnico?.nome_completo || 'Desconhecido',
-                count: 0,
-            };
-        }
-        tecnicoCount[id].count++;
-    });
+        data?.forEach((os: any) => {
+            const id = os.tecnico_id;
+            if (!tecnicoCount[id]) {
+                tecnicoCount[id] = {
+                    nome: os.tecnico?.nome_completo || 'Desconhecido',
+                    count: 0,
+                };
+            }
+            tecnicoCount[id].count++;
+        });
 
-    return Object.values(tecnicoCount)
-        .sort((a, b) => b.count - a.count)
-        .slice(0, limit);
-}
+        return Object.values(tecnicoCount)
+            .sort((a, b) => b.count - a.count)
+            .slice(0, limit);
+    }
 }
 
 export const dashboardService = new DashboardService();

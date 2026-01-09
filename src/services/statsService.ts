@@ -238,7 +238,7 @@ export const statsService = {
             return acc;
         }, {});
 
-        return Object.values(grouped).sort((a: any, b: any) => a.data.localeCompare(b.data));
+        return Object.values(grouped).sort((a: any, b: any) => a.data.localeCompare(b.data)) as TendenciaOS[];
     },
 
     /**
