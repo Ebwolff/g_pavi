@@ -63,77 +63,91 @@ export const statsService = {
      * Buscar estatísticas gerais do dashboard
      */
     async getDashboardStats(): Promise<DashboardStats> {
-        // Buscar dados com tratamento de erro individual
-        // OTIMIZAÇÃO: Filtrar apenas OS dos últimos 12 meses para evitar payload gigante/timeout
-        const oneYearAgo = new Date();
-        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-
-        const osData = await supabase
-            .from('vw_os_estatisticas')
-            .select('*')
-            .gte('data_abertura', oneYearAgo.toISOString())
-            .limit(50); // LIMIT PROVISÓRIO PARA EVITAR TIMEOUT
-
-        if (osData.error) throw osData.error;
-
-        // Buscar pendências (pode não existir ainda)
-        let pendencias: any[] = [];
         try {
-            const pendenciasData = await supabase.from('pendencias_os').select('*');
-            if (!pendenciasData.error) {
-                pendencias = pendenciasData.data || [];
+            // Buscar dados com tratamento de erro individual
+            // OTIMIZAÇÃO: Filtrar apenas OS dos últimos 12 meses para evitar payload gigante/timeout
+            const oneYearAgo = new Date();
+            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+            const osData = await supabase
+                .from('vw_os_estatisticas')
+                .select('*')
+                .gte('data_abertura', oneYearAgo.toISOString())
+                .limit(50); // LIMIT PROVISÓRIO PARA EVITAR TIMEOUT
+
+            if (osData.error) throw osData.error;
+
+            // Buscar pendências (pode não existir ainda)
+            let pendencias: any[] = [];
+            try {
+                const pendenciasData = await supabase.from('pendencias_os').select('*');
+                if (!pendenciasData.error) {
+                    pendencias = pendenciasData.data || [];
+                }
+            } catch (e) {
+                console.warn('Tabela pendencias_os não encontrada');
             }
-        } catch (e) {
-            console.warn('Tabela pendencias_os não encontrada');
-        }
 
-        // Buscar alertas (pode não existir ainda)
-        let alertas: any[] = [];
-        try {
-            const alertasData = await supabase.from('alertas').select('*');
-            if (!alertasData.error) {
-                alertas = alertasData.data || [];
+            // Buscar alertas (pode não existir ainda)
+            let alertas: any[] = [];
+            try {
+                const alertasData = await supabase.from('alertas').select('*');
+                if (!alertasData.error) {
+                    alertas = alertasData.data || [];
+                }
+            } catch (e) {
+                console.warn('Tabela alertas não encontrada');
             }
-        } catch (e) {
-            console.warn('Tabela alertas não encontrada');
+
+            const os = (osData.data || []) as any[];
+            const osAbertas = os.filter(o => !['CONCLUIDA', 'FATURADA', 'CANCELADA'].includes(o.status_atual));
+            const osConcluidas = os.filter(o => ['CONCLUIDA', 'FATURADA'].includes(o.status_atual));
+
+            return {
+                totalOS: os.length,
+                osAbertas: osAbertas.length,
+                osConcluidas: osConcluidas.length,
+                osCanceladas: os.filter(o => o.status_atual === 'CANCELADA').length,
+
+                osNormal: os.filter(o => o.tipo_os === 'NORMAL').length,
+                osGarantia: os.filter(o => o.tipo_os === 'GARANTIA').length,
+
+                osCriticas: os.filter(o => o.nivel_urgencia === 'CRITICO').length,
+                osAltas: os.filter(o => o.nivel_urgencia === 'ALTO').length,
+                osMedias: os.filter(o => o.nivel_urgencia === 'MEDIO').length,
+                osNormais: os.filter(o => o.nivel_urgencia === 'NORMAL').length,
+
+                valorTotal: os.reduce((sum, o) => sum + (o.valor_liquido_total || 0), 0),
+                valorNormal: os.filter(o => o.tipo_os === 'NORMAL').reduce((sum, o) => sum + (o.valor_liquido_total || 0), 0),
+                valorGarantia: os.filter(o => o.tipo_os === 'GARANTIA').reduce((sum, o) => sum + (o.valor_liquido_total || 0), 0),
+                valorMedioOS: os.length > 0 ? os.reduce((sum, o) => sum + (o.valor_liquido_total || 0), 0) / os.length : 0,
+
+                tempoMedioResolucao: osConcluidas.length > 0
+                    ? osConcluidas.reduce((sum, o) => sum + (o.dias_em_aberto || 0), 0) / osConcluidas.length
+                    : 0,
+                diasMedioEmAberto: osAbertas.length > 0
+                    ? osAbertas.reduce((sum, o) => sum + (o.dias_em_aberto || 0), 0) / osAbertas.length
+                    : 0,
+
+                totalPendencias: pendencias.length,
+                pendenciasAbertas: pendencias.filter((p: any) => p.status !== 'RESOLVIDO').length,
+
+                totalAlertas: alertas.length,
+                alertasNaoLidos: alertas.filter((a: any) => !a.lido).length,
+            };
+        } catch (error) {
+            console.error('Erro no statsService.getDashboardStats:', error);
+            // FAILOVER: Retornar objetos zerados para não travar a UI
+            return {
+                totalOS: 0, osAbertas: 0, osConcluidas: 0, osCanceladas: 0,
+                osNormal: 0, osGarantia: 0,
+                osCriticas: 0, osAltas: 0, osMedias: 0, osNormais: 0,
+                valorTotal: 0, valorNormal: 0, valorGarantia: 0, valorMedioOS: 0,
+                tempoMedioResolucao: 0, diasMedioEmAberto: 0,
+                totalPendencias: 0, pendenciasAbertas: 0,
+                totalAlertas: 0, alertasNaoLidos: 0
+            };
         }
-
-        const os = (osData.data || []) as any[];
-        const osAbertas = os.filter(o => !['CONCLUIDA', 'FATURADA', 'CANCELADA'].includes(o.status_atual));
-        const osConcluidas = os.filter(o => ['CONCLUIDA', 'FATURADA'].includes(o.status_atual));
-
-        return {
-            totalOS: os.length,
-            osAbertas: osAbertas.length,
-            osConcluidas: osConcluidas.length,
-            osCanceladas: os.filter(o => o.status_atual === 'CANCELADA').length,
-
-            osNormal: os.filter(o => o.tipo_os === 'NORMAL').length,
-            osGarantia: os.filter(o => o.tipo_os === 'GARANTIA').length,
-
-            osCriticas: os.filter(o => o.nivel_urgencia === 'CRITICO').length,
-            osAltas: os.filter(o => o.nivel_urgencia === 'ALTO').length,
-            osMedias: os.filter(o => o.nivel_urgencia === 'MEDIO').length,
-            osNormais: os.filter(o => o.nivel_urgencia === 'NORMAL').length,
-
-            valorTotal: os.reduce((sum, o) => sum + (o.valor_liquido_total || 0), 0),
-            valorNormal: os.filter(o => o.tipo_os === 'NORMAL').reduce((sum, o) => sum + (o.valor_liquido_total || 0), 0),
-            valorGarantia: os.filter(o => o.tipo_os === 'GARANTIA').reduce((sum, o) => sum + (o.valor_liquido_total || 0), 0),
-            valorMedioOS: os.length > 0 ? os.reduce((sum, o) => sum + (o.valor_liquido_total || 0), 0) / os.length : 0,
-
-            tempoMedioResolucao: osConcluidas.length > 0
-                ? osConcluidas.reduce((sum, o) => sum + (o.dias_em_aberto || 0), 0) / osConcluidas.length
-                : 0,
-            diasMedioEmAberto: osAbertas.length > 0
-                ? osAbertas.reduce((sum, o) => sum + (o.dias_em_aberto || 0), 0) / osAbertas.length
-                : 0,
-
-            totalPendencias: pendencias.length,
-            pendenciasAbertas: pendencias.filter((p: any) => p.status !== 'RESOLVIDO').length,
-
-            totalAlertas: alertas.length,
-            alertasNaoLidos: alertas.filter((a: any) => !a.lido).length,
-        };
     },
 
     /**
