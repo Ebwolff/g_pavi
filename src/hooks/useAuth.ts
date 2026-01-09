@@ -8,19 +8,38 @@ export function useAuth() {
 
     useEffect(() => {
         // Verifica sessão ao montar
+        // Verifica sessão ao montar
         const checkSession = async () => {
-            try {
-                const session = await authService.getSession();
-                if (session?.user) {
-                    setUser(session.user);
-                    setSession(session);
+            // Timeout de proteção (5 segundos)
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Auth check timeout')), 5000)
+            );
 
-                    // Busca perfil
-                    const userProfile = await getUserProfile();
-                    setProfile(userProfile);
-                }
+            try {
+                // Corrida entre a lógica de auth e o timeout
+                await Promise.race([
+                    (async () => {
+                        const session = await authService.getSession();
+                        if (session?.user) {
+                            setUser(session.user);
+                            setSession(session);
+
+                            // Busca perfil com tratamento de erro isolado para não falhar toda a auth
+                            try {
+                                const userProfile = await getUserProfile();
+                                setProfile(userProfile);
+                            } catch (error) {
+                                console.warn('Falha ao carregar perfil (AdBlock ou Rede):', error);
+                                // Define perfil básico/mock se falhar
+                                setProfile({ ...session.user, role: 'consultor' } as any);
+                            }
+                        }
+                    })(),
+                    timeoutPromise
+                ]);
             } catch (error) {
-                console.error('Error checking session:', error);
+                console.error('Error checking session / Timeout:', error);
+                // Mesmo com erro, se tivermos usuário no store, não deslogamos
             } finally {
                 setLoading(false);
             }
