@@ -36,7 +36,12 @@ export function DashboardNovo() {
     const [erro, setErro] = useState<string | null>(null);
 
     const carregarDados = async () => {
-        try {
+        // Timeout global de 15 segundos para todo o carregamento
+        const timeoutPromise = new Promise<void>((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout global ao carregar dashboard')), 15000)
+        );
+
+        const fetchAllData = async () => {
             console.log('🔄 Iniciando carregamento de dados...');
             setErro(null);
             setAtualizando(true);
@@ -68,11 +73,27 @@ export function DashboardNovo() {
             setTopClientes(clientesData);
 
             console.log('✅ Todos os dados carregados com sucesso!');
+        };
+
+        try {
+            await Promise.race([fetchAllData(), timeoutPromise]);
         } catch (error: any) {
             console.error('❌ Erro ao carregar dashboard:', error);
 
-            // Detectar se é erro de tabela/view inexistente
-            if (error?.message?.includes('relation') || error?.message?.includes('does not exist') || error?.code === '42P01') {
+            // Detectar tipo de erro
+            if (error?.message?.includes('Timeout')) {
+                console.warn('⏰ Timeout atingido - mostrando dados zerados');
+                // Definir dados zerados como fallback
+                setStats({
+                    totalOS: 0, osAbertas: 0, osConcluidas: 0, osCanceladas: 0,
+                    osNormal: 0, osGarantia: 0,
+                    osCriticas: 0, osAltas: 0, osMedias: 0, osNormais: 0,
+                    valorTotal: 0, valorNormal: 0, valorGarantia: 0, valorMedioOS: 0,
+                    tempoMedioResolucao: 0, diasMedioEmAberto: 0,
+                    totalPendencias: 0, pendenciasAbertas: 0,
+                    totalAlertas: 0, alertasNaoLidos: 0
+                });
+            } else if (error?.message?.includes('relation') || error?.message?.includes('does not exist') || error?.code === '42P01') {
                 setErro('migration');
             } else {
                 setErro('generico');
