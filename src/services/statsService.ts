@@ -63,18 +63,34 @@ export const statsService = {
      * Buscar estatísticas gerais do dashboard
      */
     async getDashboardStats(): Promise<DashboardStats> {
-        const [osData, pendenciasData, alertasData] = await Promise.all([
-            supabase.from('vw_os_estatisticas').select('*'),
-            supabase.from('pendencias_os').select('*'),
-            supabase.from('alertas').select('*')
-        ]);
+        // Buscar dados com tratamento de erro individual
+        const osData = await supabase.from('vw_os_estatisticas').select('*');
 
         if (osData.error) throw osData.error;
 
-        const os = osData.data || [];
-        const pendencias = pendenciasData.data || [];
-        const alertas = alertasData.data || [];
+        // Buscar pendências (pode não existir ainda)
+        let pendencias: any[] = [];
+        try {
+            const pendenciasData = await supabase.from('pendencias_os').select('*');
+            if (!pendenciasData.error) {
+                pendencias = pendenciasData.data || [];
+            }
+        } catch (e) {
+            console.warn('Tabela pendencias_os não encontrada');
+        }
 
+        // Buscar alertas (pode não existir ainda)
+        let alertas: any[] = [];
+        try {
+            const alertasData = await supabase.from('alertas').select('*');
+            if (!alertasData.error) {
+                alertas = alertasData.data || [];
+            }
+        } catch (e) {
+            console.warn('Tabela alertas não encontrada');
+        }
+
+        const os = (osData.data || []) as any[];
         const osAbertas = os.filter(o => !['CONCLUIDA', 'FATURADA', 'CANCELADA'].includes(o.status_atual));
         const osConcluidas = os.filter(o => ['CONCLUIDA', 'FATURADA'].includes(o.status_atual));
 
@@ -92,23 +108,23 @@ export const statsService = {
             osMedias: os.filter(o => o.nivel_urgencia === 'MEDIO').length,
             osNormais: os.filter(o => o.nivel_urgencia === 'NORMAL').length,
 
-            valorTotal: os.reduce((sum, o) => sum + o.valor_liquido_total, 0),
-            valorNormal: os.filter(o => o.tipo_os === 'NORMAL').reduce((sum, o) => sum + o.valor_liquido_total, 0),
-            valorGarantia: os.filter(o => o.tipo_os === 'GARANTIA').reduce((sum, o) => sum + o.valor_liquido_total, 0),
-            valorMedioOS: os.length > 0 ? os.reduce((sum, o) => sum + o.valor_liquido_total, 0) / os.length : 0,
+            valorTotal: os.reduce((sum, o) => sum + (o.valor_liquido_total || 0), 0),
+            valorNormal: os.filter(o => o.tipo_os === 'NORMAL').reduce((sum, o) => sum + (o.valor_liquido_total || 0), 0),
+            valorGarantia: os.filter(o => o.tipo_os === 'GARANTIA').reduce((sum, o) => sum + (o.valor_liquido_total || 0), 0),
+            valorMedioOS: os.length > 0 ? os.reduce((sum, o) => sum + (o.valor_liquido_total || 0), 0) / os.length : 0,
 
             tempoMedioResolucao: osConcluidas.length > 0
-                ? osConcluidas.reduce((sum, o) => sum + o.dias_em_aberto, 0) / osConcluidas.length
+                ? osConcluidas.reduce((sum, o) => sum + (o.dias_em_aberto || 0), 0) / osConcluidas.length
                 : 0,
             diasMedioEmAberto: osAbertas.length > 0
-                ? osAbertas.reduce((sum, o) => sum + o.dias_em_aberto, 0) / osAbertas.length
+                ? osAbertas.reduce((sum, o) => sum + (o.dias_em_aberto || 0), 0) / osAbertas.length
                 : 0,
 
             totalPendencias: pendencias.length,
-            pendenciasAbertas: pendencias.filter(p => p.status !== 'RESOLVIDO').length,
+            pendenciasAbertas: pendencias.filter((p: any) => p.status !== 'RESOLVIDO').length,
 
             totalAlertas: alertas.length,
-            alertasNaoLidos: alertas.filter(a => !a.lido).length,
+            alertasNaoLidos: alertas.filter((a: any) => !a.lido).length,
         };
     },
 
