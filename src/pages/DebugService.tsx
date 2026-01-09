@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AppLayout } from '../components/AppLayout';
-import { supabase } from '../services/supabase';
+import { supabase } from '../lib/supabase';
 import { statsService } from '../services/statsService';
 
 export function DebugService() {
