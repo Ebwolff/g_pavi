@@ -53,19 +53,19 @@ export function DebugService() {
                             <h2 className="font-bold mb-4">2. Testes de Tabelas Novas</h2>
                             <div className="flex flex-wrap gap-2">
                                 <button
-                                    onClick={() => runTest('Select pendencias_os', () => supabase.from('pendencias_os').select('*').limit(1))}
+                                    onClick={() => runTest('Select pendencias_os', async () => { return await supabase.from('pendencias_os').select('*').limit(1); })}
                                     className="px-3 py-1 bg-purple-100 text-purple-800 rounded hover:bg-purple-200"
                                 >
                                     pendencias_os
                                 </button>
                                 <button
-                                    onClick={() => runTest('Select alertas', () => supabase.from('alertas').select('*').limit(1))}
+                                    onClick={() => runTest('Select alertas', async () => { return await supabase.from('alertas').select('*').limit(1); })}
                                     className="px-3 py-1 bg-purple-100 text-purple-800 rounded hover:bg-purple-200"
                                 >
                                     alertas
                                 </button>
                                 <button
-                                    onClick={() => runTest('Select view vw_os_estatisticas', () => supabase.from('vw_os_estatisticas').select('*').limit(1))}
+                                    onClick={() => runTest('Select view vw_os_estatisticas', async () => { return await supabase.from('vw_os_estatisticas').select('*').limit(1); })}
                                     className="px-3 py-1 bg-purple-100 text-purple-800 rounded hover:bg-purple-200"
                                 >
                                     view: vw_os_estatisticas
