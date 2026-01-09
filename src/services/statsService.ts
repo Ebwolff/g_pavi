@@ -63,7 +63,7 @@ export const statsService = {
      * Buscar estatísticas gerais do dashboard
      */
     async getDashboardStats(): Promise<DashboardStats> {
-        try {
+        const dataFetch = async () => {
             // Buscar dados com tratamento de erro individual
             // OTIMIZAÇÃO: Filtrar apenas OS dos últimos 12 meses para evitar payload gigante/timeout
             const oneYearAgo = new Date();
@@ -135,8 +135,18 @@ export const statsService = {
                 totalAlertas: alertas.length,
                 alertasNaoLidos: alertas.filter((a: any) => !a.lido).length,
             };
+        };
+
+        try {
+            // Timeout de 10 segundos
+            const timeoutPromise = new Promise<DashboardStats>((_, reject) => {
+                setTimeout(() => reject(new Error('Timeout ao buscar estatísticas')), 10000);
+            });
+
+            return await Promise.race([dataFetch(), timeoutPromise]);
+
         } catch (error) {
-            console.error('Erro no statsService.getDashboardStats:', error);
+            console.error('Erro no statsService.getDashboardStats (Erro ou Timeout):', error);
             // FAILOVER: Retornar objetos zerados para não travar a UI
             return {
                 totalOS: 0, osAbertas: 0, osConcluidas: 0, osCanceladas: 0,
