@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { AppLayout } from '../components/AppLayout';
 import { supabase } from '../lib/supabase';
+import { AppLayout } from '../components/AppLayout';
+import { supabase } from '../lib/supabase';
 import { statsService } from '../services/statsService';
+import { dashboardService } from '../services/dashboard.service';
 
 export function DebugService() {
     const [logs, setLogs] = useState<string[]>([]);
@@ -73,6 +76,12 @@ export function DebugService() {
                                     className="px-3 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
                                 >
                                     TESTE NOVO CLIENTE (LOCAL)
+                                </button>
+                                <button
+                                    onClick={() => runTest('Dashboard Service (KPIs)', async () => dashboardService.getKPIs())}
+                                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
+                                >
+                                    TESTAR CONTROL (KPIs)
                                 </button>
                             </div>
                         </div>
