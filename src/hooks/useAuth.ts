@@ -10,9 +10,9 @@ export function useAuth() {
         // Verifica sessão ao montar
         // Verifica sessão ao montar
         const checkSession = async () => {
-            // Timeout de proteção (5 segundos)
+            // Timeout de proteção (20 segundos - aumentado para conexões lentas)
             const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Auth check timeout')), 5000)
+                setTimeout(() => reject(new Error('Auth check timeout')), 20000)
             );
 
             try {
