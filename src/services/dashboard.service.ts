@@ -68,13 +68,13 @@ class DashboardService {
                 tmeMediaDias = Math.round((totalDias / osFechadas.length) * 10) / 10;
             }
 
-            // 6. Histórico mensal (últimos 6 meses)
-            const sixMonthsAgo = new Date();
-            sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-            const { data: historico } = await supabase.rpc('get_monthly_stats', {
-                start_date: sixMonthsAgo.toISOString(),
-            });
+            // 6. Histórico mensal (desabilitado - função get_monthly_stats não existe no banco)
+            // const sixMonthsAgo = new Date();
+            // sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+            // const { data: historico } = await supabase.rpc('get_monthly_stats', {
+            //     start_date: sixMonthsAgo.toISOString(),
+            // });
+            const historico: any[] = []; // Fallback até criar a função no banco
 
             return {
                 kpis: {
