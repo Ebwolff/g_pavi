@@ -64,16 +64,18 @@ export const statsService = {
      */
     async getDashboardStats(): Promise<DashboardStats> {
         const dataFetch = async () => {
-            // Buscar dados com tratamento de erro individual
-            // OTIMIZAÇÃO: Filtrar apenas OS dos últimos 12 meses para evitar payload gigante/timeout
+            console.log('📊 [statsService] Iniciando getDashboardStats...');
+
+            // Buscar dados diretamente da tabela ordens_servico (como o dashboardService que funciona)
             const oneYearAgo = new Date();
             oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
             const osData = await supabase
-                .from('vw_os_estatisticas')
+                .from('ordens_servico')
                 .select('*')
                 .gte('data_abertura', oneYearAgo.toISOString());
-            //.limit(50); // LIMIT PROVISÓRIO REMOVIDO VINDO DO CRASH HANDLE
+
+            console.log('📊 [statsService] osData:', osData.data?.length, 'erro:', osData.error);
 
             if (osData.error) throw osData.error;
 
@@ -138,9 +140,9 @@ export const statsService = {
         };
 
         try {
-            // Timeout de 10 segundos
+            // Timeout de 30 segundos (aumentado para conexões lentas)
             const timeoutPromise = new Promise<DashboardStats>((_, reject) => {
-                setTimeout(() => reject(new Error('Timeout ao buscar estatísticas')), 10000);
+                setTimeout(() => reject(new Error('Timeout ao buscar estatísticas')), 30000);
             });
 
             return await Promise.race([dataFetch(), timeoutPromise]);
