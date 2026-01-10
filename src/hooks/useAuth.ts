@@ -10,41 +10,32 @@ export function useAuth() {
         // Verifica sessão ao montar
         // Verifica sessão ao montar
         const checkSession = async () => {
-            // Timeout de proteção (20 segundos - aumentado para conexões lentas)
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Auth check timeout')), 20000)
-            );
-
+            // SEM TIMEOUT: Removido porque causava AbortError em cascata
+            // O Supabase tem seus próprios timeouts internos
             try {
-                // Corrida entre a lógica de auth e o timeout
-                await Promise.race([
-                    (async () => {
-                        const session = await authService.getSession();
-                        if (session?.user) {
-                            setUser(session.user);
-                            setSession(session);
+                const session = await authService.getSession();
+                if (session?.user) {
+                    setUser(session.user);
+                    setSession(session);
 
-                            // Busca perfil com tratamento de erro isolado para não falhar toda a auth
-                            try {
-                                const userProfile = await getUserProfile();
-                                setProfile(userProfile);
-                            } catch (error) {
-                                console.warn('Falha ao carregar perfil (AdBlock ou Rede):', error);
-                                // Define perfil básico/mock se falhar
-                                setProfile({
-                                    ...session.user,
-                                    role: 'consultor',
-                                    first_name: 'Usuário',
-                                    last_name: '(Offline/Mock)',
-                                    username: session.user.email?.split('@')[0] || 'usuario'
-                                } as any);
-                            }
-                        }
-                    })(),
-                    timeoutPromise
-                ]);
+                    // Busca perfil com tratamento de erro isolado para não falhar toda a auth
+                    try {
+                        const userProfile = await getUserProfile();
+                        setProfile(userProfile);
+                    } catch (error) {
+                        console.warn('Falha ao carregar perfil (AdBlock ou Rede):', error);
+                        // Define perfil básico/mock se falhar
+                        setProfile({
+                            ...session.user,
+                            role: 'consultor',
+                            first_name: 'Usuário',
+                            last_name: '(Offline/Mock)',
+                            username: session.user.email?.split('@')[0] || 'usuario'
+                        } as any);
+                    }
+                }
             } catch (error) {
-                console.error('Error checking session / Timeout:', error);
+                console.error('Error checking session:', error);
                 // Mesmo com erro, se tivermos usuário no store, não deslogamos
             } finally {
                 setLoading(false);
