@@ -14,6 +14,17 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
         persistSession: true,
         detectSessionInUrl: true,
     },
+    global: {
+        // Configuração global para evitar AbortError em conexões lentas
+        fetch: (url, options = {}) => {
+            // Remove qualquer AbortController existente que possa cancelar prematuramente
+            const { signal, ...restOptions } = options as any;
+            return fetch(url, {
+                ...restOptions,
+                // Não passa o signal para evitar AbortError
+            });
+        },
+    },
 });
 
 // Helper para obter o usuário atual
