@@ -36,9 +36,9 @@ export function DashboardNovo() {
     const [erro, setErro] = useState<string | null>(null);
 
     const carregarDados = async () => {
-        // Timeout global de 15 segundos para todo o carregamento
+        // Timeout global de 45 segundos para todo o carregamento (auth + 5 chamadas de serviço)
         const timeoutPromise = new Promise<void>((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout global ao carregar dashboard')), 15000)
+            setTimeout(() => reject(new Error('Timeout global ao carregar dashboard')), 45000)
         );
 
         const fetchAllData = async () => {
