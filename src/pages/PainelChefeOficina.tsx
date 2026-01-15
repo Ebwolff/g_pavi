@@ -113,23 +113,24 @@ export default function PainelChefeOficina() {
 
             setDistribuicaoStatus(distribuicao);
 
-            const { data: profilesData } = await supabase
-                .from('profiles')
-                .select('id, first_name, last_name')
-                .eq('role', 'TECNICO');
+            // Buscar técnicos da tabela tecnicos (com join no profile)
+            const { data: tecnicosData } = await supabase
+                .from('tecnicos' as any)
+                .select('id, nome_completo, user_id');
 
             const tecnicosComOS = await Promise.all(
-                (profilesData || []).map(async (profile: any) => {
+                (tecnicosData || []).map(async (tecnico: any) => {
+                    // Buscar OS atribuídas a este técnico (usando o ID da tabela tecnicos)
                     const { data: osDoTecnico } = await supabase
                         .from('ordens_servico')
                         .select('status_atual')
-                        .eq('tecnico_id', profile.id)
-                        .not('status_atual', 'in', '("FATURADA","CANCELADA")');
+                        .eq('tecnico_id', tecnico.id)
+                        .not('status_atual', 'in', '(FATURADA,CANCELADA)');
 
                     const osTecnico = osDoTecnico || [];
                     return {
-                        id: profile.id,
-                        nome: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Técnico s/ nome',
+                        id: tecnico.id, // Este é o ID correto da tabela tecnicos
+                        nome: tecnico.nome_completo || 'Técnico s/ nome',
                         osAtribuidas: osTecnico.length,
                         osEmExecucao: osTecnico.filter((o: any) => o.status_atual === 'EM_EXECUCAO').length,
                         osConcluidas: osTecnico.filter((o: any) => o.status_atual === 'CONCLUIDA').length,
