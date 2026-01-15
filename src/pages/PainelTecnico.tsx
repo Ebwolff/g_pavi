@@ -6,7 +6,8 @@ import {
     RefreshCw,
     CheckCircle,
     Clock,
-    AlertCircle
+    AlertCircle,
+    Car
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,6 +18,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { MetricCard } from '@/components/cognitive-bias/MetricCard';
 import { ModalAdicionarPeca } from '@/components/ui/ModalAdicionarPeca';
+import { ModalLancarDespesa } from '@/components/ui/ModalLancarDespesa';
 
 interface OSAtribuida {
     id: string;
@@ -42,7 +44,9 @@ export default function PainelTecnico() {
     const [loading, setLoading] = useState(true);
     const [osAtribuidas, setOsAtribuidas] = useState<OSAtribuida[]>([]);
     const [selectedOS, setSelectedOS] = useState<string | null>(null);
+    const [selectedNumeroOS, setSelectedNumeroOS] = useState<string>('');
     const [modalOpen, setModalOpen] = useState(false);
+    const [modalDespesaOpen, setModalDespesaOpen] = useState(false);
 
     const [estatisticas, setEstatisticas] = useState({
         totalOS: 0,
@@ -126,6 +130,12 @@ export default function PainelTecnico() {
     const handleAdicionarPecas = (osId: string) => {
         setSelectedOS(osId);
         setModalOpen(true);
+    };
+
+    const handleLancarDespesas = (osId: string, numeroOS: string) => {
+        setSelectedOS(osId);
+        setSelectedNumeroOS(numeroOS);
+        setModalDespesaOpen(true);
     };
 
     return (
@@ -256,6 +266,14 @@ export default function PainelTecnico() {
                                             >
                                                 Lançar Peças
                                             </Button>
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                leftIcon={<Car className="w-3.5 h-3.5" />}
+                                                onClick={() => handleLancarDespesas(os.id, os.numero_os)}
+                                            >
+                                                Lançar Km/Despesas
+                                            </Button>
                                             {os.status === 'AGUARDANDO_PECAS' && (
                                                 <div className="flex items-center gap-1 text-xs text-amber-400">
                                                     <AlertCircle className="w-3 h-3" />
@@ -278,6 +296,19 @@ export default function PainelTecnico() {
                         setSelectedOS(null);
                     }}
                     osId={selectedOS || ''}
+                    onSuccess={carregarDados}
+                />
+
+                {/* Modal de Lançar Despesas */}
+                <ModalLancarDespesa
+                    isOpen={modalDespesaOpen}
+                    onClose={() => {
+                        setModalDespesaOpen(false);
+                        setSelectedOS(null);
+                        setSelectedNumeroOS('');
+                    }}
+                    osId={selectedOS || ''}
+                    osNumero={selectedNumeroOS}
                     onSuccess={carregarDados}
                 />
             </div>
