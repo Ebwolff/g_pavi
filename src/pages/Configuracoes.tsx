@@ -89,8 +89,8 @@ export function Configuracoes() {
                                         Status da Conta
                                     </label>
                                     <div className={`w-full px-4 py-3 rounded-xl border font-bold text-sm tracking-wide flex items-center gap-2 ${profile?.is_active
-                                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                                            : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                                        : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
                                         }`}>
                                         <div className={`w-2 h-2 rounded-full ${profile?.is_active ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                                         {profile?.is_active ? 'ATIVO' : 'INATIVO'}
@@ -103,7 +103,7 @@ export function Configuracoes() {
                         <div className="glass-card-enterprise p-8 rounded-3xl border-white/[0.05] bg-gradient-to-br from-indigo-500/[0.05] to-purple-500/[0.05]">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h3 className="text-lg font-bold text-white mb-1">MARDISA Agro Desktop</h3>
+                                    <h3 className="text-lg font-bold text-white mb-1">Gestão 360</h3>
                                     <p className="text-[var(--text-muted)] text-sm">Versão 2.0.0 (Enterprise Dark)</p>
                                 </div>
                                 <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">

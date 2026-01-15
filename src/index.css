@@ -950,4 +950,55 @@
   .dark-text-muted {
     color: #64748b;
   }
+
+  /* ============================================
+   * INPUT/SELECT CONTRAST FIX FOR DARK MODE
+   * Garante texto legível em inputs e selects
+   * ============================================ */
+
+  /* Inputs e Selects no tema escuro */
+  input,
+  select,
+  textarea {
+    color: #1f2937 !important;
+    /* Texto escuro para contrastar com fundo claro */
+    background-color: #ffffff !important;
+  }
+
+  input::placeholder {
+    color: #6b7280 !important;
+    /* Placeholder mais visível */
+  }
+
+  /* Options dentro de selects */
+  option {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+  }
+
+  /* Dropdown do select */
+  select option {
+    background-color: #ffffff;
+    color: #1f2937;
+  }
+
+  /* Focus states mantendo contraste */
+  input:focus,
+  select:focus,
+  textarea:focus {
+    color: #1f2937 !important;
+    background-color: #ffffff !important;
+  }
+
+  /* Labels para inputs */
+  label {
+    color: inherit;
+  }
+
+  /* Estilo específico para selects abertos */
+  select:focus option,
+  select option:checked {
+    background-color: #e5e7eb;
+    color: #1f2937;
+  }
 }

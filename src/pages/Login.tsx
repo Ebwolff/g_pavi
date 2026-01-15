@@ -46,7 +46,7 @@ export function Login() {
                             {/* Sparkle effect */}
                             <Sparkles className="absolute -top-1 -right-1 w-5 h-5 text-yellow-400 animate-pulse-soft" />
                         </div>
-                        <h1 className="text-3xl font-bold text-[#14532d] mb-2">MARDISA AGRO</h1>
+                        <h1 className="text-3xl font-bold text-[#14532d] mb-2">Gestão 360</h1>
                         <p className="text-gray-500 text-sm">Sistema ERP de Gestão Pós-Venda</p>
                     </div>
 
@@ -83,8 +83,8 @@ export function Login() {
                                     onBlur={() => setFocusedField(null)}
                                     required
                                     className={`w-full pl-12 pr-4 py-4 bg-white border-2 rounded-xl focus:outline-none transition-all duration-200 ${focusedField === 'email'
-                                            ? 'border-[#16a34a] shadow-[0_0_0_4px_rgba(22,163,74,0.1)]'
-                                            : 'border-gray-200 hover:border-gray-300'
+                                        ? 'border-[#16a34a] shadow-[0_0_0_4px_rgba(22,163,74,0.1)]'
+                                        : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                     placeholder="seu.email@empresa.com"
                                     disabled={isLoading}
@@ -92,8 +92,8 @@ export function Login() {
                                 <label
                                     htmlFor="email"
                                     className={`absolute left-12 transition-all duration-200 pointer-events-none ${email || focusedField === 'email'
-                                            ? '-top-2.5 text-xs bg-white px-2 text-[#16a34a] font-medium'
-                                            : 'top-1/2 -translate-y-1/2 text-gray-400 opacity-0'
+                                        ? '-top-2.5 text-xs bg-white px-2 text-[#16a34a] font-medium'
+                                        : 'top-1/2 -translate-y-1/2 text-gray-400 opacity-0'
                                         }`}
                                 >
                                     Email
@@ -115,8 +115,8 @@ export function Login() {
                                     onBlur={() => setFocusedField(null)}
                                     required
                                     className={`w-full pl-12 pr-4 py-4 bg-white border-2 rounded-xl focus:outline-none transition-all duration-200 ${focusedField === 'password'
-                                            ? 'border-[#16a34a] shadow-[0_0_0_4px_rgba(22,163,74,0.1)]'
-                                            : 'border-gray-200 hover:border-gray-300'
+                                        ? 'border-[#16a34a] shadow-[0_0_0_4px_rgba(22,163,74,0.1)]'
+                                        : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                     placeholder="••••••••"
                                     disabled={isLoading}
@@ -124,8 +124,8 @@ export function Login() {
                                 <label
                                     htmlFor="password"
                                     className={`absolute left-12 transition-all duration-200 pointer-events-none ${password || focusedField === 'password'
-                                            ? '-top-2.5 text-xs bg-white px-2 text-[#16a34a] font-medium'
-                                            : 'top-1/2 -translate-y-1/2 text-gray-400 opacity-0'
+                                        ? '-top-2.5 text-xs bg-white px-2 text-[#16a34a] font-medium'
+                                        : 'top-1/2 -translate-y-1/2 text-gray-400 opacity-0'
                                         }`}
                                 >
                                     Senha
@@ -166,7 +166,7 @@ export function Login() {
                     {/* Footer */}
                     <div className="mt-8 text-center">
                         <p className="text-xs text-gray-400">
-                            © 2026 MARDISA Agro · v2.0.0 · Todos os direitos reservados
+                            © 2026 Gestão 360 · v2.0.0 · Todos os direitos reservados
                         </p>
                     </div>
                 </div>

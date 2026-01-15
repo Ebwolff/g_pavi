@@ -4,62 +4,62 @@
  */
 
 export interface RelatorioDados {
-    titulo: string;
-    subtitulo?: string;
-    colunas: string[];
-    linhas: any[][];
-    totalizadores?: Record<string, string | number>;
+  titulo: string;
+  subtitulo?: string;
+  colunas: string[];
+  linhas: any[][];
+  totalizadores?: Record<string, string | number>;
 }
 
 export const exportService = {
-    /**
-     * Exportar para CSV
-     */
-    exportarCSV(dados: RelatorioDados, nomeArquivo: string = 'relatorio') {
-        const { colunas, linhas } = dados;
+  /**
+   * Exportar para CSV
+   */
+  exportarCSV(dados: RelatorioDados, nomeArquivo: string = 'relatorio') {
+    const { colunas, linhas } = dados;
 
-        // Criar cabeçalho
-        let csvContent = colunas.join(';') + '\n';
+    // Criar cabeçalho
+    let csvContent = colunas.join(';') + '\n';
 
-        // Adicionar linhas
-        linhas.forEach((linha) => {
-            csvContent += linha.map((celula) => {
-                // Escapar vírgulas e aspas
-                const valor = celula?.toString() || '';
-                if (valor.includes(';') || valor.includes('"') || valor.includes('\n')) {
-                    return `"${valor.replace(/"/g, '""')}"`;
-                }
-                return valor;
-            }).join(';') + '\n';
-        });
+    // Adicionar linhas
+    linhas.forEach((linha) => {
+      csvContent += linha.map((celula) => {
+        // Escapar vírgulas e aspas
+        const valor = celula?.toString() || '';
+        if (valor.includes(';') || valor.includes('"') || valor.includes('\n')) {
+          return `"${valor.replace(/"/g, '""')}"`;
+        }
+        return valor;
+      }).join(';') + '\n';
+    });
 
-        // Criar blob e download
-        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' }); // BOM para UTF-8
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
+    // Criar blob e download
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' }); // BOM para UTF-8
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
 
-        link.setAttribute('href', url);
-        link.setAttribute('download', `${nomeArquivo}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    },
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${nomeArquivo}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
 
-    /**
-     * Exportar para Excel (formato CSV mas com extensão .xls)
-     */
-    exportarExcel(dados: RelatorioDados, nomeArquivo: string = 'relatorio') {
-        this.exportarCSV(dados, nomeArquivo);
-    },
+  /**
+   * Exportar para Excel (formato CSV mas com extensão .xls)
+   */
+  exportarExcel(dados: RelatorioDados, nomeArquivo: string = 'relatorio') {
+    this.exportarCSV(dados, nomeArquivo);
+  },
 
-    /**
-     * Gerar HTML para impressão/PDF
-     */
-    gerarHTMLImpressao(dados: RelatorioDados): string {
-        const { titulo, subtitulo, colunas, linhas, totalizadores } = dados;
+  /**
+   * Gerar HTML para impressão/PDF
+   */
+  gerarHTMLImpressao(dados: RelatorioDados): string {
+    const { titulo, subtitulo, colunas, linhas, totalizadores } = dados;
 
-        let html = `
+    let html = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -176,66 +176,66 @@ export const exportService = {
         ` : ''}
         
         <div class="footer">
-          <p>© ${new Date().getFullYear()} MARDISA Agro - Sistema de Gestão Pós-Venda</p>
+          <p>© ${new Date().getFullYear()} Gestão 360 - Sistema de Gestão Pós-Venda</p>
         </div>
       </body>
       </html>
     `;
 
-        return html;
-    },
+    return html;
+  },
 
-    /**
-     * Imprimir relatório (abre janela de impressão)
-     */
-    imprimirRelatorio(dados: RelatorioDados) {
-        const html = this.gerarHTMLImpressao(dados);
+  /**
+   * Imprimir relatório (abre janela de impressão)
+   */
+  imprimirRelatorio(dados: RelatorioDados) {
+    const html = this.gerarHTMLImpressao(dados);
 
-        const janela = window.open('', '_blank', 'width=900,height=700');
-        if (janela) {
-            janela.document.write(html);
-            janela.document.close();
+    const janela = window.open('', '_blank', 'width=900,height=700');
+    if (janela) {
+      janela.document.write(html);
+      janela.document.close();
 
-            // Aguardar carregamento e imprimir
-            janela.onload = () => {
-                janela.focus();
-                setTimeout(() => {
-                    janela.print();
-                }, 250);
-            };
-        }
-    },
+      // Aguardar carregamento e imprimir
+      janela.onload = () => {
+        janela.focus();
+        setTimeout(() => {
+          janela.print();
+        }, 250);
+      };
+    }
+  },
 
-    /**
-     * Salvar como PDF (via impressão do navegador)
-     */
-    salvarPDF(dados: RelatorioDados) {
-        // Mesmo que imprimir, mas o usuário escolhe "Salvar como PDF"
-        this.imprimirRelatorio(dados);
-    },
+  /**
+   * Salvar como PDF (via impressão do navegador)
+   */
+  salvarPDF(dados: RelatorioDados) {
+    // Mesmo que imprimir, mas o usuário escolhe "Salvar como PDF"
+    this.imprimirRelatorio(dados);
+  },
 };
 
 /**
  * Formatar valor monetário
  */
 export const formatarMoeda = (valor: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-    }).format(valor);
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(valor);
 };
 
 /**
  * Formatar data
  */
 export const formatarData = (data: string | Date): string => {
-    const dataObj = typeof data === 'string' ? new Date(data) : data;
-    return new Intl.DateFormat('pt-BR').format(dataObj);
+  const dataObj = typeof data === 'string' ? new Date(data) : data;
+  return new Intl.DateFormat('pt-BR').format(dataObj);
 };
 
 /**
  * Formatar porcentagem
  */
 export const formatarPorcentagem = (valor: number, casasDecimais: number = 1): string => {
-    return `${valor.toFixed(casasDecimais)}%`;
+  return `${valor.toFixed(casasDecimais)}%`;
 };
