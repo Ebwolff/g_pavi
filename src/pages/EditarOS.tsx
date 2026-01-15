@@ -2,11 +2,13 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ordemServicoService } from '@/services/ordemServico.service';
+import { despesasService, DespesaOS, TipoDespesa } from '@/services/despesasService';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { AnchoredValue } from '@/components/cognitive-bias';
+import { ModalLancarDespesa } from '@/components/ui/ModalLancarDespesa';
 import {
     ArrowLeft,
     Save,
@@ -16,7 +18,15 @@ import {
     Wrench,
     DollarSign,
     CheckCircle2,
-    Clock
+    Clock,
+    Car,
+    Fuel,
+    Utensils,
+    Hotel,
+    CircleDollarSign,
+    Plus,
+    MoreHorizontal,
+    X
 } from 'lucide-react';
 
 export function EditarOS() {
@@ -34,6 +44,11 @@ export function EditarOS() {
     const [valorMaoDeObra, setValorMaoDeObra] = useState('0');
     const [valorPecas, setValorPecas] = useState('0');
     const [valorDeslocamento, setValorDeslocamento] = useState('0');
+
+    // Estado para despesas de viagem
+    const [despesas, setDespesas] = useState<DespesaOS[]>([]);
+    const [modalDespesaOpen, setModalDespesaOpen] = useState(false);
+    const [loadingDespesas, setLoadingDespesas] = useState(false);
 
     const { data: os, isLoading } = useQuery({
         queryKey: ['ordem-servico', id],
@@ -54,8 +69,45 @@ export function EditarOS() {
             setValorMaoDeObra(String(os.valor_mao_de_obra));
             setValorPecas(String(os.valor_pecas));
             setValorDeslocamento(String(os.valor_deslocamento));
+            // Carregar despesas da OS
+            carregarDespesas();
         }
     }, [os]);
+
+    const carregarDespesas = async () => {
+        if (!id) return;
+        setLoadingDespesas(true);
+        try {
+            const data = await despesasService.getDespesasPorOS(id);
+            setDespesas(data);
+        } catch (error) {
+            console.error('Erro ao carregar despesas:', error);
+        } finally {
+            setLoadingDespesas(false);
+        }
+    };
+
+    const handleExcluirDespesa = async (despesaId: string) => {
+        if (!confirm('Tem certeza que deseja excluir esta despesa?')) return;
+        try {
+            await despesasService.excluirDespesa(despesaId);
+            await carregarDespesas();
+        } catch (error) {
+            console.error('Erro ao excluir despesa:', error);
+            alert('Erro ao excluir despesa.');
+        }
+    };
+
+    const tiposDespesaIcons: Record<TipoDespesa, { icon: any; color: string }> = {
+        'KM': { icon: Car, color: 'text-blue-400 bg-blue-500/10' },
+        'ABASTECIMENTO': { icon: Fuel, color: 'text-amber-400 bg-amber-500/10' },
+        'ALIMENTACAO': { icon: Utensils, color: 'text-emerald-400 bg-emerald-500/10' },
+        'HOSPEDAGEM': { icon: Hotel, color: 'text-purple-400 bg-purple-500/10' },
+        'PEDAGIO': { icon: CircleDollarSign, color: 'text-rose-400 bg-rose-500/10' },
+        'OUTROS': { icon: MoreHorizontal, color: 'text-slate-400 bg-slate-500/10' },
+    };
+
+    const totalDespesas = despesas.reduce((sum, d) => sum + (d.valor_total || 0), 0);
 
     const updateOSMutation = useMutation({
         mutationFn: (data: any) => ordemServicoService.update(id!, data),
@@ -292,6 +344,79 @@ export function EditarOS() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Card: Despesas de Viagem */}
+                            <div className="glass-card-enterprise p-6 rounded-2xl">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-2">
+                                        <Car className="w-4 h-4 text-blue-500" />
+                                        Despesas de Viagem
+                                    </h2>
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={() => setModalDespesaOpen(true)}
+                                        leftIcon={<Plus className="w-3.5 h-3.5" />}
+                                    >
+                                        Lançar Despesa
+                                    </Button>
+                                </div>
+
+                                {loadingDespesas ? (
+                                    <Skeleton height={100} className="rounded-xl" />
+                                ) : despesas.length === 0 ? (
+                                    <div className="text-center py-8 text-[var(--text-muted)]">
+                                        <Car className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                                        <p className="text-sm">Nenhuma despesa lançada</p>
+                                        <p className="text-xs mt-1">Clique em "Lançar Despesa" para adicionar</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {despesas.map((despesa) => {
+                                            const tipoInfo = tiposDespesaIcons[despesa.tipo];
+                                            const Icon = tipoInfo?.icon || MoreHorizontal;
+                                            return (
+                                                <div
+                                                    key={despesa.id}
+                                                    className="flex items-center justify-between p-3 bg-white/[0.02] rounded-xl border border-white/5 group hover:bg-white/[0.04] transition-all"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`p-2 rounded-lg ${tipoInfo?.color || 'bg-slate-500/10'}`}>
+                                                            <Icon className="w-4 h-4" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-[var(--text-primary)]">
+                                                                {despesa.descricao || despesa.tipo}
+                                                            </p>
+                                                            <p className="text-xs text-[var(--text-muted)]">
+                                                                {new Date(despesa.data_despesa).toLocaleDateString('pt-BR')}
+                                                                {despesa.tipo === 'KM' && despesa.quantidade && ` • ${despesa.quantidade} km`}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-sm font-bold text-emerald-400">
+                                                            {formatCurrency(despesa.valor_total)}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => handleExcluirDespesa(despesa.id)}
+                                                            className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-rose-500/10 text-rose-400 transition-all"
+                                                        >
+                                                            <X className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+
+                                        {/* Total */}
+                                        <div className="pt-3 mt-3 border-t border-white/5 flex justify-between items-center">
+                                            <span className="text-xs font-bold text-[var(--text-muted)] uppercase">Total Despesas</span>
+                                            <span className="text-lg font-black text-emerald-400">{formatCurrency(totalDespesas)}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* Sidebar: Totais */}
@@ -364,6 +489,15 @@ export function EditarOS() {
                         </div>
                     </div>
                 </form>
+
+                {/* Modal de Lançar Despesa */}
+                <ModalLancarDespesa
+                    isOpen={modalDespesaOpen}
+                    onClose={() => setModalDespesaOpen(false)}
+                    osId={id || ''}
+                    osNumero={numeroOS}
+                    onSuccess={carregarDespesas}
+                />
             </div>
         </AppLayout>
     );
