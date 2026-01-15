@@ -113,14 +113,51 @@ export default function PainelChefeOficina() {
 
             setDistribuicaoStatus(distribuicao);
 
-            // Buscar técnicos da tabela tecnicos (com join no profile)
+            // Buscar técnicos da tabela tecnicos
             const { data: tecnicosData } = await supabase
                 .from('tecnicos' as any)
                 .select('id, nome_completo, user_id');
 
+            // Também buscar profiles com role TECNICO (para compatibilidade com cadastros antigos)
+            const { data: profilesTecnicos } = await supabase
+                .from('profiles')
+                .select('id, first_name, last_name')
+                .eq('role', 'TECNICO');
+
+            // Criar mapa de user_id -> tecnico para evitar duplicatas
+            const tecnicosPorUserId = new Map<string, any>();
+            (tecnicosData || []).forEach((t: any) => {
+                if (t.user_id) tecnicosPorUserId.set(t.user_id, t);
+            });
+
+            // Combinar listas: técnicos da tabela tecnicos + profiles que não estão na tabela tecnicos
+            const todosOsTecnicos: any[] = [];
+
+            // Primeiro adiciona os técnicos da tabela tecnicos
+            (tecnicosData || []).forEach((tecnico: any) => {
+                todosOsTecnicos.push({
+                    id: tecnico.id,
+                    nome: tecnico.nome_completo || 'Técnico s/ nome',
+                    isFromTecnicosTable: true,
+                    profileId: tecnico.user_id
+                });
+            });
+
+            // Depois adiciona profiles com role TECNICO que não têm registro na tabela tecnicos
+            (profilesTecnicos || []).forEach((profile: any) => {
+                if (!tecnicosPorUserId.has(profile.id)) {
+                    todosOsTecnicos.push({
+                        id: profile.id, // Usa profile.id como fallback (pode causar erro na atribuição se não migrado)
+                        nome: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Técnico s/ nome',
+                        isFromTecnicosTable: false,
+                        profileId: profile.id
+                    });
+                }
+            });
+
             const tecnicosComOS = await Promise.all(
-                (tecnicosData || []).map(async (tecnico: any) => {
-                    // Buscar OS atribuídas a este técnico (usando o ID da tabela tecnicos)
+                todosOsTecnicos.map(async (tecnico: any) => {
+                    // Buscar OS atribuídas a este técnico
                     const { data: osDoTecnico } = await supabase
                         .from('ordens_servico')
                         .select('status_atual')
@@ -129,8 +166,8 @@ export default function PainelChefeOficina() {
 
                     const osTecnico = osDoTecnico || [];
                     return {
-                        id: tecnico.id, // Este é o ID correto da tabela tecnicos
-                        nome: tecnico.nome_completo || 'Técnico s/ nome',
+                        id: tecnico.id,
+                        nome: tecnico.nome,
                         osAtribuidas: osTecnico.length,
                         osEmExecucao: osTecnico.filter((o: any) => o.status_atual === 'EM_EXECUCAO').length,
                         osConcluidas: osTecnico.filter((o: any) => o.status_atual === 'CONCLUIDA').length,
