@@ -100,7 +100,7 @@ export default function PainelCompras() {
 
     return (
         <AppLayout>
-            <div className="p-8 animate-fadeIn">
+            <div className="p-6 md:p-8 animate-fadeIn max-w-[1600px] mx-auto">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                     <div>
@@ -129,7 +129,7 @@ export default function PainelCompras() {
                 </div>
 
                 {/* Cards de Estatísticas Premium */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
                     {loading ? (
                         [1, 2, 3, 4, 5].map(i => <Skeleton key={i} height={140} className="rounded-xl" />)
                     ) : (
@@ -172,7 +172,7 @@ export default function PainelCompras() {
                 </div>
 
                 {/* Filtros Section */}
-                <div className="glass-card-enterprise p-6 mb-8">
+                <div className="glass-card-enterprise p-5 md:p-6 rounded-2xl mb-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {/* Busca */}
                         <div className="lg:col-span-2">
@@ -233,148 +233,150 @@ export default function PainelCompras() {
                 </div>
 
                 {/* Tabela de Solicitações */}
-                <Table>
-                    <THead>
-                        <TR>
-                            <TH>Urgência</TH>
-                            <TH>Peça</TH>
-                            <TH>OS / Cliente</TH>
-                            <TH className="text-center">Qtd</TH>
-                            <TH>SLA</TH>
-                            <TH>Status</TH>
-                            <TH>Previsão</TH>
-                            <TH className="text-right">Ações</TH>
-                        </TR>
-                    </THead>
-                    <TBody>
-                        {loading ? (
-                            [1, 2, 3, 4, 5].map((i) => (
-                                <TR key={i}>
-                                    <TD><Skeleton width={80} height={20} /></TD>
-                                    <TD><Skeleton width={120} height={20} /></TD>
-                                    <TD><Skeleton width={150} height={20} /></TD>
-                                    <TD className="text-center"><Skeleton width={40} height={20} className="mx-auto" /></TD>
-                                    <TD><Skeleton width={40} height={20} /></TD>
-                                    <TD><Skeleton width={100} height={20} /></TD>
-                                    <TD><Skeleton width={80} height={20} /></TD>
-                                    <TD className="text-right"><Skeleton width={80} height={32} className="ml-auto" /></TD>
-                                </TR>
-                            ))
-                        ) : solicitacoesFiltradas.length === 0 ? (
+                <div className="glass-card-enterprise rounded-2xl overflow-hidden">
+                    <Table>
+                        <THead>
                             <TR>
-                                <TD colSpan={8} className="py-20 text-center">
-                                    <EmptyState
-                                        icon={PackageOpen}
-                                        title="Nenhuma solicitação encontrada"
-                                        description="Você não possui solicitações ativas ou que correspondam aos filtros aplicados."
-                                        className="py-0"
-                                    />
-                                </TD>
+                                <TH>Urgência</TH>
+                                <TH>Peça</TH>
+                                <TH>OS / Cliente</TH>
+                                <TH className="text-center">Qtd</TH>
+                                <TH>SLA</TH>
+                                <TH>Status</TH>
+                                <TH>Previsão</TH>
+                                <TH className="text-right">Ações</TH>
                             </TR>
-                        ) : (
-                            solicitacoesFiltradas.map((sol) => (
-                                <TR key={sol.id}>
-                                    {/* Urgência */}
-                                    <TD>
-                                        <CustomBadge
-                                            label={sol.urgencia}
-                                            variant={
-                                                sol.urgencia === 'CRITICA' ? 'red' :
-                                                    sol.urgencia === 'ALTA' ? 'orange' :
-                                                        sol.urgencia === 'MEDIA' ? 'blue' : 'gray'
-                                            }
-                                            className={sol.urgencia === 'CRITICA' ? 'animate-pulse' : ''}
+                        </THead>
+                        <TBody>
+                            {loading ? (
+                                [1, 2, 3, 4, 5].map((i) => (
+                                    <TR key={i}>
+                                        <TD><Skeleton width={80} height={20} /></TD>
+                                        <TD><Skeleton width={120} height={20} /></TD>
+                                        <TD><Skeleton width={150} height={20} /></TD>
+                                        <TD className="text-center"><Skeleton width={40} height={20} className="mx-auto" /></TD>
+                                        <TD><Skeleton width={40} height={20} /></TD>
+                                        <TD><Skeleton width={100} height={20} /></TD>
+                                        <TD><Skeleton width={80} height={20} /></TD>
+                                        <TD className="text-right"><Skeleton width={80} height={32} className="ml-auto" /></TD>
+                                    </TR>
+                                ))
+                            ) : solicitacoesFiltradas.length === 0 ? (
+                                <TR>
+                                    <TD colSpan={8} className="py-20 text-center">
+                                        <EmptyState
+                                            icon={PackageOpen}
+                                            title="Nenhuma solicitação encontrada"
+                                            description="Você não possui solicitações ativas ou que correspondam aos filtros aplicados."
+                                            className="py-0"
                                         />
                                     </TD>
-
-                                    {/* Peça */}
-                                    <TD>
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-[var(--text-primary)]">{sol.descricao_peca}</span>
-                                            {sol.codigo_peca && (
-                                                <span className="text-[10px] font-bold text-[var(--text-muted)] tracking-widest mt-0.5 uppercase">
-                                                    COD: {sol.codigo_peca}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </TD>
-
-                                    {/* OS / Cliente */}
-                                    <TD>
-                                        <div className="flex flex-col">
-                                            {sol.numero_os && (
-                                                <span className="font-bold text-blue-400">OS {sol.numero_os}</span>
-                                            )}
-                                            <span className="text-xs text-[var(--text-muted)] truncate max-w-[180px]">
-                                                {sol.cliente || 'Sem OS vinculada'}
-                                            </span>
-                                        </div>
-                                    </TD>
-
-                                    {/* Quantidade */}
-                                    <TD className="text-center font-bold text-[var(--text-primary)]">
-                                        {sol.quantidade} <span className="text-[10px] text-[var(--text-muted)] ml-0.5">{sol.unidade}</span>
-                                    </TD>
-
-                                    {/* Dias aguardando */}
-                                    <TD>
-                                        <span className={`font-bold ${(sol.dias_aguardando || 0) > 7 ? 'text-rose-500' : (sol.dias_aguardando || 0) > 3 ? 'text-amber-500' : 'text-emerald-500'}`}>
-                                            {sol.dias_aguardando || 0}d
-                                        </span>
-                                    </TD>
-
-                                    {/* Status */}
-                                    <TD>
-                                        <StatusBadge status={sol.status as any} />
-                                    </TD>
-
-                                    {/* Previsão */}
-                                    <TD>
-                                        {sol.data_previsao_entrega ? (
-                                            <div className="flex items-center gap-2 text-[var(--text-secondary)] font-medium">
-                                                <Calendar className="w-3.5 h-3.5 text-blue-500" />
-                                                {formatDate(sol.data_previsao_entrega)}
-                                            </div>
-                                        ) : (
-                                            <input
-                                                type="date"
-                                                onChange={(e) => handleDefinirPrevisao(sol.id, e.target.value)}
-                                                className="bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded px-2 py-1 text-[10px] text-[var(--text-secondary)] focus:border-blue-500 outline-none"
-                                            />
-                                        )}
-                                    </TD>
-
-                                    {/* Ações */}
-                                    <TD className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            {sol.status === 'PENDENTE' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    onClick={() => handleAtualizarStatus(sol.id, 'EM_COTACAO')}
-                                                >
-                                                    Cotar
-                                                </Button>
-                                            )}
-                                            {sol.status === 'AGUARDANDO_ENTREGA' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="primary"
-                                                    onClick={() => handleAtualizarStatus(sol.id, 'ENTREGUE')}
-                                                >
-                                                    Entregar
-                                                </Button>
-                                            )}
-                                            <button className="p-2 rounded-lg bg-[var(--surface-light)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-blue-500 transition-all">
-                                                <MoreHorizontal className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </TD>
                                 </TR>
-                            ))
-                        )}
-                    </TBody>
-                </Table>
+                            ) : (
+                                solicitacoesFiltradas.map((sol) => (
+                                    <TR key={sol.id}>
+                                        {/* Urgência */}
+                                        <TD>
+                                            <CustomBadge
+                                                label={sol.urgencia}
+                                                variant={
+                                                    sol.urgencia === 'CRITICA' ? 'red' :
+                                                        sol.urgencia === 'ALTA' ? 'orange' :
+                                                            sol.urgencia === 'MEDIA' ? 'blue' : 'gray'
+                                                }
+                                                className={sol.urgencia === 'CRITICA' ? 'animate-pulse' : ''}
+                                            />
+                                        </TD>
+
+                                        {/* Peça */}
+                                        <TD>
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-[var(--text-primary)]">{sol.descricao_peca}</span>
+                                                {sol.codigo_peca && (
+                                                    <span className="text-[10px] font-bold text-[var(--text-muted)] tracking-widest mt-0.5 uppercase">
+                                                        COD: {sol.codigo_peca}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </TD>
+
+                                        {/* OS / Cliente */}
+                                        <TD>
+                                            <div className="flex flex-col">
+                                                {sol.numero_os && (
+                                                    <span className="font-bold text-blue-400">OS {sol.numero_os}</span>
+                                                )}
+                                                <span className="text-xs text-[var(--text-muted)] truncate max-w-[180px]">
+                                                    {sol.cliente || 'Sem OS vinculada'}
+                                                </span>
+                                            </div>
+                                        </TD>
+
+                                        {/* Quantidade */}
+                                        <TD className="text-center font-bold text-[var(--text-primary)]">
+                                            {sol.quantidade} <span className="text-[10px] text-[var(--text-muted)] ml-0.5">{sol.unidade}</span>
+                                        </TD>
+
+                                        {/* Dias aguardando */}
+                                        <TD>
+                                            <span className={`font-bold ${(sol.dias_aguardando || 0) > 7 ? 'text-rose-500' : (sol.dias_aguardando || 0) > 3 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                                {sol.dias_aguardando || 0}d
+                                            </span>
+                                        </TD>
+
+                                        {/* Status */}
+                                        <TD>
+                                            <StatusBadge status={sol.status as any} />
+                                        </TD>
+
+                                        {/* Previsão */}
+                                        <TD>
+                                            {sol.data_previsao_entrega ? (
+                                                <div className="flex items-center gap-2 text-[var(--text-secondary)] font-medium">
+                                                    <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                                                    {formatDate(sol.data_previsao_entrega)}
+                                                </div>
+                                            ) : (
+                                                <input
+                                                    type="date"
+                                                    onChange={(e) => handleDefinirPrevisao(sol.id, e.target.value)}
+                                                    className="bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded px-2 py-1 text-[10px] text-[var(--text-secondary)] focus:border-blue-500 outline-none"
+                                                />
+                                            )}
+                                        </TD>
+
+                                        {/* Ações */}
+                                        <TD className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                {sol.status === 'PENDENTE' && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        onClick={() => handleAtualizarStatus(sol.id, 'EM_COTACAO')}
+                                                    >
+                                                        Cotar
+                                                    </Button>
+                                                )}
+                                                {sol.status === 'AGUARDANDO_ENTREGA' && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="primary"
+                                                        onClick={() => handleAtualizarStatus(sol.id, 'ENTREGUE')}
+                                                    >
+                                                        Entregar
+                                                    </Button>
+                                                )}
+                                                <button className="p-2 rounded-lg bg-[var(--surface-light)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-blue-500 transition-all">
+                                                    <MoreHorizontal className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </TD>
+                                    </TR>
+                                ))
+                            )}
+                        </TBody>
+                    </Table>
+                </div>
             </div>
         </AppLayout>
     );
