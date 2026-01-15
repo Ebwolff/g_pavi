@@ -201,20 +201,67 @@ export default function PainelChefeOficina() {
     const handleAtribuirTecnico = async (tecnicoId: string) => {
         if (!selectedOS) return;
 
-        const { error } = await supabase
-            .from('ordens_servico')
-            .update({ tecnico_id: tecnicoId })
-            .eq('id', selectedOS.id);
+        try {
+            // Primeiro, verificar se o ID existe na tabela tecnicos
+            const { data: tecnicoExistente } = await supabase
+                .from('tecnicos' as any)
+                .select('id')
+                .eq('id', tecnicoId)
+                .single();
 
-        if (error) {
+            let idParaAtribuir = tecnicoId;
+
+            // Se não existe na tabela tecnicos, pode ser um profile.id (fallback)
+            // Nesse caso, criar o registro na tabela tecnicos primeiro
+            if (!tecnicoExistente) {
+                // Buscar dados do profile
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('id, first_name, last_name')
+                    .eq('id', tecnicoId)
+                    .single();
+
+                if (profile) {
+                    // Criar registro na tabela tecnicos
+                    const { data: novoTecnico, error: createError } = await supabase
+                        .from('tecnicos' as any)
+                        .insert({
+                            user_id: profile.id,
+                            nome_completo: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Técnico'
+                        })
+                        .select('id')
+                        .single();
+
+                    if (createError) {
+                        console.error('Erro ao criar técnico:', createError);
+                        throw new Error('Não foi possível registrar o técnico. Tente cadastrá-lo manualmente.');
+                    }
+
+                    idParaAtribuir = novoTecnico.id;
+                } else {
+                    throw new Error('Técnico não encontrado');
+                }
+            }
+
+            // Agora atribuir a OS ao técnico
+            const { error } = await supabase
+                .from('ordens_servico')
+                .update({ tecnico_id: idParaAtribuir })
+                .eq('id', selectedOS.id);
+
+            if (error) {
+                console.error('Erro ao atribuir técnico:', error);
+                throw error;
+            }
+
+            // Recarregar dados
+            await carregarDados();
+            setModalOpen(false);
+            setSelectedOS(null);
+        } catch (error) {
             console.error('Erro ao atribuir técnico:', error);
             throw error;
         }
-
-        // Recarregar dados
-        await carregarDados();
-        setModalOpen(false);
-        setSelectedOS(null);
     };
 
     const openAssignModal = (os: OSNaoAtribuida) => {
