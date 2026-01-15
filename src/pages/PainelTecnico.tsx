@@ -56,7 +56,7 @@ export default function PainelTecnico() {
 
         setLoading(true);
         try {
-            // Buscar OS atribuídas ao técnico
+            // Buscar OS ativas (não canceladas/faturadas)
             const { data: osData, error: osError } = await supabase
                 .from('ordens_servico')
                 .select(`
@@ -64,13 +64,13 @@ export default function PainelTecnico() {
                     numero_os,
                     nome_cliente_digitavel,
                     modelo_maquina,
-                    status,
+                    status_atual,
                     data_abertura,
-                    descricao_problema,
-                    itens_os (count)
+                    descricao_problema
                 `)
-                .eq('tecnico_id', user.id)
-                .order('data_abertura', { ascending: false });
+                .not('status_atual', 'in', '(CANCELADA,FATURADA)')
+                .order('data_abertura', { ascending: false })
+                .limit(50);
 
             if (osError) throw osError;
 
@@ -79,10 +79,10 @@ export default function PainelTecnico() {
                 numero_os: os.numero_os,
                 nome_cliente_digitavel: os.nome_cliente_digitavel,
                 modelo_maquina: os.modelo_maquina,
-                status: os.status,
+                status: os.status_atual,
                 data_abertura: os.data_abertura,
                 descricao_problema: os.descricao_problema,
-                pecas_lancadas: os.itens_os?.[0]?.count || 0
+                pecas_lancadas: 0
             }));
 
             setOsAtribuidas(osFormatadas);
@@ -90,7 +90,7 @@ export default function PainelTecnico() {
             // Calcular estatísticas
             setEstatisticas({
                 totalOS: osFormatadas.length,
-                emAndamento: osFormatadas.filter((os: any) => os.status === 'EM_ANDAMENTO').length,
+                emAndamento: osFormatadas.filter((os: any) => os.status === 'EM_EXECUCAO').length,
                 aguardandoPecas: osFormatadas.filter((os: any) => os.status === 'AGUARDANDO_PECAS').length,
                 concluidas: osFormatadas.filter((os: any) => os.status === 'CONCLUIDA').length
             });
@@ -141,25 +141,21 @@ export default function PainelTecnico() {
                     <MetricCard
                         label="Total de OS"
                         value={estatisticas.totalOS}
-                        icon={Wrench}
                         trend="stable"
                     />
                     <MetricCard
                         label="Em Andamento"
                         value={estatisticas.emAndamento}
-                        icon={Clock}
                         trend="stable"
                     />
                     <MetricCard
                         label="Aguardando Peças"
                         value={estatisticas.aguardandoPecas}
-                        icon={Package}
                         trend={estatisticas.aguardandoPecas > 0 ? 'down' : 'stable'}
                     />
                     <MetricCard
                         label="Concluídas"
                         value={estatisticas.concluidas}
-                        icon={CheckCircle}
                         trend="up"
                     />
                 </div>
