@@ -56,7 +56,24 @@ export default function PainelTecnico() {
 
         setLoading(true);
         try {
-            // Buscar OS ativas (não canceladas/faturadas)
+            // Primeiro, buscar o técnico vinculado ao profile do usuário logado
+            // A relação é: auth.users.id = profiles.id = tecnicos.user_id
+            const { data: tecnicoData } = await supabase
+                .from('tecnicos' as any)
+                .select('id')
+                .eq('user_id', user.id)
+                .single();
+
+            if (!tecnicoData?.id) {
+                // Usuário não é um técnico cadastrado
+                console.log('Usuário não possui cadastro de técnico');
+                setOsAtribuidas([]);
+                setEstatisticas({ totalOS: 0, emAndamento: 0, aguardandoPecas: 0, concluidas: 0 });
+                setLoading(false);
+                return;
+            }
+
+            // Buscar OS atribuídas a este técnico
             const { data: osData, error: osError } = await supabase
                 .from('ordens_servico')
                 .select(`
@@ -68,9 +85,9 @@ export default function PainelTecnico() {
                     data_abertura,
                     descricao_problema
                 `)
+                .eq('tecnico_id', tecnicoData.id)
                 .not('status_atual', 'in', '(CANCELADA,FATURADA)')
-                .order('data_abertura', { ascending: false })
-                .limit(50);
+                .order('data_abertura', { ascending: false });
 
             if (osError) throw osError;
 
