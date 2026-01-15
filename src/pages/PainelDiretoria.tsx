@@ -206,6 +206,10 @@ export default function PainelDiretoria() {
     const statusLabels: Record<string, string> = {
         'EM_EXECUCAO': 'Em Execução',
         'AGUARDANDO_PECAS': 'Aguardando Peças',
+        'AGUARDANDO_APROVACAO_ORCAMENTO': 'Aguardando Orçamento',
+        'AGUARDANDO_PAGAMENTO': 'Aguardando Pagamento',
+        'EM_DIAGNOSTICO': 'Em Diagnóstico',
+        'EM_TRANSITO': 'Em Trânsito',
         'PAUSADA': 'Pausada',
         'CONCLUIDA': 'Concluída',
         'FATURADA': 'Faturada',
@@ -361,8 +365,8 @@ export default function PainelDiretoria() {
                                     <div key={idx} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/[0.05] rounded-xl group hover:border-emerald-500/20 transition-all">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${idx === 0 ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)]' :
-                                                    idx === 1 ? 'bg-slate-300/20 text-slate-300 border border-slate-300/30 font-mono' :
-                                                        idx === 2 ? 'bg-orange-400/20 text-orange-400 border border-orange-400/30' : 'bg-white/5 text-[var(--text-muted)] border border-white/5'
+                                                idx === 1 ? 'bg-slate-300/20 text-slate-300 border border-slate-300/30 font-mono' :
+                                                    idx === 2 ? 'bg-orange-400/20 text-orange-400 border border-orange-400/30' : 'bg-white/5 text-[var(--text-muted)] border border-white/5'
                                                 }`}>
                                                 {idx + 1}
                                             </div>
@@ -386,6 +390,47 @@ export default function PainelDiretoria() {
                                 ))
                             )}
                         </div>
+                    </div>
+                </div>
+
+                {/* Seção: Visão de Gargalos por Motivo */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-amber-500/10 rounded-xl">
+                            <AlertTriangle className="w-5 h-5 text-amber-500" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-black text-[var(--text-primary)] uppercase tracking-tight">
+                                Análise de Gargalos por Motivo
+                            </h3>
+                            <p className="text-xs text-[var(--text-muted)]">Métricas mensuráveis dos principais pontos de retenção operacional</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        {[
+                            { status: 'AGUARDANDO_APROVACAO_ORCAMENTO', label: 'Aguardando Orçamento', icon: '💰', bgColor: 'from-amber-500/10 to-yellow-500/5', borderColor: 'border-amber-500/20' },
+                            { status: 'AGUARDANDO_PECAS', label: 'Aguardando Peças', icon: '📦', bgColor: 'from-orange-500/10 to-red-500/5', borderColor: 'border-orange-500/20' },
+                            { status: 'AGUARDANDO_PAGAMENTO', label: 'Aguardando Pagamento', icon: '💳', bgColor: 'from-emerald-500/10 to-green-500/5', borderColor: 'border-emerald-500/20' },
+                            { status: 'EM_DIAGNOSTICO', label: 'Em Diagnóstico', icon: '🔍', bgColor: 'from-cyan-500/10 to-blue-500/5', borderColor: 'border-cyan-500/20' },
+                            { status: 'EM_TRANSITO', label: 'Em Trânsito', icon: '🚚', bgColor: 'from-indigo-500/10 to-purple-500/5', borderColor: 'border-indigo-500/20' },
+                        ].map((item) => {
+                            const gargalo = kpis.gargalos.find(g => g.status === item.status);
+                            const quantidade = gargalo?.quantidade || 0;
+                            const tempoMedio = gargalo?.tempoMedio || 0;
+                            const criticidade = tempoMedio > 30 ? 'text-rose-400' : tempoMedio > 14 ? 'text-amber-400' : 'text-emerald-400';
+
+                            return (
+                                <div key={item.status} className={`glass-card-enterprise p-4 rounded-2xl bg-gradient-to-br ${item.bgColor} border ${item.borderColor} hover:scale-[1.02] transition-transform`}>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <span className="text-2xl">{item.icon}</span>
+                                        <span className={`text-xl font-black ${criticidade}`}>~{tempoMedio}d</span>
+                                    </div>
+                                    <p className="text-3xl font-black text-[var(--text-primary)] mb-1">{quantidade}</p>
+                                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wide">{item.label}</p>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 
