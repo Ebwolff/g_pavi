@@ -36,69 +36,74 @@ export function DashboardNovo() {
     const [erro, setErro] = useState<string | null>(null);
 
     const carregarDados = async () => {
-        // Timeout global de 45 segundos para todo o carregamento (auth + 5 chamadas de serviço)
-        const timeoutPromise = new Promise<void>((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout global ao carregar dashboard')), 45000)
-        );
+        console.log('🔄 Iniciando carregamento de dados...');
+        setErro(null);
+        setAtualizando(true);
 
-        const fetchAllData = async () => {
-            console.log('🔄 Iniciando carregamento de dados...');
-            setErro(null);
-            setAtualizando(true);
-
-            console.log('📊 Buscando dashboard stats...');
-            const statsData = await statsService.getDashboardStats();
-            console.log('✅ Stats recebidos:', statsData);
-
-            console.log('📈 Buscando tendência...');
-            const tendenciaData = await statsService.getTendenciaOS(30);
-            console.log('✅ Tendência recebida');
-
-            console.log('📊 Buscando distribuição...');
-            const distribuicaoData = await statsService.getDistribuicaoStatus();
-            console.log('✅ Distribuição recebida');
-
-            console.log('👥 Buscando consultores...');
-            const consultoresData = await statsService.getConsultorPerformance();
-            console.log('✅ Consultores recebidos');
-
-            console.log('🏆 Buscando top clientes...');
-            const clientesData = await statsService.getTopClientes(10);
-            console.log('✅ Clientes recebidos');
-
-            setStats(statsData);
-            setTendencia(tendenciaData);
-            setDistribuicao(distribuicaoData);
-            setConsultores(consultoresData);
-            setTopClientes(clientesData);
-
-            console.log('✅ Todos os dados carregados com sucesso!');
-        };
+        // Safety timeout: Se demorar mais de 15s, mostrar dados vazios
+        const safetyTimeout = setTimeout(() => {
+            console.warn('⚠️ Safety timeout atingido - forçando fim do loading');
+            setLoading(false);
+            setAtualizando(false);
+        }, 15000);
 
         try {
-            await Promise.race([fetchAllData(), timeoutPromise]);
-        } catch (error: any) {
-            console.error('❌ Erro ao carregar dashboard:', error);
-
-            // Detectar tipo de erro
-            if (error?.message?.includes('Timeout')) {
-                console.warn('⏰ Timeout atingido - mostrando dados zerados');
-                // Definir dados zerados como fallback
-                setStats({
-                    totalOS: 0, osAbertas: 0, osConcluidas: 0, osCanceladas: 0,
-                    osNormal: 0, osGarantia: 0,
-                    osCriticas: 0, osAltas: 0, osMedias: 0, osNormais: 0,
-                    valorTotal: 0, valorNormal: 0, valorGarantia: 0, valorMedioOS: 0,
-                    tempoMedioResolucao: 0, diasMedioEmAberto: 0,
-                    totalPendencias: 0, pendenciasAbertas: 0,
-                    totalAlertas: 0, alertasNaoLidos: 0
-                });
-            } else if (error?.message?.includes('relation') || error?.message?.includes('does not exist') || error?.code === '42P01') {
-                setErro('migration');
-            } else {
-                setErro('generico');
+            // Carregar cada serviço individualmente para não travar tudo
+            try {
+                console.log('📊 Buscando dashboard stats...');
+                const statsData = await statsService.getDashboardStats();
+                console.log('✅ Stats recebidos:', statsData);
+                setStats(statsData);
+            } catch (e: any) {
+                console.error('❌ Erro em getDashboardStats:', e);
+                setErro(e.message || 'Erro ao carregar estatísticas');
+                setLoading(false);
+                setAtualizando(false);
+                return; // Parar execução se o principal falhar
             }
+
+            try {
+                console.log('📈 Buscando tendência...');
+                const tendenciaData = await statsService.getTendenciaOS(30);
+                console.log('✅ Tendência recebida');
+                setTendencia(tendenciaData);
+            } catch (e) {
+                console.error('❌ Erro em getTendenciaOS:', e);
+            }
+
+            try {
+                console.log('📊 Buscando distribuição...');
+                const distribuicaoData = await statsService.getDistribuicaoStatus();
+                console.log('✅ Distribuição recebida');
+                setDistribuicao(distribuicaoData);
+            } catch (e) {
+                console.error('❌ Erro em getDistribuicaoStatus:', e);
+            }
+
+            try {
+                console.log('👥 Buscando consultores...');
+                const consultoresData = await statsService.getConsultorPerformance();
+                console.log('✅ Consultores recebidos');
+                setConsultores(consultoresData);
+            } catch (e) {
+                console.error('❌ Erro em getConsultorPerformance:', e);
+            }
+
+            try {
+                console.log('🏆 Buscando top clientes...');
+                const clientesData = await statsService.getTopClientes(10);
+                console.log('✅ Clientes recebidos');
+                setTopClientes(clientesData);
+            } catch (e) {
+                console.error('❌ Erro em getTopClientes:', e);
+            }
+
+            console.log('✅ Todos os dados processados!');
+        } catch (error: any) {
+            console.error('❌ Erro geral ao carregar dashboard:', error);
+            setErro('generico');
         } finally {
+            clearTimeout(safetyTimeout);
             setLoading(false);
             setAtualizando(false);
             console.log('🏁 Carregamento finalizado');
@@ -202,6 +207,47 @@ export function DashboardNovo() {
                         <RefreshCw className="w-4 h-4" />
                         Tentar Novamente
                     </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Carregando painel analítico...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (erro) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
+                    <div className="bg-red-100 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <AlertCircle className="w-8 h-8 text-red-600" />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">Erro ao carregar dados</h2>
+                    <p className="text-gray-600 mb-6">
+                        {erro === 'generico'
+                            ? 'Ocorreu um erro ao conectar com o servidor. Por favor, tente novamente.'
+                            : erro}
+                    </p>
+                    <button
+                        onClick={carregarDados}
+                        className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center justify-center gap-2"
+                    >
+                        <RefreshCw className="w-4 h-4" />
+                        Tentar Novamente
+                    </button>
+                    {!erro.includes('Timeout') && (
+                        <p className="mt-4 text-xs text-gray-400">
+                            Dica: Se o erro persistir, tente sair e entrar novamente no sistema.
+                        </p>
+                    )}
                 </div>
             </div>
         );

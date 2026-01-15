@@ -89,6 +89,15 @@ class AuthService {
     }
 
     /**
+     * Força refresh do token da sessão
+     */
+    async refreshSession() {
+        const { data, error } = await supabase.auth.refreshSession();
+        if (error) throw error;
+        return data;
+    }
+
+    /**
      * Redefine senha (envia email)
      */
     async resetPassword(email: string) {

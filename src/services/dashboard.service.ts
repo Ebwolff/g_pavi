@@ -12,11 +12,24 @@ export interface DashboardKPIs {
 
 class DashboardService {
     async getKPIs(): Promise<{ kpis: DashboardKPIs; historico: any[] }> {
-        // Envolver toda a lógica em um Promise.race para timeout
         const dataFetch = async () => {
             console.log('📊 [dashboardService] Iniciando getKPIs...');
 
+            // Verificar estado de autenticação
+            const { data: { session }, error: authError } = await supabase.auth.getSession();
+            console.log('🔐 [dashboardService] Sessão:', session ? 'ATIVA' : 'INATIVA', 'User ID:', session?.user?.id || 'N/A', 'Erro:', authError);
+
+            if (!session) {
+                console.error('❌ [dashboardService] Usuário não autenticado! RLS bloqueará a leitura.');
+                throw new Error('Sessão expirada. Faça login novamente.');
+            }
+
+            // Otimização: Limitar aos últimos 5 anos para garantir visão de dados antigos
+            const fiveYearsAgo = new Date();
+            fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+
             // 1. Total de OS abertas (não faturadas)
+            // count é eficiente, não precisa mudar
             const { count: totalOsAbertas, error: err1 } = await supabase
                 .from('ordens_servico')
                 .select('*', { count: 'exact', head: true })
@@ -24,7 +37,10 @@ class DashboardService {
 
             console.log('📊 [dashboardService] totalOsAbertas:', totalOsAbertas, 'erro:', err1);
 
+            if (err1) throw err1;
+
             // 2. OS Normal (não faturadas)
+            // Buscar apenas valor_liquido_total
             const { data: osNormal, error: err2 } = await supabase
                 .from('ordens_servico')
                 .select('valor_liquido_total')
@@ -32,49 +48,49 @@ class DashboardService {
                 .is('data_faturamento', null);
 
             console.log('📊 [dashboardService] osNormal:', osNormal?.length, 'erro:', err2);
+            if (err2) throw err2;
 
             // 3. OS Garantia (não faturadas)
-            const { data: osGarantia } = await supabase
+            const { data: osGarantia, error: err3 } = await supabase
                 .from('ordens_servico')
                 .select('valor_liquido_total')
                 .eq('tipo_os', 'GARANTIA')
                 .is('data_faturamento', null);
 
+            if (err3) throw err3;
+
             // 4. Calcular valores
             const valorNormal = osNormal?.reduce(
-                (sum, os) => sum + Number(os.valor_liquido_total),
+                (sum, os) => sum + Number(os.valor_liquido_total || 0),
                 0
             ) || 0;
 
             const valorGarantia = osGarantia?.reduce(
-                (sum, os) => sum + Number(os.valor_liquido_total),
+                (sum, os) => sum + Number(os.valor_liquido_total || 0),
                 0
             ) || 0;
 
-            // 5. Tempo médio de execução (OS fechadas)
-            const { data: osFechadas } = await supabase
+            // 5. Tempo médio de execução (OS fechadas nos últimos 12 meses)
+            // Otimização: Filtrar por data para não pegar histórico todo
+            const { data: osFechadas, error: err4 } = await supabase
                 .from('ordens_servico')
                 .select('data_abertura, data_fechamento')
-                .not('data_fechamento', 'is', null);
+                .not('data_fechamento', 'is', null)
+                .gte('data_abertura', fiveYearsAgo.toISOString());
+
+            if (err4) throw err4;
 
             let tmeMediaDias = 0;
             if (osFechadas && osFechadas.length > 0) {
                 const totalDias = osFechadas.reduce((sum, os) => {
+                    if (!os.data_abertura || !os.data_fechamento) return sum;
                     const abertura = new Date(os.data_abertura).getTime();
-                    const fechamento = new Date(os.data_fechamento!).getTime();
+                    const fechamento = new Date(os.data_fechamento).getTime();
                     const dias = (fechamento - abertura) / (1000 * 60 * 60 * 24);
                     return sum + dias;
                 }, 0);
                 tmeMediaDias = Math.round((totalDias / osFechadas.length) * 10) / 10;
             }
-
-            // 6. Histórico mensal (desabilitado - função get_monthly_stats não existe no banco)
-            // const sixMonthsAgo = new Date();
-            // sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-            // const { data: historico } = await supabase.rpc('get_monthly_stats', {
-            //     start_date: sixMonthsAgo.toISOString(),
-            // });
-            const historico: any[] = []; // Fallback até criar a função no banco
 
             return {
                 kpis: {
@@ -86,33 +102,21 @@ class DashboardService {
                     valorTotalAberto: valorNormal + valorGarantia,
                     tempoMedioExecucaoDias: tmeMediaDias,
                 },
-                historico: historico || [],
+                historico: [],
             };
         };
 
         try {
-            // Timeout de 30 segundos (aumentado para conexões lentas)
+            // Timeout de 15 segundos para feedback rápido
             const timeoutPromise = new Promise<{ kpis: DashboardKPIs; historico: any[] }>((_, reject) => {
-                setTimeout(() => reject(new Error('Timeout ao buscar KPIs')), 30000);
+                setTimeout(() => reject(new Error('Timeout ao buscar KPIs. Verifique sua conexão.')), 15000);
             });
 
             return await Promise.race([dataFetch(), timeoutPromise]);
 
         } catch (error) {
-            console.error('Erro no dashboardService.getKPIs (Erro ou Timeout):', error);
-            // FAILOVER: Retornar zelos para não travar a UI (AdBlock protection)
-            return {
-                kpis: {
-                    totalOsAbertas: 0,
-                    totalOsNormal: 0,
-                    totalOsGarantia: 0,
-                    valorTotalNormal: 0,
-                    valorTotalGarantia: 0,
-                    valorTotalAberto: 0,
-                    tempoMedioExecucaoDias: 0,
-                },
-                historico: [],
-            };
+            console.error('Erro no dashboardService.getKPIs:', error);
+            throw error; // Propagar erro para a UI tratar
         }
     }
 

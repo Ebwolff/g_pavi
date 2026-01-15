@@ -1,5 +1,5 @@
 import React from 'react';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface KPICardProps {
     title: string;
@@ -11,8 +11,15 @@ interface KPICardProps {
         isPositive: boolean;
         label: string;
     };
+    // Ancoragem: mostrar referência comparativa
+    anchor?: {
+        value: string | number;
+        label: string; // ex: "mês anterior", "meta"
+    };
     color?: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange' | 'gray';
     onClick?: () => void;
+    // UX Enhancement: priority determines animation delay
+    priority?: number;
 }
 
 export const KPICard: React.FC<KPICardProps> = ({
@@ -21,8 +28,10 @@ export const KPICard: React.FC<KPICardProps> = ({
     subtitle,
     icon: Icon,
     trend,
+    anchor,
     color = 'blue',
     onClick,
+    priority = 0,
 }) => {
     const colorClasses = {
         blue: 'bg-blue-50 text-blue-600',
@@ -35,43 +44,59 @@ export const KPICard: React.FC<KPICardProps> = ({
     };
 
     const borderClasses = {
-        blue: 'border-blue-200',
-        green: 'border-green-200',
-        red: 'border-red-200',
-        yellow: 'border-yellow-200',
-        purple: 'border-purple-200',
-        orange: 'border-orange-200',
-        gray: 'border-gray-200',
+        blue: 'border-blue-200 hover:border-blue-300',
+        green: 'border-green-200 hover:border-green-300',
+        red: 'border-red-200 hover:border-red-300',
+        yellow: 'border-yellow-200 hover:border-yellow-300',
+        purple: 'border-purple-200 hover:border-purple-300',
+        orange: 'border-orange-200 hover:border-orange-300',
+        gray: 'border-gray-200 hover:border-gray-300',
     };
+
+    // Determinar ícone de tendência
+    const TrendIcon = trend ? (trend.value > 0 ? TrendingUp : trend.value < 0 ? TrendingDown : Minus) : null;
 
     return (
         <div
-            className={`bg-white rounded-lg shadow-sm border ${borderClasses[color]} p-6 transition-all hover:shadow-md ${onClick ? 'cursor-pointer' : ''
-                }`}
+            className={`kpi-card ${borderClasses[color]} ${onClick ? 'kpi-card-clickable' : ''}`}
             onClick={onClick}
+            style={{ animationDelay: `${priority * 0.1}s` }}
         >
             <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+                    <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
                     <h3 className="text-3xl font-bold text-gray-900">{value}</h3>
-                    {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+                    {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
                 </div>
-                <div className={`p-3 rounded-xl ${colorClasses[color]}`}>
+                <div className={`p-3 rounded-xl ${colorClasses[color]} transition-transform group-hover:scale-110`}>
                     <Icon className="w-6 h-6" />
                 </div>
             </div>
 
-            {trend && (
-                <div className="flex items-center gap-2 text-sm">
+            {/* Ancoragem + Trend em linha */}
+            <div className="flex items-center justify-between text-sm">
+                {/* Ancoragem: referência comparativa (Viés de Ancoragem) */}
+                {anchor && (
+                    <span className="text-gray-400 text-xs">
+                        {anchor.label}: <span className="font-medium text-gray-500">{anchor.value}</span>
+                    </span>
+                )}
+
+                {/* Trend indicator */}
+                {trend && (
                     <span
-                        className={`flex items-center gap-1 ${trend.isPositive ? 'text-green-600' : 'text-red-600'
+                        className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${trend.value > 0
+                                ? 'bg-green-50 text-green-600'
+                                : trend.value < 0
+                                    ? 'bg-red-50 text-red-600'
+                                    : 'bg-gray-50 text-gray-500'
                             }`}
                     >
-                        {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
+                        {TrendIcon && <TrendIcon className="w-3 h-3" />}
+                        {trend.value > 0 ? '+' : ''}{trend.value}%
                     </span>
-                    <span className="text-gray-500">{trend.label}</span>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 };

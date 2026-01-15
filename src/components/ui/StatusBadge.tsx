@@ -1,6 +1,5 @@
 import React from 'react';
 import { StatusOS, TipoOS, NivelUrgencia, StatusPendencia } from '../../types/database.types';
-import { getCoresUrgencia } from '../../utils/osHelpers';
 
 interface StatusBadgeProps {
     status: StatusOS | StatusPendencia;
@@ -9,28 +8,73 @@ interface StatusBadgeProps {
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = '' }) => {
     const getStatusConfig = (status: StatusOS | StatusPendencia) => {
-        const configs: Record<string, { label: string; color: string }> = {
+        const configs: Record<string, { label: string; style: React.CSSProperties; className: string }> = {
             // Status OS
-            EM_EXECUCAO: { label: 'Em Execução', color: 'bg-blue-100 text-blue-800 border-blue-300' },
-            AGUARDANDO_PECAS: { label: 'Aguardando Peças', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
-            PAUSADA: { label: 'Pausada', color: 'bg-gray-100 text-gray-800 border-gray-300' },
-            CONCLUIDA: { label: 'Concluída', color: 'bg-green-100 text-green-800 border-green-300' },
-            FATURADA: { label: 'Faturada', color: 'bg-purple-100 text-purple-800 border-purple-300' },
-            CANCELADA: { label: 'Cancelada', color: 'bg-red-100 text-red-800 border-red-300' },
+            EM_EXECUCAO: {
+                label: 'Em Execução',
+                style: { background: 'var(--accent-blue-glow)', color: 'var(--accent-blue)', borderColor: 'rgba(59, 130, 246, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            AGUARDANDO_PECAS: {
+                label: 'Aguardando Peças',
+                style: { background: 'var(--accent-amber-glow)', color: 'var(--accent-amber)', borderColor: 'rgba(245, 158, 11, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            PAUSADA: {
+                label: 'Pausada',
+                style: { background: 'var(--surface-light)', color: 'var(--text-muted)', borderColor: 'var(--border-subtle)' },
+                className: 'badge-enterprise'
+            },
+            CONCLUIDA: {
+                label: 'Concluída',
+                style: { background: 'var(--accent-emerald-glow)', color: 'var(--accent-emerald)', borderColor: 'rgba(16, 185, 129, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            FATURADA: {
+                label: 'Faturada',
+                style: { background: 'var(--accent-violet-glow)', color: 'var(--accent-violet)', borderColor: 'rgba(139, 92, 246, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            CANCELADA: {
+                label: 'Cancelada',
+                style: { background: 'var(--accent-rose-glow)', color: 'var(--accent-rose)', borderColor: 'rgba(244, 114, 114, 0.3)' },
+                className: 'badge-enterprise'
+            },
             // Status Pendência
-            PENDENTE: { label: 'Pendente', color: 'bg-orange-100 text-orange-800 border-orange-300' },
-            EM_ANDAMENTO: { label: 'Em Andamento', color: 'bg-blue-100 text-blue-800 border-blue-300' },
-            RESOLVIDO: { label: 'Resolvido', color: 'bg-green-100 text-green-800 border-green-300' },
-            CANCELADO: { label: 'Cancelado', color: 'bg-red-100 text-red-800 border-red-300' },
+            PENDENTE: {
+                label: 'Pendente',
+                style: { background: 'var(--accent-amber-glow)', color: 'var(--accent-amber)', borderColor: 'rgba(245, 158, 11, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            EM_ANDAMENTO: {
+                label: 'Em Andamento',
+                style: { background: 'var(--accent-blue-glow)', color: 'var(--accent-blue)', borderColor: 'rgba(59, 130, 246, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            RESOLVIDO: {
+                label: 'Resolvido',
+                style: { background: 'var(--accent-emerald-glow)', color: 'var(--accent-emerald)', borderColor: 'rgba(16, 185, 129, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            CANCELADO: {
+                label: 'Cancelado',
+                style: { background: 'var(--accent-rose-glow)', color: 'var(--accent-rose)', borderColor: 'rgba(244, 114, 114, 0.3)' },
+                className: 'badge-enterprise'
+            },
         };
-        return configs[status] || { label: status, color: 'bg-gray-100 text-gray-800 border-gray-300' };
+        return configs[status] || {
+            label: status,
+            style: { background: 'var(--surface-light)', color: 'var(--text-muted)', borderColor: 'var(--border-subtle)' },
+            className: 'badge-enterprise'
+        };
     };
 
     const config = getStatusConfig(status);
 
     return (
         <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${config.color} ${className}`}
+            className={`${config.className} ${className} border px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider`}
+            style={config.style}
         >
             {config.label}
         </span>
@@ -44,15 +88,22 @@ interface TipoBadgeProps {
 
 export const TipoBadge: React.FC<TipoBadgeProps> = ({ tipo, className = '' }) => {
     const config = {
-        NORMAL: { label: 'Normal', color: 'bg-blue-100 text-blue-800 border-blue-300' },
-        GARANTIA: { label: 'Garantia', color: 'bg-purple-100 text-purple-800 border-purple-300' },
+        NORMAL: {
+            label: 'Normal',
+            style: { background: 'var(--accent-blue-glow)', color: 'var(--accent-blue)', borderColor: 'rgba(59, 130, 246, 0.3)' }
+        },
+        GARANTIA: {
+            label: 'Garantia',
+            style: { background: 'var(--accent-violet-glow)', color: 'var(--accent-violet)', borderColor: 'rgba(139, 92, 246, 0.3)' }
+        },
     };
 
-    const { label, color } = config[tipo];
+    const { label, style } = config[tipo] || config.NORMAL;
 
     return (
         <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${color} ${className}`}
+            className={`badge-enterprise border px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${className}`}
+            style={style}
         >
             {label}
         </span>
@@ -66,52 +117,61 @@ interface UrgenciaBadgeProps {
 }
 
 export const UrgenciaBadge: React.FC<UrgenciaBadgeProps> = ({ nivel, diasEmAberto, className = '' }) => {
-    const cores = getCoresUrgencia(nivel);
-
-    const labels: Record<NivelUrgencia, string> = {
-        NORMAL: 'Normal',
-        MEDIO: 'Atenção',
-        ALTO: 'Urgente',
-        CRITICO: 'Crítico',
+    const getUrgenciaConfig = (nivel: NivelUrgencia) => {
+        const configs: Record<NivelUrgencia, { label: string; color: string; bg: string; border: string }> = {
+            NORMAL: { label: 'Normal', color: 'var(--text-muted)', bg: 'var(--surface-light)', border: 'var(--border-subtle)' },
+            MEDIO: { label: 'Atenção', color: 'var(--accent-amber)', bg: 'var(--accent-amber-glow)', border: 'rgba(245, 158, 11, 0.3)' },
+            ALTO: { label: 'Urgente', color: 'var(--accent-rose)', bg: 'var(--accent-rose-glow)', border: 'rgba(244, 114, 114, 0.3)' },
+            CRITICO: { label: 'Crítico', color: '#fff', bg: 'var(--danger)', border: 'var(--danger-glow)' },
+        };
+        return configs[nivel] || configs.NORMAL;
     };
+
+    const config = getUrgenciaConfig(nivel);
 
     return (
         <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${cores.bg} ${cores.text} ${cores.border} ${className}`}
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${className}`}
+            style={{
+                backgroundColor: config.bg,
+                color: config.color,
+                borderColor: config.border,
+                animation: nivel === 'CRITICO' ? 'pulse-soft 2s infinite' : 'none'
+            }}
             title={`${diasEmAberto} dias em aberto`}
         >
-            <span className={`mr-1.5 h-2 w-2 rounded-full ${cores.badge}`} />
-            {labels[nivel]} ({diasEmAberto}d)
+            {config.label} ({diasEmAberto}d)
         </span>
     );
 };
 
 interface CustomBadgeProps {
     label: string;
-    color?: 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'gray' | 'orange';
+    variant?: 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'gray' | 'orange';
     icon?: React.ReactNode;
     className?: string;
 }
 
 export const CustomBadge: React.FC<CustomBadgeProps> = ({
     label,
-    color = 'gray',
+    variant = 'gray',
     icon,
     className = ''
 }) => {
-    const colorClasses = {
-        blue: 'bg-blue-100 text-blue-800 border-blue-300',
-        green: 'bg-green-100 text-green-800 border-green-300',
-        yellow: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-        red: 'bg-red-100 text-red-800 border-red-300',
-        purple: 'bg-purple-100 text-purple-800 border-purple-300',
-        gray: 'bg-gray-100 text-gray-800 border-gray-300',
-        orange: 'bg-orange-100 text-orange-800 border-orange-300',
+    const variants: Record<string, React.CSSProperties> = {
+        blue: { background: 'var(--accent-blue-glow)', color: 'var(--accent-blue)', borderColor: 'rgba(59, 130, 246, 0.3)' },
+        green: { background: 'var(--accent-emerald-glow)', color: 'var(--accent-emerald)', borderColor: 'rgba(16, 185, 129, 0.3)' },
+        yellow: { background: 'var(--accent-amber-glow)', color: 'var(--accent-amber)', borderColor: 'rgba(245, 158, 11, 0.3)' },
+        red: { background: 'var(--accent-rose-glow)', color: 'var(--accent-rose)', borderColor: 'rgba(244, 114, 114, 0.3)' },
+        purple: { background: 'var(--accent-violet-glow)', color: 'var(--accent-violet)', borderColor: 'rgba(139, 92, 246, 0.3)' },
+        gray: { background: 'var(--surface-light)', color: 'var(--text-muted)', borderColor: 'var(--border-subtle)' },
+        orange: { background: 'var(--accent-amber-glow)', color: 'var(--accent-amber)', borderColor: 'rgba(245, 158, 11, 0.3)' },
     };
 
     return (
         <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${colorClasses[color]} ${className}`}
+            className={`badge-enterprise border px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${className}`}
+            style={variants[variant]}
         >
             {icon && <span className="mr-1.5">{icon}</span>}
             {label}

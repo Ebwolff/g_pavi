@@ -257,6 +257,86 @@ class OrdemServicoService {
         const nextNum = parseInt(match[1]) + 1;
         return `${year}-${String(nextNum).padStart(4, '0')}`;
     }
+
+    /**
+     * Atualiza status da OS com campos específicos de motivo
+     */
+    async updateStatus(id: string, statusData: {
+        novoStatus: string;
+        numero_orcamento?: string;
+        data_envio_orcamento?: string;
+        numero_pedido?: string;
+        previsao_chegada_pecas?: string;
+        data_conclusao_servico?: string;
+        valor_servico?: number;
+        tipo_diagnostico?: string;
+        previsao_retorno?: string;
+        localizacao_atual?: string;
+        roteiro?: string;
+        motivo_pausa?: string;
+    }) {
+        const updates: any = {
+            status_atual: statusData.novoStatus,
+        };
+
+        if (statusData.numero_orcamento) updates.numero_orcamento = statusData.numero_orcamento;
+        if (statusData.data_envio_orcamento) updates.data_envio_orcamento = statusData.data_envio_orcamento;
+        if (statusData.numero_pedido) updates.numero_pedido = statusData.numero_pedido;
+        if (statusData.previsao_chegada_pecas) updates.previsao_chegada_pecas = statusData.previsao_chegada_pecas;
+        if (statusData.data_conclusao_servico) updates.data_conclusao_servico = statusData.data_conclusao_servico;
+        if (statusData.valor_servico) updates.valor_servico = statusData.valor_servico;
+        if (statusData.tipo_diagnostico) updates.tipo_diagnostico = statusData.tipo_diagnostico;
+        if (statusData.previsao_retorno) updates.previsao_retorno = statusData.previsao_retorno;
+        if (statusData.localizacao_atual) updates.localizacao_atual = statusData.localizacao_atual;
+        if (statusData.roteiro) updates.roteiro = statusData.roteiro;
+        if (statusData.motivo_pausa) updates.motivo_pausa = statusData.motivo_pausa;
+
+        if (statusData.novoStatus === 'FATURADA') {
+            updates.data_faturamento = new Date().toISOString();
+        }
+        if (statusData.novoStatus === 'CONCLUIDA') {
+            updates.data_fechamento = new Date().toISOString();
+        }
+
+        const { data, error } = await supabase
+            .from('ordens_servico')
+            .update(updates)
+            .eq('id', id)
+            .select(`*, tecnico:tecnicos(*), cliente:clientes(*), maquina:maquinas(*), consultor:profiles(*)`)
+            .single();
+
+        if (error) throw error;
+        return data;
+    }
+
+    /**
+     * Lista OS com motivos de abertura (usando view)
+     */
+    async listWithMotivos(filters: OSFilters = {}) {
+        let query = supabase.from('vw_os_motivos_abertura').select('*');
+        if (filters.status) query = query.eq('status_atual', filters.status);
+        if (filters.search) {
+            query = query.or(`numero_os.ilike.%${filters.search}%,nome_cliente_digitavel.ilike.%${filters.search}%`);
+        }
+        query = query.order('dias_aberta', { ascending: false });
+        const { data, error } = await query;
+        if (error) throw error;
+        return data || [];
+    }
+
+    /**
+     * Busca histórico de status de uma OS
+     */
+    async getHistoricoStatus(osId: string) {
+        const { data, error } = await supabase
+            .from('historico_status_os')
+            .select('*')
+            .eq('ordem_servico_id', osId)
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        return data || [];
+    }
 }
 
 export const ordemServicoService = new OrdemServicoService();
+

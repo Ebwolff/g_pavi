@@ -1,11 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { alertasService } from '../services/alertasService';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/database.types';
 import { formatarDataHora } from '../utils/osHelpers';
 import { CustomBadge } from '../components/ui/StatusBadge';
-import { Bell, CheckCheck, Trash2, Filter, AlertCircle, Info, AlertTriangle } from 'lucide-react';
+import {
+    Bell,
+    CheckCheck,
+    Trash2,
+    Filter,
+    AlertCircle,
+    Info,
+    AlertTriangle,
+    Clock,
+    CheckCircle,
+    RefreshCw
+} from 'lucide-react';
+import { AlertCard, MetricCard } from '../components/cognitive-bias';
+import { AppLayout } from '@/components/AppLayout';
+import { Button } from '@/components/ui/Button';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 type Alerta = Database['public']['Tables']['alertas']['Row'];
 
@@ -83,13 +99,13 @@ export function Alertas() {
     const getIconeAlerta = (tipo: string) => {
         switch (tipo) {
             case 'OS_VENCIDA':
-                return <AlertCircle className="h-6 w-6 text-red-500" />;
+                return <AlertCircle className="h-5 w-5 text-rose-500" />;
             case 'GARANTIA_PENDENTE':
-                return <AlertTriangle className="h-6 w-6 text-yellow-500" />;
+                return <AlertTriangle className="h-5 w-5 text-amber-500" />;
             case 'PECAS_CHEGANDO':
-                return <Info className="h-6 w-6 text-blue-500" />;
+                return <Info className="h-5 w-5 text-blue-500" />;
             default:
-                return <Bell className="h-6 w-6 text-gray-500" />;
+                return <Bell className="h-5 w-5 text-[var(--text-muted)]" />;
         }
     };
 
@@ -106,172 +122,221 @@ export function Alertas() {
     const estatisticas = {
         total: alertas.length,
         naoLidos: alertas.filter((a) => !a.lido).length,
-        urgentes: alertas.filter((a) => a.prioridade === 'URGENTE').length,
+        urgentes: alertas.filter((a) => a.prioridade === 'URGENTE' && !a.lido).length,
     };
 
+    // Cálculo de valor em risco (Viés de Aversão à Perda)
+    const alertasCriticos = alertas.filter(a =>
+        a.prioridade === 'URGENTE' && !a.lido && a.tipo_alerta === 'OS_VENCIDA'
+    );
+
+    // Estimar valor em risco baseado em OS vencidas (R$ 1.000 por dia de atraso)
+    const calcularDiasAtraso = (createdAt: string) => {
+        const created = new Date(createdAt);
+        const now = new Date();
+        const diff = now.getTime() - created.getTime();
+        return Math.floor(diff / (1000 * 60 * 60 * 24));
+    };
+
+    const valorEmRisco = alertasCriticos.reduce((total, alerta) => {
+        const diasAtraso = calcularDiasAtraso(alerta.created_at);
+        return total + (diasAtraso * 1000); // R$ 1.000 por dia
+    }, 0);
+
+    const maxDiasAtraso = alertasCriticos.length > 0
+        ? Math.max(...alertasCriticos.map(a => calcularDiasAtraso(a.created_at)))
+        : 0;
+
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <button
-                                onClick={() => navigate('/dashboard')}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition"
-                            >
-                                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-                            <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Alertas e Notificações</h1>
-                                <p className="text-sm text-gray-600">
-                                    {estatisticas.total} alertas • {estatisticas.naoLidos} não lidos
-                                </p>
-                            </div>
-                        </div>
+        <AppLayout>
+            <div className="p-8 animate-fadeIn max-w-7xl mx-auto">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div>
+                        <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-3">
+                            <Bell className="w-8 h-8 text-blue-500" />
+                            Central de Notificações
+                        </h1>
+                        <p className="text-[var(--text-muted)] mt-1 font-medium">
+                            Gerencie pendências e alertas do sistema
+                        </p>
+                    </div>
+                    <div className="flex gap-3">
                         {estatisticas.naoLidos > 0 && (
-                            <button
+                            <Button
                                 onClick={handleMarcarTodosComoLidos}
-                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium flex items-center space-x-2"
+                                variant="primary"
+                                leftIcon={<CheckCheck className="w-4 h-4" />}
                             >
-                                <CheckCheck className="w-5 h-5" />
-                                <span>Marcar Todos como Lidos</span>
-                            </button>
+                                Marcar Tudo Lido
+                            </Button>
                         )}
-                    </div>
-                </div>
-            </header>
-
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                {/* Estatísticas */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-600">Total de Alertas</p>
-                                <p className="text-2xl font-bold text-gray-900">{estatisticas.total}</p>
-                            </div>
-                            <Bell className="h-8 w-8 text-gray-400" />
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-600">Não Lidos</p>
-                                <p className="text-2xl font-bold text-blue-600">{estatisticas.naoLidos}</p>
-                            </div>
-                            <Bell className="h-8 w-8 text-blue-400" />
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-600">Urgentes</p>
-                                <p className="text-2xl font-bold text-red-600">{estatisticas.urgentes}</p>
-                            </div>
-                            <AlertCircle className="h-8 w-8 text-red-400" />
-                        </div>
+                        <Button
+                            onClick={carregarAlertas}
+                            variant="secondary"
+                            leftIcon={<RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />}
+                        >
+                            Atualizar
+                        </Button>
                     </div>
                 </div>
 
-                {/* Filtros */}
-                <div className="bg-white rounded-lg shadow p-4 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    {loading ? (
+                        [1, 2, 3].map(i => <Skeleton key={i} height={120} className="rounded-2xl" />)
+                    ) : (
+                        <>
+                            <MetricCard
+                                label="Total de Alertas"
+                                value={estatisticas.total}
+                                format="number"
+                                className="border-blue-500/10"
+                            />
+                            <MetricCard
+                                label="Não Lidos"
+                                value={estatisticas.naoLidos}
+                                format="number"
+                                trend={estatisticas.naoLidos > 0 ? "up" : "stable"}
+                                className="border-indigo-500/10"
+                            />
+                            <MetricCard
+                                label="Urgentes Pendentes"
+                                value={estatisticas.urgentes}
+                                format="number"
+                                trend={estatisticas.urgentes > 0 ? "down" : "stable"}
+                                className={estatisticas.urgentes > 0 ? "border-rose-500/20 bg-rose-500/5" : "border-emerald-500/10"}
+                            />
+                        </>
+                    )}
+                </div>
+
+                {/* Critical Alert - Aversion to Loss */}
+                {!loading && alertasCriticos.length > 0 && (
+                    <div className="mb-8">
+                        <AlertCard
+                            type="critical"
+                            title={`⚠️ ATENÇÃO: ${alertasCriticos.length} ${alertasCriticos.length === 1 ? 'Alerta Crítico' : 'Alertas Críticos'}!`}
+                            message="Ordens vencidas representam risco direto de churn e prejuízo financeiro. Resolva imediatamente."
+                            riskValue={valorEmRisco > 0 ? valorEmRisco : undefined}
+                            daysOverdue={maxDiasAtraso > 0 ? maxDiasAtraso : undefined}
+                            actionLabel="Filtrar Críticos"
+                            onAction={() => {
+                                setFiltroPrioridade('URGENTE');
+                                setFiltroLido('NAO_LIDOS');
+                            }}
+                        />
+                    </div>
+                )}
+
+                {/* Filters */}
+                <div className="glass-card-enterprise p-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                <Filter className="inline h-4 w-4 mr-1" />
-                                Tipo
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 ml-1">
+                                <Filter className="inline h-3 w-3 mr-1" /> Tipo
                             </label>
                             <select
                                 value={filtroTipo}
                                 onChange={(e) => setFiltroTipo(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                className="w-full px-4 py-2.5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-[var(--text-secondary)] transition-all font-medium appearance-none cursor-pointer"
                             >
-                                <option value="TODOS">Todos</option>
-                                <option value="OS_VENCIDA">OS Vencida</option>
-                                <option value="GARANTIA_PENDENTE">Garantia Pendente</option>
-                                <option value="PECAS_CHEGANDO">Peças Chegando</option>
-                                <option value="PREVISAO_ENTREGA">Previsão Entrega</option>
-                                <option value="META_FATURAMENTO">Meta Faturamento</option>
-                                <option value="OUTROS">Outros</option>
+                                <option value="TODOS" className="bg-[#0f172a]">Todos</option>
+                                <option value="OS_VENCIDA" className="bg-[#0f172a]">OS Vencida</option>
+                                <option value="GARANTIA_PENDENTE" className="bg-[#0f172a]">Garantia Pendente</option>
+                                <option value="PECAS_CHEGANDO" className="bg-[#0f172a]">Peças Chegando</option>
+                                <option value="PREVISAO_ENTREGA" className="bg-[#0f172a]">Previsão Entrega</option>
+                                <option value="META_FATURAMENTO" className="bg-[#0f172a]">Meta Faturamento</option>
+                                <option value="OUTROS" className="bg-[#0f172a]">Outros</option>
                             </select>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                <Filter className="inline h-4 w-4 mr-1" />
-                                Prioridade
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 ml-1">
+                                <AlertTriangle className="inline h-3 w-3 mr-1" /> Prioridade
                             </label>
                             <select
                                 value={filtroPrioridade}
                                 onChange={(e) => setFiltroPrioridade(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                className="w-full px-4 py-2.5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-[var(--text-secondary)] transition-all font-medium appearance-none cursor-pointer"
                             >
-                                <option value="TODOS">Todas</option>
-                                <option value="URGENTE">Urgente</option>
-                                <option value="ALTA">Alta</option>
-                                <option value="NORMAL">Normal</option>
-                                <option value="BAIXA">Baixa</option>
+                                <option value="TODOS" className="bg-[#0f172a]">Todas</option>
+                                <option value="URGENTE" className="bg-[#0f172a]">Urgente</option>
+                                <option value="ALTA" className="bg-[#0f172a]">Alta</option>
+                                <option value="NORMAL" className="bg-[#0f172a]">Normal</option>
+                                <option value="BAIXA" className="bg-[#0f172a]">Baixa</option>
                             </select>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                <Filter className="inline h-4 w-4 mr-1" />
-                                Status
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 ml-1">
+                                <CheckCircle className="inline h-3 w-3 mr-1" /> Status
                             </label>
                             <select
                                 value={filtroLido}
                                 onChange={(e) => setFiltroLido(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                className="w-full px-4 py-2.5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-[var(--text-secondary)] transition-all font-medium appearance-none cursor-pointer"
                             >
-                                <option value="TODOS">Todos</option>
-                                <option value="NAO_LIDOS">Não Lidos</option>
-                                <option value="LIDOS">Lidos</option>
+                                <option value="TODOS" className="bg-[#0f172a]">Todos</option>
+                                <option value="NAO_LIDOS" className="bg-[#0f172a]">Não Lidos</option>
+                                <option value="LIDOS" className="bg-[#0f172a]">Lidos</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
-                {/* Lista de Alertas */}
+                {/* Alerts List */}
                 {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                    <div className="space-y-4">
+                        {[1, 2, 3, 4].map(i => <Skeleton key={i} height={100} className="rounded-xl" />)}
                     </div>
                 ) : alertasFiltrados.length > 0 ? (
                     <div className="space-y-4">
                         {alertasFiltrados.map((alerta) => (
                             <div
                                 key={alerta.id}
-                                className={`bg-white rounded-lg shadow border-l-4 p-6 transition-all hover:shadow-lg ${!alerta.lido ? 'bg-blue-50' : ''
-                                    } ${alerta.prioridade === 'URGENTE'
-                                        ? 'border-red-500'
-                                        : alerta.prioridade === 'ALTA'
-                                            ? 'border-orange-500'
-                                            : alerta.prioridade === 'NORMAL'
-                                                ? 'border-blue-500'
-                                                : 'border-gray-300'
+                                className={`group p-6 rounded-2xl border transition-all duration-300 relative overflow-hidden ${!alerta.lido
+                                        ? 'bg-[var(--surface-light)] border-blue-500/30 shadow-[0_4px_20px_rgba(59,130,246,0.1)]'
+                                        : 'bg-[var(--surface)] border-[var(--border-subtle)] opacity-70 hover:opacity-100'
                                     }`}
                             >
-                                <div className="flex items-start gap-4">
-                                    <div className="flex-shrink-0 mt-1">{getIconeAlerta(alerta.tipo_alerta)}</div>
+                                {/* Priority Indicator Line */}
+                                <div className={`absolute left-0 top-0 bottom-0 w-1 ${alerta.prioridade === 'URGENTE' ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]' :
+                                        alerta.prioridade === 'ALTA' ? 'bg-orange-500' :
+                                            alerta.prioridade === 'NORMAL' ? 'bg-blue-500' : 'bg-slate-500'
+                                    }`} />
+
+                                <div className="flex items-start gap-4 pl-3">
+                                    <div className={`p-3 rounded-xl flex-shrink-0 ${!alerta.lido ? 'bg-blue-500/10' : 'bg-white/5'
+                                        }`}>
+                                        {getIconeAlerta(alerta.tipo_alerta)}
+                                    </div>
 
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-start justify-between gap-4">
-                                            <div className="flex-1">
-                                                <h3 className={`text-lg font-medium ${!alerta.lido ? 'text-gray-900' : 'text-gray-700'}`}>
+                                            <div className="space-y-1">
+                                                <h3 className={`text-lg font-bold ${!alerta.lido ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'
+                                                    }`}>
                                                     {alerta.titulo}
                                                 </h3>
-                                                <p className="text-sm text-gray-600 mt-1">{alerta.mensagem}</p>
-                                                <div className="flex items-center gap-4 mt-3">
-                                                    <span className="text-xs text-gray-400">{formatarDataHora(alerta.created_at)}</span>
-                                                    <CustomBadge label={alerta.prioridade} color={getCorPrioridade(alerta.prioridade)} />
+                                                <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                                                    {alerta.mensagem}
+                                                </p>
+
+                                                <div className="flex items-center gap-4 mt-3 pt-2">
+                                                    <div className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-muted)]">
+                                                        <Clock className="w-3.5 h-3.5" />
+                                                        {formatarDataHora(alerta.created_at)}
+                                                    </div>
+                                                    <CustomBadge
+                                                        label={alerta.prioridade}
+                                                        variant={
+                                                            alerta.prioridade === 'URGENTE' ? 'red' :
+                                                                alerta.prioridade === 'ALTA' ? 'orange' :
+                                                                    alerta.prioridade === 'NORMAL' ? 'blue' : 'gray'
+                                                        }
+                                                    />
                                                     {alerta.lido && (
-                                                        <span className="text-xs text-green-600 flex items-center gap-1">
+                                                        <span className="text-xs text-emerald-500 font-bold flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                                                             <CheckCheck className="h-3 w-3" />
                                                             Lido
                                                         </span>
@@ -283,7 +348,7 @@ export function Alertas() {
                                                 {!alerta.lido && (
                                                     <button
                                                         onClick={() => handleMarcarComoLido(alerta.id)}
-                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                        className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors border border-transparent hover:border-blue-500/20"
                                                         title="Marcar como lido"
                                                     >
                                                         <CheckCheck className="h-5 w-5" />
@@ -291,7 +356,7 @@ export function Alertas() {
                                                 )}
                                                 <button
                                                     onClick={() => handleDeletarAlerta(alerta.id)}
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                    className="p-2 text-[var(--text-muted)] hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors border border-transparent hover:border-rose-500/20"
                                                     title="Excluir alerta"
                                                 >
                                                     <Trash2 className="h-5 w-5" />
@@ -299,7 +364,7 @@ export function Alertas() {
                                                 {alerta.os_id && (
                                                     <button
                                                         onClick={() => navigate(`/os/editar/${alerta.os_id}`)}
-                                                        className="px-3 py-1 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                                                        className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-[var(--surface-light)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-lg hover:border-blue-500/50 hover:text-blue-400 transition-all shadow-sm"
                                                     >
                                                         Ver OS
                                                     </button>
@@ -312,17 +377,14 @@ export function Alertas() {
                         ))}
                     </div>
                 ) : (
-                    <div className="bg-white rounded-lg shadow p-12 text-center">
-                        <Bell className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum alerta encontrado</h3>
-                        <p className="mt-1 text-sm text-gray-500">
-                            {filtroTipo !== 'TODOS' || filtroPrioridade !== 'TODOS' || filtroLido !== 'TODOS'
-                                ? 'Tente ajustar os filtros.'
-                                : 'Você não tem alertas no momento.'}
-                        </p>
-                    </div>
+                    <EmptyState
+                        icon={Bell}
+                        title="Tudo Silencioso"
+                        description={filtroTipo !== 'TODOS' ? "Nenhum alerta encontrado com os filtros atuais." : "Você não possui notificações pendentes no momento."}
+                        className="glass-card-enterprise py-20"
+                    />
                 )}
             </div>
-        </div>
+        </AppLayout>
     );
 }

@@ -8,22 +8,16 @@ if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KE
     console.error('⚠️ CRITICAL: Missing Supabase environment variables! App will not work correctly.');
 }
 
+// Cliente Supabase com configurações para evitar deadlock de navigator.locks
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
-    },
-    global: {
-        // Configuração global para evitar AbortError em conexões lentas
-        fetch: (url, options = {}) => {
-            // Remove qualquer AbortController existente que possa cancelar prematuramente
-            const { signal, ...restOptions } = options as any;
-            return fetch(url, {
-                ...restOptions,
-                // Não passa o signal para evitar AbortError
-            });
-        },
+        // Storage key única para evitar conflitos entre abas
+        storageKey: 'mardisa-auth-session',
+        // Usar fluxo PKCE que é mais estável
+        flowType: 'pkce',
     },
 });
 
@@ -48,6 +42,9 @@ export async function getUserProfile() {
         .eq('id', user.id)
         .single();
 
-    if (error) throw error;
+    if (error) {
+        console.error('Erro ao buscar profile:', error);
+        return null; // Retorna null em vez de throw
+    }
     return data;
 }

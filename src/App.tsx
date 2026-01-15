@@ -2,6 +2,8 @@ import { Component, ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from './hooks/useAuth';
+import { RoleGuard } from './components/RoleGuard';
+import { getDefaultRoute } from './utils/permissions';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { DashboardNovo } from './pages/DashboardNovo';
@@ -13,13 +15,20 @@ import { Configuracoes } from './pages/Configuracoes';
 import { DebugService } from './pages/DebugService';
 import { Alertas } from './pages/Alertas';
 import { PendenciasOS } from './pages/PendenciasOS';
+import PainelCompras from './pages/PainelCompras';
+import PainelTecnico from './pages/PainelTecnico';
+import PainelDiretoria from './pages/PainelDiretoria';
+import PainelConsultor from './pages/PainelConsultor';
+import PainelChefeOficina from './pages/PainelChefeOficina';
+import PainelAlmoxarifado from './pages/PainelAlmoxarifado';
 
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            refetchOnWindowFocus: false,
+            refetchOnWindowFocus: true, // Recarregar ao focar na janela
             retry: 1,
-            staleTime: 30000,
+            staleTime: 0, // Dados são considerados obsoletos imediatamente
+            gcTime: 5 * 60 * 1000, // Garbage collection em 5 minutos
         },
     },
 });
@@ -63,14 +72,14 @@ class ErrorBoundary extends Component<
 }
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
-    const { isAuthenticated, isLoading } = useAuth();
+    const { isAuthenticated, isLoading, profile } = useAuth();
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
                 <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-                    <p className="mt-4 text-gray-600">Carregando...</p>
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+                    <p className="mt-4" style={{ color: 'var(--text-muted)' }}>Carregando...</p>
                 </div>
             </div>
         );
@@ -80,7 +89,24 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
         return <Navigate to="/login" replace />;
     }
 
-    return <>{children}</>;
+    // Aplica proteção por role
+    return <RoleGuard>{children}</RoleGuard>;
+}
+
+// Componente para redirecionamento inteligente baseado no role
+function SmartRedirect() {
+    const { profile, isLoading } = useAuth();
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+            </div>
+        );
+    }
+
+    const defaultRoute = getDefaultRoute(profile?.role);
+    return <Navigate to={defaultRoute} replace />;
 }
 
 function App() {
@@ -177,6 +203,60 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <PendenciasOS />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/compras"
+                            element={
+                                <ProtectedRoute>
+                                    <PainelCompras />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/tecnico"
+                            element={
+                                <ProtectedRoute>
+                                    <PainelTecnico />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/diretoria"
+                            element={
+                                <ProtectedRoute>
+                                    <PainelDiretoria />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/consultor"
+                            element={
+                                <ProtectedRoute>
+                                    <PainelConsultor />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/chefe-oficina"
+                            element={
+                                <ProtectedRoute>
+                                    <PainelChefeOficina />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/almoxarifado"
+                            element={
+                                <ProtectedRoute>
+                                    <PainelAlmoxarifado />
                                 </ProtectedRoute>
                             }
                         />

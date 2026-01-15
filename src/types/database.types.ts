@@ -8,7 +8,8 @@ export type Json =
 
 export type UserRole = 'GERENTE' | 'CONSULTOR_GARANTIA' | 'CONSULTOR_POS_VENDA' | 'TECNICO';
 export type TipoOS = 'NORMAL' | 'GARANTIA';
-export type StatusOS = 'EM_EXECUCAO' | 'AGUARDANDO_PECAS' | 'PAUSADA' | 'CONCLUIDA' | 'FATURADA' | 'CANCELADA';
+export type StatusOS = 'EM_EXECUCAO' | 'AGUARDANDO_PECAS' | 'PAUSADA' | 'CONCLUIDA' | 'FATURADA' | 'CANCELADA' | 'AGUARDANDO_APROVACAO_ORCAMENTO' | 'AGUARDANDO_PAGAMENTO' | 'EM_DIAGNOSTICO' | 'EM_TRANSITO';
+export type TipoDiagnostico = 'SIMPLES' | 'COMPLEXO' | 'ESPECIALIZADO';
 
 // Novos tipos para melhorias
 export type TipoPendencia = 'PECAS' | 'SERVICO' | 'TERCEIROS' | 'GARANTIA' | 'CLIENTE' | 'OUTROS';
@@ -113,6 +114,23 @@ export interface Database {
                     valor_liquido_total: number;
                     created_at: string;
                     updated_at: string;
+                    // Campos para motivos de abertura
+                    numero_orcamento: string | null;
+                    data_envio_orcamento: string | null;
+                    numero_pedido: string | null;
+                    data_pedido: string | null;
+                    previsao_chegada_pecas: string | null;
+                    data_conclusao_servico: string | null;
+                    valor_servico: number | null;
+                    motivo_pausa: string | null;
+                    data_pausa: string | null;
+                    data_inicio_diagnostico: string | null;
+                    tipo_diagnostico: TipoDiagnostico | null;
+                    observacoes_diagnostico: string | null;
+                    data_saida: string | null;
+                    previsao_retorno: string | null;
+                    localizacao_atual: string | null;
+                    roteiro: string | null;
                 };
                 Insert: {
                     id?: string;
@@ -138,6 +156,23 @@ export interface Database {
                     valor_liquido_total?: number;
                     created_at?: string;
                     updated_at?: string;
+                    // Campos para motivos de abertura (Insert)
+                    numero_orcamento?: string | null;
+                    data_envio_orcamento?: string | null;
+                    numero_pedido?: string | null;
+                    data_pedido?: string | null;
+                    previsao_chegada_pecas?: string | null;
+                    data_conclusao_servico?: string | null;
+                    valor_servico?: number | null;
+                    motivo_pausa?: string | null;
+                    data_pausa?: string | null;
+                    data_inicio_diagnostico?: string | null;
+                    tipo_diagnostico?: TipoDiagnostico | null;
+                    observacoes_diagnostico?: string | null;
+                    data_saida?: string | null;
+                    previsao_retorno?: string | null;
+                    localizacao_atual?: string | null;
+                    roteiro?: string | null;
                 };
                 Update: {
                     id?: string;
@@ -163,6 +198,67 @@ export interface Database {
                     valor_liquido_total?: number;
                     created_at?: string;
                     updated_at?: string;
+                    // Campos para motivos de abertura (Update)
+                    numero_orcamento?: string | null;
+                    data_envio_orcamento?: string | null;
+                    numero_pedido?: string | null;
+                    data_pedido?: string | null;
+                    previsao_chegada_pecas?: string | null;
+                    data_conclusao_servico?: string | null;
+                    valor_servico?: number | null;
+                    motivo_pausa?: string | null;
+                    data_pausa?: string | null;
+                    data_inicio_diagnostico?: string | null;
+                    tipo_diagnostico?: TipoDiagnostico | null;
+                    observacoes_diagnostico?: string | null;
+                    data_saida?: string | null;
+                    previsao_retorno?: string | null;
+                    localizacao_atual?: string | null;
+                    roteiro?: string | null;
+                };
+            };
+            historico_status_os: {
+                Row: {
+                    id: string;
+                    ordem_servico_id: string;
+                    status_anterior: string | null;
+                    status_novo: string;
+                    motivo_mudanca: string | null;
+                    usuario_id: string | null;
+                    created_at: string;
+                    numero_orcamento: string | null;
+                    numero_pedido: string | null;
+                    tipo_diagnostico: string | null;
+                    localizacao_atual: string | null;
+                    motivo_pausa: string | null;
+                };
+                Insert: {
+                    id?: string;
+                    ordem_servico_id: string;
+                    status_anterior?: string | null;
+                    status_novo: string;
+                    motivo_mudanca?: string | null;
+                    usuario_id?: string | null;
+                    created_at?: string;
+                    numero_orcamento?: string | null;
+                    numero_pedido?: string | null;
+                    tipo_diagnostico?: string | null;
+                    localizacao_atual?: string | null;
+                    motivo_pausa?: string | null;
+                };
+                Update: {
+                    id?: string;
+                    ordem_servico_id?: string;
+                    status_anterior?: string | null;
+                    status_novo?: string;
+                    motivo_mudanca?: string | null;
+                    usuario_id?: string | null;
+                    created_at?: string;
+                    numero_orcamento?: string | null;
+                    numero_pedido?: string | null;
+                    tipo_diagnostico?: string | null;
+                    localizacao_atual?: string | null;
+                    motivo_pausa?: string | null;
                 };
             };
             pendencias_os: {
@@ -400,7 +496,32 @@ export interface Database {
                     pendencias_ativas: number;
                 };
             };
-
+            vw_os_motivos_abertura: {
+                Row: {
+                    id: string;
+                    numero_os: string;
+                    status_atual: StatusOS;
+                    data_abertura: string;
+                    dias_aberta: number;
+                    motivo_detalhado: string;
+                    dias_no_status_atual: number | null;
+                    numero_orcamento: string | null;
+                    numero_pedido: string | null;
+                    data_conclusao_servico: string | null;
+                    valor_servico: number | null;
+                    tipo_diagnostico: TipoDiagnostico | null;
+                    localizacao_atual: string | null;
+                    roteiro: string | null;
+                    previsao_retorno: string | null;
+                    previsao_chegada_pecas: string | null;
+                    motivo_pausa: string | null;
+                    tecnico_id: string | null;
+                    cliente_id: string | null;
+                    consultor_id: string | null;
+                    nome_cliente_digitavel: string | null;
+                    modelo_maquina: string | null;
+                };
+            };
         };
         Functions: {
             get_monthly_stats: {
