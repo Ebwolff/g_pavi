@@ -15,7 +15,8 @@ import {
     BarChart3,
     Users,
     Hammer,
-    ChevronRight
+    ChevronRight,
+    Car
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -35,6 +36,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         { icon: Hammer, label: 'Chefe de Oficina', path: '/chefe-oficina' },
         { icon: Wrench, label: 'Técnico', path: '/tecnico' },
         { icon: ShoppingCart, label: 'Compras', path: '/compras' },
+        { icon: Car, label: 'Feramental', path: '/feramental' },
         { icon: BarChart3, label: 'Diretoria', path: '/diretoria' },
         { icon: TrendingUp, label: 'Relatórios', path: '/relatorios' },
         { icon: Settings, label: 'Configurações', path: '/configuracoes' },

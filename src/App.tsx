@@ -21,6 +21,7 @@ import PainelDiretoria from './pages/PainelDiretoria';
 import PainelConsultor from './pages/PainelConsultor';
 import PainelChefeOficina from './pages/PainelChefeOficina';
 import PainelAlmoxarifado from './pages/PainelAlmoxarifado';
+import PainelFeramental from './pages/PainelFeramental';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -257,6 +258,15 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <PainelAlmoxarifado />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/feramental"
+                            element={
+                                <ProtectedRoute>
+                                    <PainelFeramental />
                                 </ProtectedRoute>
                             }
                         />
