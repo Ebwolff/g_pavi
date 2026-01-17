@@ -43,6 +43,7 @@ const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
         '/chefe-oficina',
         '/tecnico',
         '/compras',
+        '/almoxarifado',
         '/feramental',
         '/diretoria',
         '/relatorios',
