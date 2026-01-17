@@ -11,7 +11,8 @@ export type UserRole =
     | 'CHEFE_OFICINA'
     | 'TECNICO'
     | 'ALMOXARIFADO'
-    | 'COMPRAS';
+    | 'COMPRAS'
+    | 'FERAMENTAL';
 
 // Definição de todas as rotas do sistema
 export type AppRoute =
@@ -25,6 +26,7 @@ export type AppRoute =
     | '/compras'
     | '/almoxarifado'
     | '/diretoria'
+    | '/feramental'
     | '/relatorios'
     | '/alertas'
     | '/configuracoes';
@@ -41,6 +43,7 @@ const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
         '/chefe-oficina',
         '/tecnico',
         '/compras',
+        '/feramental',
         '/diretoria',
         '/relatorios',
         '/alertas',
@@ -96,6 +99,12 @@ const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
         '/compras',
         '/configuracoes',
     ],
+
+    // Feramental: gestão de frota/veículos
+    FERAMENTAL: [
+        '/feramental',
+        '/configuracoes',
+    ],
 };
 
 // Página inicial padrão para cada role
@@ -107,6 +116,7 @@ export const DEFAULT_ROUTE: Record<UserRole, string> = {
     TECNICO: '/tecnico',
     ALMOXARIFADO: '/almoxarifado',
     COMPRAS: '/compras',
+    FERAMENTAL: '/feramental',
 };
 
 /**
