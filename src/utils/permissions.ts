@@ -103,6 +103,7 @@ const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
     // Feramental: gestão de frota/veículos
     FERAMENTAL: [
         '/feramental',
+        '/almoxarifado',
         '/configuracoes',
     ],
 };
