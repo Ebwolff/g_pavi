@@ -6,6 +6,7 @@ import { TrendingUp, AlertCircle, BarChart2, PieChart, FileText, DollarSign, Act
 import { useAuth } from '@/hooks/useAuth';
 import { AnalyticalDashboardContent } from '@/components/dashboard/AnalyticalDashboardContent';
 import { StatsCard } from '@/components/ui/StatsCard';
+import { PipelineOS } from '@/components/dashboard/PipelineOS';
 
 export function Dashboard() {
     const { profile } = useAuth();
@@ -196,6 +197,9 @@ export function Dashboard() {
                                         }}
                                     />
                                 </div>
+
+                                {/* Pipeline de Processos */}
+                                <PipelineOS />
                             </>
                         )}
                     </>
