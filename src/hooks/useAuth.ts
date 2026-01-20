@@ -95,21 +95,50 @@ export function useAuth() {
             }
         );
 
-        // Verificação periódica da sessão a cada 5 minutos
+        // Verificação periódica da sessão a cada 2 minutos
+        // Tenta renovar o token antes de considerar sessão expirada
         const sessionCheckInterval = setInterval(async () => {
             try {
+                console.log('🔄 [useAuth] Verificação periódica de sessão...');
                 const currentSession = await authService.getSession();
-                if (!currentSession && window.location.pathname !== '/login' && window.location.pathname !== '/') {
-                    console.warn('⚠️ [useAuth] Sessão expirada detectada na verificação periódica');
-                    setUser(null);
-                    setProfile(null);
-                    setSession(null);
-                    window.location.href = '/login';
+
+                if (!currentSession) {
+                    console.warn('⚠️ [useAuth] Sessão não encontrada, tentando refresh...');
+
+                    // Tenta forçar um refresh da sessão via Supabase
+                    try {
+                        const refreshData = await authService.refreshSession();
+                        if (refreshData?.session) {
+                            console.log('✅ [useAuth] Sessão renovada com sucesso!');
+                            setSession(refreshData.session);
+                            if (refreshData.session.user) {
+                                setUser(refreshData.session.user);
+                            }
+                            return; // Sucesso, não precisa deslogar
+                        }
+                    } catch (refreshError) {
+                        console.warn('⚠️ [useAuth] Falha no refresh:', refreshError);
+                    }
+
+                    // Se chegou aqui, não conseguiu renovar - redireciona para login
+                    if (window.location.pathname !== '/login' && window.location.pathname !== '/') {
+                        console.warn('⚠️ [useAuth] Sessão expirada, redirecionando para login');
+                        setUser(null);
+                        setProfile(null);
+                        setSession(null);
+                        window.location.href = '/login';
+                    }
+                } else {
+                    // Sessão ativa - atualiza se necessário
+                    if (currentSession.user && !user) {
+                        setUser(currentSession.user);
+                        setSession(currentSession);
+                    }
                 }
             } catch (e) {
                 console.warn('Erro na verificação periódica de sessão:', e);
             }
-        }, 5 * 60 * 1000); // 5 minutos
+        }, 2 * 60 * 1000); // 2 minutos (mais frequente)
 
         return () => {
             clearTimeout(safetyTimeout);
