@@ -72,14 +72,16 @@ export const statsService = {
             }
 
             // Buscar dados diretamente da tabela ordens_servico
-            const fiveYearsAgo = new Date();
-            fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+            // Limitar a 2 anos para otimizar performance
+            const twoYearsAgo = new Date();
+            twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
 
-            // Usar apenas colunas que EXISTEM na tabela real
+            // Usar apenas colunas essenciais para reduzir carga
             const osData = await supabase
                 .from('ordens_servico')
                 .select('status_atual, tipo_os, valor_liquido_total, data_abertura, data_fechamento')
-                .gte('data_abertura', fiveYearsAgo.toISOString());
+                .gte('data_abertura', twoYearsAgo.toISOString())
+                .limit(5000); // Limitar para evitar sobrecarga
 
             console.log('📊 [statsService] osData:', osData.data?.length, 'registros, erro:', osData.error);
 
@@ -175,9 +177,9 @@ export const statsService = {
         };
 
         try {
-            // Timeout de 15s para feedback rápido
+            // Timeout de 30s para dar mais tempo (conexões lentas)
             const timeoutPromise = new Promise<DashboardStats>((_, reject) => {
-                setTimeout(() => reject(new Error('Timeout ao buscar estatísticas. Verifique sua conexão ou se há dados cadastrados.')), 15000);
+                setTimeout(() => reject(new Error('Timeout ao buscar estatísticas. Verifique sua conexão ou se há dados cadastrados.')), 30000);
             });
 
             return await Promise.race([dataFetch(), timeoutPromise]);
