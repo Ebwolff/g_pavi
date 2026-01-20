@@ -12,12 +12,22 @@ export function Dashboard() {
     const { profile } = useAuth();
     const [activeTab, setActiveTab] = useState<'performance' | 'analitico'>('performance');
 
+    // Dados padrão para evitar tela de erro
+    const defaultStats = {
+        osAbertas: 0,
+        osCriticas: 0,
+        valorTotal: 0,
+        tempoMedioResolucao: 0,
+    };
+
     const { data: stats, isLoading, error, refetch } = useQuery({
         queryKey: ['dashboard-stats-main'],
         queryFn: () => statsService.getDashboardStats(),
-        refetchInterval: 30000,
-        retry: 1,
+        refetchInterval: 60000, // Refetch a cada 60s (menos agressivo)
+        retry: 2,
+        retryDelay: 3000,
         enabled: activeTab === 'performance',
+        staleTime: 30000, // Considera dados válidos por 30s
     });
 
     const formatCurrency = (value: number) => {
@@ -93,50 +103,31 @@ export function Dashboard() {
                                     </p>
                                 </div>
                             </div>
-                        ) : error ? (
-                            <div
-                                className="flex items-center justify-center py-20 rounded-xl p-8"
-                                style={{
-                                    background: 'var(--surface)',
-                                    border: '1px solid var(--border-subtle)'
-                                }}
-                            >
-                                <div className="text-center">
-                                    <div
-                                        className="p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4"
-                                        style={{ background: 'var(--danger-glow)' }}
-                                    >
-                                        <AlertCircle className="w-8 h-8" style={{ color: 'var(--danger)' }} />
-                                    </div>
-                                    <h3
-                                        className="text-lg font-bold mb-2"
-                                        style={{ color: 'var(--text-primary)' }}
-                                    >
-                                        Erro ao carregar dashboard
-                                    </h3>
-                                    <p
-                                        className="mb-6 max-w-md mx-auto"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        {(error as Error).message === 'Timeout ao buscar KPIs (45s)'
-                                            ? 'A conexão demorou muito para responder.'
-                                            : (error as Error).message || 'Não foi possível buscar os dados.'}
-                                    </p>
-                                    <button
-                                        onClick={() => refetch()}
-                                        className="px-6 py-2 rounded-lg font-medium flex items-center gap-2 mx-auto transition-all"
-                                        style={{
-                                            background: 'var(--primary)',
-                                            color: 'white'
-                                        }}
-                                    >
-                                        <TrendingUp className="w-4 h-4" />
-                                        Tentar Novamente
-                                    </button>
-                                </div>
-                            </div>
                         ) : (
                             <>
+                                {/* Aviso de erro (se houver) */}
+                                {error && (
+                                    <div
+                                        className="mb-4 p-3 rounded-lg flex items-center justify-between"
+                                        style={{
+                                            background: 'rgba(239, 68, 68, 0.1)',
+                                            border: '1px solid rgba(239, 68, 68, 0.3)'
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <AlertCircle className="w-4 h-4 text-red-400" />
+                                            <span className="text-sm text-red-400">
+                                                Erro ao atualizar dados. Mostrando última versão disponível.
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={() => refetch()}
+                                            className="text-xs px-3 py-1 rounded bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
+                                        >
+                                            Tentar novamente
+                                        </button>
+                                    </div>
+                                )}
                                 {/* KPI Cards Premium */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                                     {/* Total OS Abertas */}
