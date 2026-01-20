@@ -7,7 +7,8 @@ import {
     CheckCircle,
     Clock,
     AlertCircle,
-    Car
+    Car,
+    Users
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,6 +20,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { MetricCard } from '@/components/cognitive-bias/MetricCard';
 import { ModalAdicionarPeca } from '@/components/ui/ModalAdicionarPeca';
 import { ModalLancarDespesa } from '@/components/ui/ModalLancarDespesa';
+import { AgendaTecnicos } from '@/components/dashboard/AgendaTecnicos';
 
 interface OSAtribuida {
     id: string;
@@ -40,7 +42,9 @@ interface ItemOS {
 }
 
 export default function PainelTecnico() {
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
+    const gerenteRoles = ['GERENTE', 'CHEFE_OFICINA'];
+    const isGerente = gerenteRoles.includes(profile?.role?.toUpperCase() || '');
     const [loading, setLoading] = useState(true);
     const [osAtribuidas, setOsAtribuidas] = useState<OSAtribuida[]>([]);
     const [selectedOS, setSelectedOS] = useState<string | null>(null);
@@ -287,6 +291,13 @@ export default function PainelTecnico() {
                         </div>
                     )}
                 </div>
+
+                {/* Agenda de Todos os Técnicos (visível para gerentes) */}
+                {isGerente && (
+                    <div className="mt-8">
+                        <AgendaTecnicos />
+                    </div>
+                )}
 
                 {/* Modal de Adicionar Peças */}
                 <ModalAdicionarPeca

@@ -7,7 +7,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { AnalyticalDashboardContent } from '@/components/dashboard/AnalyticalDashboardContent';
 import { StatsCard } from '@/components/ui/StatsCard';
 import { PipelineOS } from '@/components/dashboard/PipelineOS';
-import { AgendaTecnicos } from '@/components/dashboard/AgendaTecnicos';
 
 export function Dashboard() {
     const { profile } = useAuth();
@@ -201,9 +200,6 @@ export function Dashboard() {
 
                                 {/* Pipeline de Processos */}
                                 <PipelineOS />
-
-                                {/* Agenda dos Técnicos */}
-                                <AgendaTecnicos />
                             </>
                         )}
                     </>
