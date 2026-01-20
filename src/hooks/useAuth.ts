@@ -23,7 +23,23 @@ export function useAuth() {
         const checkSession = async () => {
             try {
                 console.log('🔐 [useAuth] Verificando sessão...');
-                const session = await authService.getSession();
+
+                // Tenta obter sessão com timeout de 3s
+                const sessionPromise = authService.getSession();
+                const timeoutPromise = new Promise<null>((resolve) =>
+                    setTimeout(() => resolve(null), 3000)
+                );
+
+                const session = await Promise.race([sessionPromise, timeoutPromise]);
+
+                if (session === null) {
+                    console.warn('⚠️ [useAuth] Timeout ao verificar sessão - limpando cache');
+                    // Limpa sessão corrompida do localStorage
+                    localStorage.removeItem('mardisa-auth-session');
+                    localStorage.removeItem('sb-' + window.location.hostname.split('.')[0] + '-auth-token');
+                    return;
+                }
+
                 console.log('🔐 [useAuth] Sessão verificada:', !!session);
 
                 if (session?.user) {
