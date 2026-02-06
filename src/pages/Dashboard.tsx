@@ -1,34 +1,21 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { statsService } from '@/services/statsService';
+import { AlertCircle, FileText, DollarSign, Clock } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
-import { TrendingUp, AlertCircle, BarChart2, PieChart, FileText, DollarSign, Activity, Clock } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 import { AnalyticalDashboardContent } from '@/components/dashboard/AnalyticalDashboardContent';
 import { StatsCard } from '@/components/ui/StatsCard';
 import { PipelineOS } from '@/components/dashboard/PipelineOS';
+import { useDashboard } from '@/hooks/useDashboard';
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { motion } from 'framer-motion';
 
 export function Dashboard() {
-    const { profile } = useAuth();
-    const [activeTab, setActiveTab] = useState<'performance' | 'analitico'>('performance');
-
-    // Dados padrão para evitar tela de erro
-    const defaultStats = {
-        osAbertas: 0,
-        osCriticas: 0,
-        valorTotal: 0,
-        tempoMedioResolucao: 0,
-    };
-
-    const { data: stats, isLoading, error, refetch } = useQuery({
-        queryKey: ['dashboard-stats-main'],
-        queryFn: () => statsService.getDashboardStats(),
-        refetchInterval: 60000, // Refetch a cada 60s (menos agressivo)
-        retry: 2,
-        retryDelay: 3000,
-        enabled: activeTab === 'performance',
-        staleTime: 30000, // Considera dados válidos por 30s
-    });
+    const {
+        activeTab,
+        setActiveTab,
+        stats,
+        isLoading,
+        error,
+        refetch
+    } = useDashboard();
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('pt-BR', {
@@ -37,54 +24,26 @@ export function Dashboard() {
         }).format(value);
     };
 
+    // Animation variants
+    const container = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const item = {
+        hidden: { opacity: 0, y: 20 },
+        show: { opacity: 1, y: 0 }
+    };
+
     return (
         <AppLayout>
             <div className="p-8" style={{ minHeight: '100vh' }}>
-                {/* Header & Tabs */}
-                <div className="mb-8">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                        <div>
-                            <h1
-                                className="text-2xl font-bold mb-2"
-                                style={{ color: 'var(--text-primary)' }}
-                            >
-                                Painel de Controle
-                            </h1>
-                            <p style={{ color: 'var(--text-secondary)' }}>
-                                Visão consolidada da operação e indicadores
-                            </p>
-                        </div>
-
-                        {/* Tab Switcher - Dark Theme */}
-                        <div
-                            className="p-1 rounded-xl inline-flex"
-                            style={{ background: 'var(--surface)' }}
-                        >
-                            <button
-                                onClick={() => setActiveTab('performance')}
-                                className="px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
-                                style={{
-                                    background: activeTab === 'performance' ? 'var(--primary)' : 'transparent',
-                                    color: activeTab === 'performance' ? 'white' : 'var(--text-secondary)',
-                                }}
-                            >
-                                <BarChart2 className="w-4 h-4" />
-                                Performance
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('analitico')}
-                                className="px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
-                                style={{
-                                    background: activeTab === 'analitico' ? 'var(--primary)' : 'transparent',
-                                    color: activeTab === 'analitico' ? 'white' : 'var(--text-secondary)',
-                                }}
-                            >
-                                <PieChart className="w-4 h-4" />
-                                Analítico
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <DashboardHeader activeTab={activeTab} onTabChange={setActiveTab} />
 
                 {activeTab === 'analitico' ? (
                     <AnalyticalDashboardContent />
@@ -128,69 +87,89 @@ export function Dashboard() {
                                         </button>
                                     </div>
                                 )}
-                                {/* KPI Cards Premium */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+                                {/* KPI Cards Premium with Animation */}
+                                <motion.div
+                                    variants={container}
+                                    initial="hidden"
+                                    animate="show"
+                                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+                                >
                                     {/* Total OS Abertas */}
-                                    <StatsCard
-                                        title="Total de OS em Aberto"
-                                        value={stats?.osAbertas || 0}
-                                        icon={FileText}
-                                        color="blue"
-                                        trend={{
-                                            value: 5,
-                                            label: 'novas hoje',
-                                            isPositive: true,
-                                            isNeutral: true
-                                        }}
-                                    />
+                                    <motion.div variants={item}>
+                                        <StatsCard
+                                            title="Total de OS em Aberto"
+                                            value={stats?.osAbertas || 0}
+                                            icon={FileText}
+                                            color="blue"
+                                            trend={{
+                                                value: 5,
+                                                label: 'novas hoje',
+                                                isPositive: true,
+                                                isNeutral: true
+                                            }}
+                                        />
+                                    </motion.div>
 
                                     {/* OS Críticas */}
-                                    <StatsCard
-                                        title="OS Críticas"
-                                        value={stats?.osCriticas || 0}
-                                        icon={AlertCircle}
-                                        color="red"
-                                        trend={stats?.osCriticas && stats.osCriticas > 0 ? {
-                                            value: stats.osCriticas,
-                                            label: 'em risco',
-                                            isPositive: false
-                                        } : {
-                                            value: 0,
-                                            label: 'sob controle',
-                                            isPositive: true
-                                        }}
-                                    />
+                                    <motion.div variants={item}>
+                                        <StatsCard
+                                            title="OS Críticas"
+                                            value={stats?.osCriticas || 0}
+                                            icon={AlertCircle}
+                                            color="red"
+                                            trend={stats?.osCriticas && stats.osCriticas > 0 ? {
+                                                value: stats.osCriticas,
+                                                label: 'em risco',
+                                                isPositive: false
+                                            } : {
+                                                value: 0,
+                                                label: 'sob controle',
+                                                isPositive: true
+                                            }}
+                                        />
+                                    </motion.div>
 
                                     {/* Valor Total */}
-                                    <StatsCard
-                                        title="Valor Total"
-                                        value={formatCurrency(stats?.valorTotal || 0)}
-                                        icon={DollarSign}
-                                        color="green"
-                                        trend={{
-                                            value: 8.5,
-                                            label: 'vs mês anterior',
-                                            isPositive: true
-                                        }}
-                                    />
+                                    <motion.div variants={item}>
+                                        <StatsCard
+                                            title="Valor Total"
+                                            value={formatCurrency(stats?.valorTotal || 0)}
+                                            icon={DollarSign}
+                                            color="green"
+                                            trend={{
+                                                value: 8.5,
+                                                label: 'vs mês anterior',
+                                                isPositive: true
+                                            }}
+                                        />
+                                    </motion.div>
 
-                                    {/* Tempo Médio (Substituindo Eficiência por enquanto) */}
-                                    <StatsCard
-                                        title="Tempo Médio"
-                                        value={`${(stats?.tempoMedioResolucao || 0).toFixed(0)}d`}
-                                        icon={Clock}
-                                        color="violet"
-                                        trend={{
-                                            value: 2.1,
-                                            label: 'dias',
-                                            isPositive: true,
-                                            isNeutral: true
-                                        }}
-                                    />
-                                </div>
+                                    {/* Tempo Médio */}
+                                    <motion.div variants={item}>
+                                        <StatsCard
+                                            title="Tempo Médio"
+                                            value={`${(stats?.tempoMedioResolucao || 0).toFixed(0)}d`}
+                                            icon={Clock}
+                                            color="violet"
+                                            trend={{
+                                                value: 2.1,
+                                                label: 'dias',
+                                                isPositive: true,
+                                                isNeutral: true
+                                            }}
+                                        />
+                                    </motion.div>
+                                </motion.div>
 
                                 {/* Pipeline de Processos */}
-                                <PipelineOS />
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.4 }}
+                                >
+                                    <PipelineOS />
+                                </motion.div>
                             </>
                         )}
                     </>

@@ -2,14 +2,15 @@ import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { WindowControls } from '@/components/WindowControls';
-import { Loader2, Tractor, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { Loader2, Tractor, Mail, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [focusedField, setFocusedField] = useState<string | null>(null);
 
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -30,193 +31,130 @@ export function Login() {
     };
 
     return (
-        <div className="min-h-screen flex">
+        <div className="min-h-screen flex bg-white">
             {/* Window Controls */}
             <WindowControls />
 
             {/* Left Side - Login Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-gray-100">
-                <div className="w-full max-w-md animate-fadeIn">
-                    {/* Logo and Branding */}
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-12">
+                <div className="w-full max-w-sm animate-fadeIn">
+                    {/* Header */}
                     <div className="text-center mb-10">
-                        <div className="relative inline-block">
-                            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#14532d] to-[#064e3b] rounded-2xl mb-4 shadow-lg transform hover:scale-105 transition-transform duration-300">
-                                <Tractor className="w-12 h-12 text-white" />
-                            </div>
-                            {/* Sparkle effect */}
-                            <Sparkles className="absolute -top-1 -right-1 w-5 h-5 text-yellow-400 animate-pulse-soft" />
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-50 rounded-2xl mb-6 text-[#14532d]">
+                            <Tractor className="w-8 h-8" />
                         </div>
-                        <h1 className="text-3xl font-bold text-[#14532d] mb-2">Gestão 360</h1>
-                        <p className="text-gray-500 text-sm">Sistema ERP de Gestão Pós-Venda</p>
+                        <h1 className="text-2xl font-bold text-[#14532d] mb-2 tracking-tight">Gestão 360</h1>
+                        <p className="text-gray-500 text-sm">Acesse sua conta para continuar</p>
                     </div>
 
-                    {/* Login Card - Glassmorphism */}
-                    <div className="glass-card rounded-2xl p-8 shadow-xl">
-                        <div className="flex items-center gap-2 mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900">Acessar</h2>
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">v2.0</span>
+                    {/* Error Alert */}
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl animate-fadeIn">
+                            <p className="text-sm text-red-600 font-medium text-center">{error}</p>
                         </div>
+                    )}
 
-                        {/* Error Message with Animation */}
-                        {error && (
-                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl animate-slideDown">
-                                <p className="text-sm text-red-700 flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                                    {error}
-                                </p>
-                            </div>
-                        )}
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <Input
+                            id="email"
+                            type="email"
+                            label="Email Corporativo"
+                            placeholder="seu.email@mardisa.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            icon={Mail}
+                            required
+                            disabled={isLoading}
+                        />
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Email Field with Icon */}
-                            <div className="relative">
-                                <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${focusedField === 'email' ? 'text-[#16a34a]' : 'text-gray-400'
-                                    }`}>
-                                    <Mail className="w-5 h-5" />
-                                </div>
-                                <input
-                                    id="email"
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    onFocus={() => setFocusedField('email')}
-                                    onBlur={() => setFocusedField(null)}
-                                    required
-                                    className={`w-full pl-12 pr-4 py-4 bg-white border-2 rounded-xl focus:outline-none transition-all duration-200 ${focusedField === 'email'
-                                        ? 'border-[#16a34a] shadow-[0_0_0_4px_rgba(22,163,74,0.1)]'
-                                        : 'border-gray-200 hover:border-gray-300'
-                                        }`}
-                                    placeholder="seu.email@empresa.com"
-                                    disabled={isLoading}
-                                />
-                                <label
-                                    htmlFor="email"
-                                    className={`absolute left-12 transition-all duration-200 pointer-events-none ${email || focusedField === 'email'
-                                        ? '-top-2.5 text-xs bg-white px-2 text-[#16a34a] font-medium'
-                                        : 'top-1/2 -translate-y-1/2 text-gray-400 opacity-0'
-                                        }`}
-                                >
-                                    Email
-                                </label>
-                            </div>
+                        <Input
+                            id="password"
+                            type="password"
+                            label="Senha"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            icon={Lock}
+                            required
+                            disabled={isLoading}
+                        />
 
-                            {/* Password Field with Icon */}
-                            <div className="relative">
-                                <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${focusedField === 'password' ? 'text-[#16a34a]' : 'text-gray-400'
-                                    }`}>
-                                    <Lock className="w-5 h-5" />
-                                </div>
-                                <input
-                                    id="password"
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    onFocus={() => setFocusedField('password')}
-                                    onBlur={() => setFocusedField(null)}
-                                    required
-                                    className={`w-full pl-12 pr-4 py-4 bg-white border-2 rounded-xl focus:outline-none transition-all duration-200 ${focusedField === 'password'
-                                        ? 'border-[#16a34a] shadow-[0_0_0_4px_rgba(22,163,74,0.1)]'
-                                        : 'border-gray-200 hover:border-gray-300'
-                                        }`}
-                                    placeholder="••••••••"
-                                    disabled={isLoading}
-                                />
-                                <label
-                                    htmlFor="password"
-                                    className={`absolute left-12 transition-all duration-200 pointer-events-none ${password || focusedField === 'password'
-                                        ? '-top-2.5 text-xs bg-white px-2 text-[#16a34a] font-medium'
-                                        : 'top-1/2 -translate-y-1/2 text-gray-400 opacity-0'
-                                        }`}
-                                >
-                                    Senha
-                                </label>
-                            </div>
-
-                            {/* Submit Button with Enhanced Styling */}
-                            <button
+                        <div className="pt-2">
+                            <Button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full bg-gradient-to-r from-[#14532d] to-[#064e3b] hover:from-[#166534] hover:to-[#14532d] text-white font-semibold py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3 group"
+                                className="w-full py-3.5 text-base shadow-lg shadow-green-900/10 hover:shadow-green-900/20"
+                                style={{
+                                    background: '#14532d', // Brand specific override for Login only
+                                    color: 'white'
+                                }}
                             >
                                 {isLoading ? (
                                     <>
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                        <span>AUTENTICANDO...</span>
+                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                        Autenticando...
                                     </>
                                 ) : (
                                     <>
-                                        <span>ACESSAR SISTEMA</span>
-                                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                        Acessar Sistema
+                                        <ArrowRight className="w-4 h-4 ml-2" />
                                     </>
                                 )}
-                            </button>
-                        </form>
+                            </Button>
+                        </div>
+                    </form>
 
-                        {/* Help Link */}
-                        <div className="mt-6 text-center">
-                            <p className="text-sm text-gray-500">
-                                Problemas para acessar?{' '}
-                                <button className="text-[#16a34a] hover:text-[#14532d] font-medium transition-colors hover:underline">
-                                    Contate o suporte
-                                </button>
+                    {/* Footer Links */}
+                    <div className="mt-8 text-center space-y-4">
+                        <button className="text-sm text-[#16a34a] hover:text-[#14532d] font-medium transition-colors">
+                            Esqueceu sua senha?
+                        </button>
+
+                        <div className="pt-8 border-t border-gray-100">
+                            <p className="text-xs text-gray-400">
+                                © 2026 Grupo Mardisa · Todos os direitos reservados
                             </p>
                         </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="mt-8 text-center">
-                        <p className="text-xs text-gray-400">
-                            © 2026 Gestão 360 · v2.0.0 · Todos os direitos reservados
-                        </p>
                     </div>
                 </div>
             </div>
 
-            {/* Right Side - Premium Branding */}
-            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#14532d] via-[#166534] to-[#064e3b] items-center justify-center p-12 relative overflow-hidden">
-                {/* Animated Background Pattern */}
-                <div className="absolute inset-0 opacity-10">
-                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')]"></div>
-                </div>
+            {/* Right Side - Branding (Cleaned Up) */}
+            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0A2F1C]">
+                {/* Background Image/Pattern - Subtle */}
+                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-green-500 via-[#0A2F1C] to-[#0A2F1C]" />
 
-                {/* Floating Orbs for Visual Interest */}
-                <div className="absolute top-20 right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse-soft"></div>
-                <div className="absolute bottom-20 left-20 w-48 h-48 bg-[#16a34a]/20 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '1s' }}></div>
-
-                {/* Content */}
-                <div className="relative z-10 text-white text-center max-w-lg animate-fadeIn">
-                    <div className="inline-flex items-center justify-center w-28 h-28 bg-white/10 rounded-3xl mb-8 backdrop-blur-sm border border-white/20">
-                        <Tractor className="w-16 h-16 text-white" />
+                <div className="relative z-10 w-full h-full flex flex-col justify-between p-20 text-white">
+                    <div className="flex items-center gap-3 opacity-80">
+                        <div className="w-8 h-1 bg-green-500 rounded-full" />
+                        <span className="text-sm font-medium tracking-widest uppercase">Mardisa Agro</span>
                     </div>
 
-                    <h2 className="text-4xl font-bold mb-4 leading-tight">
-                        Gestão Inteligente<br />
-                        <span className="text-[#16a34a]">para o Agronegócio</span>
-                    </h2>
+                    <div className="max-w-lg">
+                        <h2 className="text-5xl font-bold mb-6 leading-tight">
+                            Potencialize sua <br />
+                            <span className="text-green-400">gestão agrícola</span>
+                        </h2>
+                        <p className="text-lg text-gray-300 leading-relaxed max-w-md">
+                            Controle total sobre ordens de serviço, indicadores de performance e gestão financeira em uma única plataforma.
+                        </p>
+                    </div>
 
-                    <p className="text-lg text-white/70 mb-10">
-                        Controle completo de Ordens de Serviço, KPIs e performance em tempo real
-                    </p>
-
-                    {/* Features List */}
-                    <div className="space-y-4 text-left bg-white/5 rounded-2xl p-6 backdrop-blur-sm border border-white/10">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-[#16a34a] rounded-lg flex items-center justify-center flex-shrink-0">
-                                <span className="text-white text-sm font-bold">✓</span>
+                    {/* Features Grid */}
+                    <div className="grid grid-cols-2 gap-8 pt-10 border-t border-white/10">
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-green-400">
+                                <CheckCircle2 className="w-5 h-5" />
+                                <span className="font-semibold">Compliance</span>
                             </div>
-                            <span className="text-white/90">Gestão de OS Normal e Garantia</span>
+                            <p className="text-sm text-gray-400">Processos auditáveis e seguros</p>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-[#16a34a] rounded-lg flex items-center justify-center flex-shrink-0">
-                                <span className="text-white text-sm font-bold">✓</span>
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-green-400">
+                                <CheckCircle2 className="w-5 h-5" />
+                                <span className="font-semibold">Performance</span>
                             </div>
-                            <span className="text-white/90">Dashboard com indicadores em tempo real</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-[#16a34a] rounded-lg flex items-center justify-center flex-shrink-0">
-                                <span className="text-white text-sm font-bold">✓</span>
-                            </div>
-                            <span className="text-white/90">Relatórios financeiros e operacionais</span>
+                            <p className="text-sm text-gray-400">KPIs atualizados em tempo real</p>
                         </div>
                     </div>
                 </div>
@@ -224,4 +162,3 @@ export function Login() {
         </div>
     );
 }
-
