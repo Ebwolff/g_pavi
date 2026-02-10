@@ -3,7 +3,7 @@ import { Database } from '../types/database.types';
 
 type Alerta = Database['public']['Tables']['alertas']['Row'];
 type AlertaInsert = Database['public']['Tables']['alertas']['Insert'];
-type AlertaUpdate = Database['public']['Tables']['alertas']['Update'];
+
 
 export const alertasService = {
     /**
@@ -111,7 +111,7 @@ export const alertasService = {
         const { data, error } = await supabase.rpc('gerar_alertas_os_vencidas');
 
         if (error) throw error;
-        return data as number;
+        return (data || 0) as number;
     },
 
     /**

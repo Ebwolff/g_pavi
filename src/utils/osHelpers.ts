@@ -67,7 +67,7 @@ export const formatarValor = (valor: number): string => {
  */
 export const formatarData = (data: string | Date): string => {
     const dataObj = typeof data === 'string' ? new Date(data) : data;
-    return new Intl.DateFormat('pt-BR').format(dataObj);
+    return new Intl.DateTimeFormat('pt-BR').format(dataObj);
 };
 
 /**
@@ -75,7 +75,7 @@ export const formatarData = (data: string | Date): string => {
  */
 export const formatarDataHora = (data: string | Date): string => {
     const dataObj = typeof data === 'string' ? new Date(data) : data;
-    return new Intl.DateFormat('pt-BR', {
+    return new Intl.DateTimeFormat('pt-BR', {
         dateStyle: 'short',
         timeStyle: 'short',
     }).format(dataObj);

@@ -230,7 +230,7 @@ export const formatarMoeda = (valor: number): string => {
  */
 export const formatarData = (data: string | Date): string => {
   const dataObj = typeof data === 'string' ? new Date(data) : data;
-  return new Intl.DateFormat('pt-BR').format(dataObj);
+  return new Intl.DateTimeFormat('pt-BR').format(dataObj);
 };
 
 /**

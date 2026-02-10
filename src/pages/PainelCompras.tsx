@@ -226,7 +226,7 @@ export default function PainelCompras() {
                                 <option value="BAIXA" className="bg-[#0f172a]">Baixa</option>
                                 <option value="MEDIA" className="bg-[#0f172a]">Média</option>
                                 <option value="ALTA" className="bg-[#0f172a]">Alta</option>
-                                <option value="CRITICA" className="bg-[#0f172a]">Crítica</option>
+                                <option value="URGENTE" className="bg-[#0f172a]">Urgente</option>
                             </select>
                         </div>
                     </div>
@@ -280,11 +280,11 @@ export default function PainelCompras() {
                                             <CustomBadge
                                                 label={sol.urgencia}
                                                 variant={
-                                                    sol.urgencia === 'CRITICA' ? 'red' :
+                                                    sol.urgencia === 'URGENTE' ? 'red' :
                                                         sol.urgencia === 'ALTA' ? 'orange' :
                                                             sol.urgencia === 'MEDIA' ? 'blue' : 'gray'
                                                 }
-                                                className={sol.urgencia === 'CRITICA' ? 'animate-pulse' : ''}
+                                                className={sol.urgencia === 'URGENTE' ? 'animate-pulse' : ''}
                                             />
                                         </TD>
 

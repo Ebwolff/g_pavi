@@ -238,7 +238,7 @@ class ComprasService {
                 p_codigo_peca: solicitacao.codigo_peca,
                 p_descricao: solicitacao.descricao_peca,
                 p_quantidade: solicitacao.quantidade,
-                p_valor_unitario: solicitacao.valor_unitario
+                p_valor_unitario: solicitacao.valor_unitario || 0
             });
 
             if (estoqueError) {

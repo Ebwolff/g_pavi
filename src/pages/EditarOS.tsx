@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ordemServicoService } from '@/services/ordemServico.service';
@@ -9,6 +9,8 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { AnchoredValue } from '@/components/cognitive-bias';
 import { ModalLancarDespesa } from '@/components/ui/ModalLancarDespesa';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
 import {
     ArrowLeft,
     Save,
@@ -26,26 +28,30 @@ import {
     CircleDollarSign,
     Plus,
     MoreHorizontal,
-    X
+    ClipboardList,
+    Hash,
+    Settings,
+    Briefcase
 } from 'lucide-react';
 
 export function EditarOS() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
-    const [numeroOS, setNumeroOS] = useState('');
-    const [tipoOS, setTipoOS] = useState<'NORMAL' | 'GARANTIA'>('NORMAL');
-    const [statusOS, setStatusOS] = useState('EM_EXECUCAO');
-    const [nomeCliente, setNomeCliente] = useState('');
-    const [modeloMaquina, setModeloMaquina] = useState('');
-    const [chassi, setChassi] = useState('');
-    const [descricaoProblema, setDescricaoProblema] = useState('');
-    const [solucaoAplicada, setSolucaoAplicada] = useState('');
-    const [valorMaoDeObra, setValorMaoDeObra] = useState('0');
-    const [valorPecas, setValorPecas] = useState('0');
-    const [valorDeslocamento, setValorDeslocamento] = useState('0');
+    const [formData, setFormData] = useState({
+        numeroOS: '',
+        tipoOS: 'NORMAL' as 'NORMAL' | 'GARANTIA',
+        statusOS: 'EM_EXECUCAO',
+        nomeCliente: '',
+        modeloMaquina: '',
+        chassi: '',
+        descricaoProblema: '',
+        solucaoAplicada: '',
+        valorMaoDeObra: '0',
+        valorPecas: '0',
+        valorDeslocamento: '0',
+    });
 
-    // Estado para despesas de viagem
     const [despesas, setDespesas] = useState<DespesaOS[]>([]);
     const [modalDespesaOpen, setModalDespesaOpen] = useState(false);
     const [loadingDespesas, setLoadingDespesas] = useState(false);
@@ -58,18 +64,19 @@ export function EditarOS() {
 
     useEffect(() => {
         if (os) {
-            setNumeroOS(os.numero_os);
-            setTipoOS(os.tipo_os);
-            setStatusOS(os.status_atual);
-            setNomeCliente(os.nome_cliente_digitavel || '');
-            setModeloMaquina(os.modelo_maquina || '');
-            setChassi(os.chassi || '');
-            setDescricaoProblema(os.descricao_problema || '');
-            setSolucaoAplicada(os.solucao_aplicada || '');
-            setValorMaoDeObra(String(os.valor_mao_de_obra));
-            setValorPecas(String(os.valor_pecas));
-            setValorDeslocamento(String(os.valor_deslocamento));
-            // Carregar despesas da OS
+            setFormData({
+                numeroOS: os.numero_os,
+                tipoOS: os.tipo_os,
+                statusOS: os.status_atual,
+                nomeCliente: os.nome_cliente_digitavel || '',
+                modeloMaquina: os.modelo_maquina || '',
+                chassi: os.chassi || '',
+                descricaoProblema: os.descricao_problema || '',
+                solucaoAplicada: os.solucao_aplicada || '',
+                valorMaoDeObra: String(os.valor_mao_de_obra),
+                valorPecas: String(os.valor_pecas),
+                valorDeslocamento: String(os.valor_deslocamento),
+            });
             carregarDespesas();
         }
     }, [os]);
@@ -94,7 +101,6 @@ export function EditarOS() {
             await carregarDespesas();
         } catch (error) {
             console.error('Erro ao excluir despesa:', error);
-            alert('Erro ao excluir despesa.');
         }
     };
 
@@ -111,40 +117,33 @@ export function EditarOS() {
 
     const updateOSMutation = useMutation({
         mutationFn: (data: any) => ordemServicoService.update(id!, data),
-        onSuccess: () => {
-            navigate('/os/lista');
-        },
-        onError: (error: any) => {
-            console.error('Erro ao atualizar OS:', error);
-        },
+        onSuccess: () => navigate('/os/lista'),
+        onError: (error: any) => console.error('Erro ao atualizar OS:', error),
     });
 
     const deleteOSMutation = useMutation({
         mutationFn: () => ordemServicoService.delete(id!),
-        onSuccess: () => {
-            navigate('/os/lista');
-        },
-        onError: (error: any) => {
-            console.error('Erro ao deletar OS:', error);
-        },
+        onSuccess: () => navigate('/os/lista'),
+        onError: (error: any) => console.error('Erro ao deletar OS:', error),
     });
 
-    const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
+    const handleInputChange = (field: string, value: any) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
 
+    const handleSubmit = () => {
         const data = {
-            tipo_os: tipoOS,
-            status_atual: statusOS as any,
-            nome_cliente_digitavel: nomeCliente || null,
-            modelo_maquina: modeloMaquina || null,
-            chassi: chassi || null,
-            descricao_problema: descricaoProblema || null,
-            solucao_aplicada: solucaoAplicada || null,
-            valor_mao_de_obra: parseFloat(valorMaoDeObra) || 0,
-            valor_pecas: parseFloat(valorPecas) || 0,
-            valor_deslocamento: parseFloat(valorDeslocamento) || 0,
+            tipo_os: formData.tipoOS,
+            status_atual: formData.statusOS as any,
+            nome_cliente_digitavel: formData.nomeCliente || null,
+            modelo_maquina: formData.modeloMaquina || null,
+            chassi: formData.chassi || null,
+            descricao_problema: formData.descricaoProblema || null,
+            solucao_aplicada: formData.solucaoAplicada || null,
+            valor_mao_de_obra: parseFloat(formData.valorMaoDeObra) || 0,
+            valor_pecas: parseFloat(formData.valorPecas) || 0,
+            valor_deslocamento: parseFloat(formData.valorDeslocamento) || 0,
         };
-
         updateOSMutation.mutate(data);
     };
 
@@ -155,9 +154,9 @@ export function EditarOS() {
     };
 
     const valorTotal =
-        (parseFloat(valorMaoDeObra) || 0) +
-        (parseFloat(valorPecas) || 0) +
-        (parseFloat(valorDeslocamento) || 0);
+        (parseFloat(formData.valorMaoDeObra) || 0) +
+        (parseFloat(formData.valorPecas) || 0) +
+        (parseFloat(formData.valorDeslocamento) || 0);
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -166,22 +165,22 @@ export function EditarOS() {
     if (isLoading) {
         return (
             <AppLayout>
-                <div className="p-8 animate-fadeIn max-w-5xl mx-auto space-y-6">
+                <div className="p-8 animate-fadeIn max-w-6xl mx-auto space-y-8">
                     <div className="flex justify-between items-center">
                         <div className="flex gap-4 items-center">
-                            <Skeleton width={40} height={40} className="rounded-xl" />
+                            <Skeleton className="w-12 h-12 rounded-2xl" />
                             <div className="space-y-2">
-                                <Skeleton width={200} height={24} />
-                                <Skeleton width={150} height={16} />
+                                <Skeleton className="w-64 h-8 rounded-lg" />
+                                <Skeleton className="w-48 h-4 rounded-lg" />
                             </div>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2 space-y-6">
-                            <Skeleton height={200} className="rounded-2xl" />
-                            <Skeleton height={300} className="rounded-2xl" />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2 space-y-8">
+                            <Skeleton className="h-64 w-full rounded-2xl opacity-40" />
+                            <Skeleton className="h-96 w-full rounded-2xl opacity-40" />
                         </div>
-                        <Skeleton height={400} className="rounded-2xl" />
+                        <Skeleton className="h-[600px] w-full rounded-2xl opacity-40" />
                     </div>
                 </div>
             </AppLayout>
@@ -190,315 +189,357 @@ export function EditarOS() {
 
     return (
         <AppLayout>
-            <div className="p-8 animate-fadeIn max-w-5xl mx-auto">
+            <div className="p-8 animate-fadeIn max-w-6xl mx-auto space-y-8">
                 {/* Header Section */}
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-5">
                         <button
                             onClick={() => navigate('/os/lista')}
-                            className="p-2.5 rounded-xl transition-all border border-[var(--border-subtle)] bg-[var(--surface-light)] hover:bg-[var(--surface-hover)] text-[var(--text-secondary)]"
+                            className="p-3 rounded-2xl transition-all border border-[var(--border-subtle)] bg-[var(--surface-light)] hover:bg-[var(--surface-hover)] text-[var(--text-secondary)] shadow-sm"
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
                             <div className="flex items-center gap-3">
-                                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Editar OS #{numeroOS}</h1>
-                                <StatusBadge status={statusOS as any} />
+                                <h1 className="text-3xl font-black text-white tracking-tight">Editar OS #{formData.numeroOS}</h1>
+                                <StatusBadge status={formData.statusOS as any} />
                             </div>
-                            <p className="text-sm text-[var(--text-muted)] mt-0.5">Gerenciamento técnico e financeiro do registro</p>
+                            <p className="text-[var(--text-muted)] font-medium mt-1">Gerenciamento técnico e financeiro do registro</p>
                         </div>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex items-center gap-3">
                         <Button
                             variant="danger"
                             onClick={handleDelete}
                             leftIcon={<Trash2 className="w-4 h-4" />}
-                            className="hover:bg-rose-500/10 hover:text-rose-500 bg-transparent border-rose-500/50"
+                            className="bg-rose-500/5 border-rose-500/20 text-rose-500 hover:bg-rose-500/10"
                         >
-                            Excluir
+                            Excluir Registro
                         </Button>
                         <Button
                             variant="primary"
                             onClick={handleSubmit}
                             isLoading={updateOSMutation.isPending}
                             leftIcon={<Save className="w-4 h-4" />}
-                            className="shadow-lg shadow-blue-500/20"
+                            className="shadow-xl shadow-blue-500/20 px-8"
                         >
                             Salvar Alterações
                         </Button>
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Main Info */}
-                        <div className="lg:col-span-2 space-y-6">
-                            {/* Card: Identificação */}
-                            <div className="glass-card-enterprise p-6 rounded-2xl">
-                                <h2 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-6 flex items-center gap-2">
-                                    <Activity className="w-4 h-4 text-blue-500" />
-                                    Estado do Serviço
-                                </h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[var(--text-secondary)] ml-1">Status Atual</label>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                    {/* Main Content Area */}
+                    <div className="lg:col-span-2 space-y-8">
+                        {/* Status e Tipo */}
+                        <div className="glass-card-enterprise p-8 rounded-3xl border border-white/5 shadow-2xl">
+                            <h2 className="text-xs font-black text-blue-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                                <Settings className="w-4 h-4" />
+                                Configurações do Fluxo
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-3">
+                                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Status do Atendimento</label>
+                                    <div className="relative group">
                                         <select
-                                            value={statusOS}
-                                            onChange={(e) => setStatusOS(e.target.value)}
-                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none font-medium appearance-none cursor-pointer"
+                                            value={formData.statusOS}
+                                            onChange={(e) => handleInputChange('statusOS', e.target.value)}
+                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-2xl px-5 py-4 text-white font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none appearance-none cursor-pointer"
                                         >
-                                            <option value="EM_EXECUCAO" className="bg-[#0f172a]">Em Execução</option>
-                                            <option value="AGUARDANDO_PECAS" className="bg-[#0f172a]">Aguardando Peças</option>
-                                            <option value="PAUSADA" className="bg-[#0f172a]">Pausada</option>
-                                            <option value="CONCLUIDA" className="bg-[#0f172a]">Concluída</option>
-                                            <option value="FATURADA" className="bg-[#0f172a]">Faturada</option>
-                                            <option value="CANCELADA" className="bg-[#0f172a]">Cancelada</option>
+                                            <option value="EM_EXECUCAO">Em Execução</option>
+                                            <option value="AGUARDANDO_PECAS">Aguardando Peças</option>
+                                            <option value="PAUSADA">Pausada</option>
+                                            <option value="CONCLUIDA">Concluída</option>
+                                            <option value="FATURADA">Faturada</option>
+                                            <option value="CANCELADA">Cancelada</option>
                                         </select>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[var(--text-secondary)] ml-1">Modalidade</label>
-                                        <select
-                                            value={tipoOS}
-                                            onChange={(e) => setTipoOS(e.target.value as any)}
-                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none font-medium appearance-none cursor-pointer"
-                                        >
-                                            <option value="NORMAL" className="bg-[#0f172a]">Normal (N)</option>
-                                            <option value="GARANTIA" className="bg-[#0f172a]">Garantia (W)</option>
-                                        </select>
+                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-muted)]">
+                                            <Settings className="w-4 h-4" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Card: Cliente e Máquina */}
-                            <div className="glass-card-enterprise p-6 rounded-2xl">
-                                <h2 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-6 flex items-center gap-2">
-                                    <User className="w-4 h-4 text-blue-500" />
-                                    Proprietário & Equipamento
-                                </h2>
-                                <div className="space-y-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[var(--text-secondary)] ml-1">Nome do Cliente</label>
-                                        <input
-                                            type="text"
-                                            value={nomeCliente}
-                                            onChange={(e) => setNomeCliente(e.target.value)}
-                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none font-medium"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-[var(--text-secondary)] ml-1">Modelo Comercial</label>
-                                            <input
-                                                type="text"
-                                                value={modeloMaquina}
-                                                onChange={(e) => setModeloMaquina(e.target.value)}
-                                                className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none font-medium"
-                                            />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-[var(--text-secondary)] ml-1">Chassi / Serial</label>
-                                            <input
-                                                type="text"
-                                                value={chassi}
-                                                onChange={(e) => setChassi(e.target.value)}
-                                                className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none font-medium uppercase"
-                                            />
+                                <div className="space-y-3">
+                                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Modalidade de Faturamento</label>
+                                    <div className="relative">
+                                        <select
+                                            value={formData.tipoOS}
+                                            onChange={(e) => handleInputChange('tipoOS', e.target.value as any)}
+                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-2xl px-5 py-4 text-white font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none appearance-none cursor-pointer"
+                                        >
+                                            <option value="NORMAL">Normal (N)</option>
+                                            <option value="GARANTIA">Garantia (G)</option>
+                                        </select>
+                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-muted)]">
+                                            <ClipboardList className="w-4 h-4" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Card: Serviço */}
-                            <div className="glass-card-enterprise p-6 rounded-2xl">
-                                <h2 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-6 flex items-center gap-2">
-                                    <Wrench className="w-4 h-4 text-blue-500" />
-                                    Registro Técnico
-                                </h2>
-                                <div className="space-y-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[var(--text-secondary)] ml-1">Problema Relatado</label>
-                                        <textarea
-                                            value={descricaoProblema}
-                                            onChange={(e) => setDescricaoProblema(e.target.value)}
-                                            rows={3}
-                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none font-medium resize-none"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[var(--text-secondary)] ml-1 flex items-center gap-2">
-                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                                            Solução Aplicada
-                                        </label>
-                                        <textarea
-                                            value={solucaoAplicada}
-                                            onChange={(e) => setSolucaoAplicada(e.target.value)}
-                                            rows={3}
-                                            placeholder="Descreva a solução técnica realizada..."
-                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none font-medium resize-none"
-                                        />
-                                    </div>
+                        {/* Dados de Identificação */}
+                        <div className="glass-card-enterprise p-8 rounded-3xl border border-white/5 shadow-2xl">
+                            <h2 className="text-xs font-black text-blue-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                                <User className="w-4 h-4" />
+                                Proprietário & Equipamento
+                            </h2>
+                            <div className="space-y-8">
+                                <Input
+                                    label="Cliente"
+                                    icon={User}
+                                    value={formData.nomeCliente}
+                                    onChange={(e) => handleInputChange('nomeCliente', e.target.value)}
+                                    placeholder="Nome completo do proprietário"
+                                />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <Input
+                                        label="Modelo Comercial"
+                                        icon={Briefcase}
+                                        value={formData.modeloMaquina}
+                                        onChange={(e) => handleInputChange('modeloMaquina', e.target.value)}
+                                        placeholder="Ex: T250, A950"
+                                    />
+                                    <Input
+                                        label="Número de Série / Chassi"
+                                        icon={Hash}
+                                        value={formData.chassi}
+                                        onChange={(e) => handleInputChange('chassi', e.target.value)}
+                                        placeholder="Identificação única"
+                                        className="uppercase"
+                                    />
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Card: Despesas de Viagem */}
-                            <div className="glass-card-enterprise p-6 rounded-2xl">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-2">
-                                        <Car className="w-4 h-4 text-blue-500" />
-                                        Despesas de Viagem
-                                    </h2>
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        onClick={() => setModalDespesaOpen(true)}
-                                        leftIcon={<Plus className="w-3.5 h-3.5" />}
-                                    >
-                                        Lançar Despesa
-                                    </Button>
+                        {/* Detalhamento Técnico */}
+                        <div className="glass-card-enterprise p-8 rounded-3xl border border-white/5 shadow-2xl">
+                            <h2 className="text-xs font-black text-blue-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                                <Wrench className="w-4 h-4" />
+                                Laudo Técnico
+                            </h2>
+                            <div className="space-y-8">
+                                <Textarea
+                                    label="Sintomas e Reclamação"
+                                    icon={Activity}
+                                    value={formData.descricaoProblema}
+                                    onChange={(e) => handleInputChange('descricaoProblema', e.target.value)}
+                                    placeholder="Descreva o problema relatado..."
+                                />
+                                <Textarea
+                                    label="Intervenção Realizada"
+                                    icon={CheckCircle2}
+                                    value={formData.solucaoAplicada}
+                                    onChange={(e) => handleInputChange('solucaoAplicada', e.target.value)}
+                                    placeholder="Descreva a solução técnica aplicada..."
+                                    className="border-emerald-500/20 focus:border-emerald-500"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Gestão de Despesas de Viagem */}
+                        <div className="glass-card-enterprise p-8 rounded-3xl border border-white/5 shadow-2xl overflow-hidden relative">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-3xl pointer-events-none" />
+                            <div className="flex items-center justify-between mb-8">
+                                <h2 className="text-xs font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                                    <Car className="w-4 h-4" />
+                                    Custos de Deslocamento
+                                </h2>
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => setModalDespesaOpen(true)}
+                                    leftIcon={<Plus className="w-4 h-4" />}
+                                    className="bg-white/5 border-white/10"
+                                >
+                                    Lançar Despesa
+                                </Button>
+                            </div>
+
+                            {loadingDespesas ? (
+                                <div className="space-y-3">
+                                    <Skeleton className="h-16 w-full rounded-2xl opacity-20" />
+                                    <Skeleton className="h-16 w-full rounded-2xl opacity-10" />
                                 </div>
-
-                                {loadingDespesas ? (
-                                    <Skeleton height={100} className="rounded-xl" />
-                                ) : despesas.length === 0 ? (
-                                    <div className="text-center py-8 text-[var(--text-muted)]">
-                                        <Car className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                                        <p className="text-sm">Nenhuma despesa lançada</p>
-                                        <p className="text-xs mt-1">Clique em "Lançar Despesa" para adicionar</p>
+                            ) : despesas.length === 0 ? (
+                                <div className="text-center py-12 rounded-2xl bg-white/[0.01] border border-dashed border-white/5">
+                                    <div className="w-16 h-16 bg-white/[0.03] rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5">
+                                        <Car className="w-8 h-8 text-[var(--text-muted)] opacity-50" />
                                     </div>
-                                ) : (
-                                    <div className="space-y-3">
+                                    <p className="text-sm font-bold text-white">Sem pendências de despesa</p>
+                                    <p className="text-xs text-[var(--text-muted)] mt-1 max-w-[200px] mx-auto">Lance quilometragem, alimentação ou combustíveis para compor o custo inicial.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 gap-4">
                                         {despesas.map((despesa) => {
                                             const tipoInfo = tiposDespesaIcons[despesa.tipo];
                                             const Icon = tipoInfo?.icon || MoreHorizontal;
                                             return (
                                                 <div
                                                     key={despesa.id}
-                                                    className="flex items-center justify-between p-3 bg-white/[0.02] rounded-xl border border-white/5 group hover:bg-white/[0.04] transition-all"
+                                                    className="flex items-center justify-between p-5 bg-white/[0.02] rounded-2xl border border-white/5 group hover:bg-white/[0.04] transition-all"
                                                 >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`p-2 rounded-lg ${tipoInfo?.color || 'bg-slate-500/10'}`}>
-                                                            <Icon className="w-4 h-4" />
+                                                    <div className="flex items-center gap-5">
+                                                        <div className={`p-3 rounded-xl ${tipoInfo?.color || 'bg-slate-500/10'}`}>
+                                                            <Icon className="w-5 h-5" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm font-semibold text-[var(--text-primary)]">
+                                                            <p className="text-sm font-black text-white leading-none mb-1.5">
                                                                 {despesa.descricao || despesa.tipo}
                                                             </p>
-                                                            <p className="text-xs text-[var(--text-muted)]">
-                                                                {new Date(despesa.data_despesa).toLocaleDateString('pt-BR')}
-                                                                {despesa.tipo === 'KM' && despesa.quantidade && ` • ${despesa.quantidade} km`}
-                                                            </p>
+                                                            <div className="flex items-center gap-3">
+                                                                <span className="text-[10px] font-bold text-[var(--text-muted)] border-r border-white/10 pr-3">
+                                                                    {new Date(despesa.data_despesa).toLocaleDateString('pt-BR')}
+                                                                </span>
+                                                                {despesa.tipo === 'KM' && (
+                                                                    <span className="text-[10px] font-black text-blue-400">
+                                                                        {despesa.quantidade} KM Percorridos
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-sm font-bold text-emerald-400">
+                                                    <div className="flex items-center gap-5">
+                                                        <span className="text-lg font-black text-emerald-400">
                                                             {formatCurrency(despesa.valor_total)}
                                                         </span>
                                                         <button
-                                                            onClick={() => handleExcluirDespesa(despesa.id)}
-                                                            className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-rose-500/10 text-rose-400 transition-all"
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                handleExcluirDespesa(despesa.id);
+                                                            }}
+                                                            className="p-2.5 rounded-xl opacity-0 group-hover:opacity-100 bg-rose-500/5 text-rose-500 hover:bg-rose-500/10 transition-all border border-rose-500/10"
                                                         >
-                                                            <X className="w-3.5 h-3.5" />
+                                                            <Trash2 className="w-4 h-4" />
                                                         </button>
                                                     </div>
                                                 </div>
                                             );
                                         })}
+                                    </div>
 
-                                        {/* Total */}
-                                        <div className="pt-3 mt-3 border-t border-white/5 flex justify-between items-center">
-                                            <span className="text-xs font-bold text-[var(--text-muted)] uppercase">Total Despesas</span>
-                                            <span className="text-lg font-black text-emerald-400">{formatCurrency(totalDespesas)}</span>
+                                    <div className="pt-6 mt-6 border-t border-white/5 flex justify-between items-end px-2">
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Base de Reembolso</span>
+                                            <p className="text-xs text-[var(--text-muted)]">Custos operacionais de viagem aprovados</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-sm font-bold text-[var(--text-muted)] mr-2">Subtotal:</span>
+                                            <span className="text-2xl font-black text-white">{formatCurrency(totalDespesas)}</span>
                                         </div>
                                     </div>
-                                )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Sidebar Financeira */}
+                    <div className="space-y-8 sticky top-8">
+                        {/* Composição Financeira */}
+                        <div className="glass-card-enterprise p-8 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/10 blur-[80px] pointer-events-none" />
+                            <h2 className="text-xs font-black text-emerald-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                                <DollarSign className="w-4 h-4" />
+                                Visão Financeira
+                            </h2>
+
+                            <div className="space-y-8">
+                                <Input
+                                    label="Mão de Obra (MO)"
+                                    type="number"
+                                    step="0.01"
+                                    value={formData.valorMaoDeObra}
+                                    onChange={(e) => handleInputChange('valorMaoDeObra', e.target.value)}
+                                    icon={Wrench}
+                                />
+                                <Input
+                                    label="Peças Aplicadas"
+                                    type="number"
+                                    step="0.01"
+                                    value={formData.valorPecas}
+                                    onChange={(e) => handleInputChange('valorPecas', e.target.value)}
+                                    icon={Settings}
+                                />
+                                <Input
+                                    label="Taxa de Deslocamento"
+                                    type="number"
+                                    step="0.01"
+                                    value={formData.valorDeslocamento}
+                                    onChange={(e) => handleInputChange('valorDeslocamento', e.target.value)}
+                                    icon={Car}
+                                />
+
+                                <div className="pt-8 mt-8 border-t border-white/5">
+                                    <div className="bg-white/[0.03] p-6 rounded-2xl border border-white/5 mb-6 relative group overflow-hidden">
+                                        <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/5 transition-colors duration-500" />
+                                        <div className="flex justify-between items-center mb-2 relative z-10">
+                                            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em]">Valor Total Líquido</span>
+                                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                <span className="text-[10px] font-black text-emerald-400 uppercase">Calculado</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-4xl font-black text-white tracking-tighter relative z-10">
+                                            {formatCurrency(valorTotal)}
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-4 text-[10px] text-[var(--text-muted)] font-bold uppercase relative z-10">
+                                            <Clock className="w-3.5 h-3.5" />
+                                            <span>Iniciada em {os?.data_abertura ? new Intl.DateTimeFormat('pt-BR').format(new Date(os.data_abertura)) : '-'}</span>
+                                        </div>
+                                    </div>
+
+                                    <AnchoredValue
+                                        mainValue={valorTotal}
+                                        currency={true}
+                                        comparison={valorTotal > 5000 ? "Score de rentabilidade alto" : "Valor comercial equilibrado"}
+                                        label="Análise de Desempenho"
+                                        className="bg-transparent border-none p-0 !gap-1"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        {/* Sidebar: Totais */}
-                        <div className="space-y-6">
-                            <div className="glass-card-enterprise p-6 rounded-2xl sticky top-8">
-                                <h2 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-6 flex items-center gap-2">
-                                    <DollarSign className="w-4 h-4 text-emerald-500" />
-                                    Detalhamento de Custos
-                                </h2>
-
-                                <div className="space-y-4">
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-bold text-[var(--text-muted)] uppercase ml-1">Mão de Obra</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            value={valorMaoDeObra}
-                                            onChange={(e) => setValorMaoDeObra(e.target.value)}
-                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none font-bold"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-bold text-[var(--text-muted)] uppercase ml-1">Peças</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            value={valorPecas}
-                                            onChange={(e) => setValorPecas(e.target.value)}
-                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none font-bold"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-bold text-[var(--text-muted)] uppercase ml-1">Deslocamento</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            value={valorDeslocamento}
-                                            onChange={(e) => setValorDeslocamento(e.target.value)}
-                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none font-bold"
-                                        />
-                                    </div>
-
-                                    <div className="pt-6 mt-6 border-t border-[var(--border-subtle)]">
-                                        {/* Valor Total com Ancoragem Cognitiva */}
-                                        <div className="bg-[var(--surface-elevated)] p-4 rounded-xl border border-blue-500/10 mb-4">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <span className="text-xs font-bold text-[var(--text-muted)] uppercase">Valor Consolidado</span>
-                                                <span className="text-xl font-black text-emerald-400">
-                                                    {formatCurrency(valorTotal)}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)] font-medium">
-                                                <Clock className="w-3 h-3" />
-                                                <span>Abertura em {os?.data_abertura ? new Intl.DateTimeFormat('pt-BR').format(new Date(os.data_abertura)) : '-'}</span>
-                                            </div>
-                                        </div>
-
-                                        <AnchoredValue
-                                            mainValue={valorTotal}
-                                            currency={true}
-                                            comparison={valorTotal > 5000 ? "Valor acima da média regional" : "Valor dentro da faixa esperada"}
-                                            label="Insight Financeiro"
-                                            className="bg-transparent border-none p-0"
-                                        />
-                                    </div>
+                        {/* Informações Extras / Metadados */}
+                        <div className="glass-card-enterprise p-6 rounded-2xl border border-white/5 text-[var(--text-muted)] space-y-4">
+                            <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest opacity-50">
+                                <Activity className="w-3.5 h-3.5" />
+                                Log do Registro
+                            </div>
+                            <div className="space-y-3">
+                                <div className="flex justify-between text-[11px] font-medium">
+                                    <span>Criado em</span>
+                                    <span className="text-white">{os?.created_at ? formatarData(os.created_at) : '-'}</span>
+                                </div>
+                                <div className="flex justify-between text-[11px] font-medium">
+                                    <span>Última Edição</span>
+                                    <span className="text-white">{os?.updated_at ? formatarData(os.updated_at) : '-'}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </form>
+                </div>
 
                 {/* Modal de Lançar Despesa */}
                 <ModalLancarDespesa
                     isOpen={modalDespesaOpen}
                     onClose={() => setModalDespesaOpen(false)}
                     osId={id || ''}
-                    osNumero={numeroOS}
+                    osNumero={formData.numeroOS}
                     onSuccess={carregarDespesas}
                 />
             </div>
         </AppLayout>
     );
 }
+
+const formatarData = (data: string) => {
+    return new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    }).format(new Date(data));
+};

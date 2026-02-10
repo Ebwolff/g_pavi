@@ -4,9 +4,10 @@ import { StatusOS, TipoOS, NivelUrgencia, StatusPendencia } from '../../types/da
 interface StatusBadgeProps {
     status: StatusOS | StatusPendencia;
     className?: string;
+    size?: 'sm' | 'md' | 'lg';
 }
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = '' }) => {
+export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = '', size = 'md' }) => {
     const getStatusConfig = (status: StatusOS | StatusPendencia) => {
         const configs: Record<string, { label: string; style: React.CSSProperties; className: string }> = {
             // Status OS
@@ -71,9 +72,15 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = ''
 
     const config = getStatusConfig(status);
 
+    const sizeClasses = {
+        sm: 'px-1.5 py-0 text-[9px]',
+        md: 'px-2.5 py-0.5 text-[10px]',
+        lg: 'px-3 py-1 text-xs'
+    };
+
     return (
         <span
-            className={`${config.className} ${className} border px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider`}
+            className={`${config.className} ${className} ${sizeClasses[size]} border rounded-full font-bold uppercase tracking-wider`}
             style={config.style}
         >
             {config.label}

@@ -1,6 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase';
 import { WindowControls } from '@/components/WindowControls';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -12,7 +12,6 @@ export function Login() {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const { login } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: FormEvent) => {
@@ -21,10 +20,33 @@ export function Login() {
         setIsLoading(true);
 
         try {
-            await login(email, password);
-            navigate('/dashboard');
+            console.log('🔐 [Login] Chamando Supabase diretamente...');
+
+            // Chamar Supabase diretamente, sem useAuth ou authService
+            const { data, error: authError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            console.log('📨 [Login] Resposta recebida:', { hasData: !!data, hasError: !!authError });
+
+            if (authError) {
+                throw authError;
+            }
+
+            console.log('✅ [Login] Login OK! Navegando para /tecnico...');
+            navigate('/tecnico');
         } catch (err: any) {
-            setError(err.message || 'Credenciais inválidas. Verifique seu email e senha.');
+            console.error('❌ [Login] Erro:', err);
+            let msg = err.message || 'Erro ao realizar login.';
+
+            if (msg.includes('Invalid login credentials')) {
+                msg = 'E-mail ou senha incorretos.';
+            } else if (msg.includes('Email not confirmed')) {
+                msg = 'E-mail não confirmado. Verifique sua caixa de entrada.';
+            }
+
+            setError(msg);
         } finally {
             setIsLoading(false);
         }
@@ -43,7 +65,7 @@ export function Login() {
                         <div className="inline-flex items-center justify-center w-16 h-16 bg-green-50 rounded-2xl mb-6 text-[#14532d]">
                             <Tractor className="w-8 h-8" />
                         </div>
-                        <h1 className="text-2xl font-bold text-[#14532d] mb-2 tracking-tight">Gestão 360</h1>
+                        <h1 className="text-2xl font-bold text-[#14532d] mb-2 tracking-tight">Visão 360</h1>
                         <p className="text-gray-500 text-sm">Acesse sua conta para continuar</p>
                     </div>
 
@@ -59,7 +81,7 @@ export function Login() {
                             id="email"
                             type="email"
                             label="Email Corporativo"
-                            placeholder="seu.email@mardisa.com"
+                            placeholder="seu.email@visao360.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             icon={Mail}
@@ -78,7 +100,6 @@ export function Login() {
                             required
                             disabled={isLoading}
                         />
-
                         <div className="pt-2">
                             <Button
                                 type="submit"
@@ -89,17 +110,19 @@ export function Login() {
                                     color: 'white'
                                 }}
                             >
-                                {isLoading ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                        Autenticando...
-                                    </>
-                                ) : (
-                                    <>
-                                        Acessar Sistema
-                                        <ArrowRight className="w-4 h-4 ml-2" />
-                                    </>
-                                )}
+                                <div className="flex items-center justify-center notranslate">
+                                    {isLoading ? (
+                                        <span key="loading" className="flex items-center">
+                                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                            Autenticando...
+                                        </span>
+                                    ) : (
+                                        <span key="idle" className="flex items-center">
+                                            Acessar Sistema
+                                            <ArrowRight className="w-4 h-4 ml-2" />
+                                        </span>
+                                    )}
+                                </div>
                             </Button>
                         </div>
                     </form>
@@ -112,7 +135,7 @@ export function Login() {
 
                         <div className="pt-8 border-t border-gray-100">
                             <p className="text-xs text-gray-400">
-                                © 2026 Grupo Mardisa · Todos os direitos reservados
+                                © 2026 Visão 360 · Todos os direitos reservados
                             </p>
                         </div>
                     </div>
@@ -127,7 +150,7 @@ export function Login() {
                 <div className="relative z-10 w-full h-full flex flex-col justify-between p-20 text-white">
                     <div className="flex items-center gap-3 opacity-80">
                         <div className="w-8 h-1 bg-green-500 rounded-full" />
-                        <span className="text-sm font-medium tracking-widest uppercase">Mardisa Agro</span>
+                        <span className="text-sm font-medium tracking-widest uppercase">Visão 360 Agro</span>
                     </div>
 
                     <div className="max-w-lg">

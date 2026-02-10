@@ -35,7 +35,7 @@ export function useAuth() {
                 if (session === null) {
                     console.warn('⚠️ [useAuth] Timeout ao verificar sessão - limpando cache');
                     // Limpa sessão corrompida do localStorage
-                    localStorage.removeItem('mardisa-auth-session');
+                    localStorage.removeItem('visao360-auth-session');
                     localStorage.removeItem('sb-' + window.location.hostname.split('.')[0] + '-auth-token');
                     return;
                 }

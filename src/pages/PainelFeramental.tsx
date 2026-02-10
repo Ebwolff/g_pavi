@@ -13,7 +13,6 @@ import {
     Edit,
     Trash2,
     Wrench,
-    AlertCircle,
     CheckCircle
 } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
@@ -192,8 +191,8 @@ export default function PainelFeramental() {
                             key={status}
                             onClick={() => setFiltroStatus(status as any)}
                             className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${filtroStatus === status
-                                    ? 'bg-[var(--primary)] text-white'
-                                    : 'bg-white/5 text-[var(--text-muted)] hover:bg-white/10'
+                                ? 'bg-[var(--primary)] text-white'
+                                : 'bg-white/5 text-[var(--text-muted)] hover:bg-white/10'
                                 }`}
                         >
                             {status === 'TODOS' ? 'Todos' : statusConfig[status as StatusVeiculo]?.label || status}

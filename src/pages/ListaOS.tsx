@@ -1,56 +1,66 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ordemServicoService, OSFilters } from '../services/ordemServico.service';
-import { ModalAtualizarStatusOS } from '../components/ui/ModalAtualizarStatusOS';
-import { StatusOS } from '../types/database.types';
+import { Plus, LayoutDashboard, FileText, Search, RefreshCw, ChevronLeft, ChevronRight, Edit2, History } from 'lucide-react';
+import { ordemServicoService, OSFilters as ServiceFilters } from '@/services/ordemServico.service';
+import { ModalAtualizarStatusOS } from '@/components/ui/ModalAtualizarStatusOS';
+import { StatusOS } from '@/types/database.types';
+import { AppLayout } from '@/components/AppLayout';
+import { Button } from '@/components/ui/Button';
+import { FilterBar, OSFilters as UIOSFilters } from '@/components/ui/FilterBar';
+import { Table, THead, TBody, TR, TH, TD } from '@/components/ui/Table';
+import { StatusBadge, TipoBadge } from '@/components/ui/StatusBadge';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { formatarValor, formatarData } from '@/utils/osHelpers';
 
 export function ListaOS() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [page, setPage] = useState(1);
-    const [filters, setFilters] = useState<OSFilters>({});
-    const [search, setSearch] = useState('');
-    const [tipoFilter, setTipoFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
+    const ITEMS_PER_PAGE = 25;
+
+    const [uiFilters, setUiFilters] = useState<UIOSFilters>({
+        tipo: 'TODOS',
+        status: 'TODOS',
+        diasCategoria: 'TODOS',
+    });
 
     const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
     const [selectedOS, setSelectedOS] = useState<{ id: string; numero_os: string; status_atual: StatusOS; } | null>(null);
 
+    // Mapeamento de filtros da UI para Filters do Service
+    const serviceFilters = useMemo((): ServiceFilters => {
+        return {
+            search: uiFilters.busca || undefined,
+            tipo: uiFilters.tipo === 'TODOS' ? undefined : uiFilters.tipo as 'NORMAL' | 'GARANTIA',
+            status: uiFilters.status === 'TODOS' ? undefined : uiFilters.status,
+            dataInicio: uiFilters.dataInicio,
+            dataFim: uiFilters.dataFim,
+            consultorId: uiFilters.consultorId,
+        };
+    }, [uiFilters]);
+
     const { data, isLoading, refetch } = useQuery({
-        queryKey: ['ordens-servico', page, filters],
-        queryFn: () => ordemServicoService.list(filters, page, 25),
+        queryKey: ['ordens-servico', page, serviceFilters],
+        queryFn: () => ordemServicoService.list(serviceFilters, page, ITEMS_PER_PAGE),
     });
 
-    const handleSearch = () => {
-        setFilters({ ...filters, search: search || undefined, tipo: tipoFilter as any || undefined, status: statusFilter || undefined });
+    const handleFilterChange = (newFilters: UIOSFilters) => {
+        setUiFilters(newFilters);
         setPage(1);
     };
 
-    const handleClearFilters = () => { setSearch(''); setTipoFilter(''); setStatusFilter(''); setFilters({}); setPage(1); };
-
-    const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-    const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('pt-BR');
-
-    const getStatusBadge = (status: string) => {
-        const badges: Record<string, string> = {
-            'EM_EXECUCAO': 'bg-blue-100 text-blue-800', 'AGUARDANDO_PECAS': 'bg-yellow-100 text-yellow-800',
-            'PAUSADA': 'bg-gray-100 text-gray-800', 'CONCLUIDA': 'bg-green-100 text-green-800',
-            'FATURADA': 'bg-purple-100 text-purple-800', 'CANCELADA': 'bg-red-100 text-red-800',
-            'AGUARDANDO_APROVACAO_ORCAMENTO': 'bg-amber-100 text-amber-800', 'AGUARDANDO_PAGAMENTO': 'bg-emerald-100 text-emerald-800',
-            'EM_DIAGNOSTICO': 'bg-cyan-100 text-cyan-800', 'EM_TRANSITO': 'bg-indigo-100 text-indigo-800',
-        };
-        const labels: Record<string, string> = {
-            'EM_EXECUCAO': 'Em Execução', 'AGUARDANDO_PECAS': 'Aguardando Peças', 'PAUSADA': 'Pausada',
-            'CONCLUIDA': 'Concluída', 'FATURADA': 'Faturada', 'CANCELADA': 'Cancelada',
-            'AGUARDANDO_APROVACAO_ORCAMENTO': 'Aguardando Orçamento', 'AGUARDANDO_PAGAMENTO': 'Aguardando Pagamento',
-            'EM_DIAGNOSTICO': 'Em Diagnóstico', 'EM_TRANSITO': 'Em Trânsito',
-        };
-        return (<span className={`px-2 py-1 rounded-full text-xs font-medium ${badges[status] || 'bg-gray-100 text-gray-800'}`}>{labels[status] || status}</span>);
+    const handleOpenStatusModal = (os: any) => {
+        setSelectedOS({ id: os.id, numero_os: os.numero_os, status_atual: os.status_atual as StatusOS });
+        setIsStatusModalOpen(true);
     };
 
-    const handleOpenStatusModal = (os: any) => { setSelectedOS({ id: os.id, numero_os: os.numero_os, status_atual: os.status_atual as StatusOS }); setIsStatusModalOpen(true); };
-    const handleCloseStatusModal = () => { setIsStatusModalOpen(false); setSelectedOS(null); };
+    const handleCloseStatusModal = () => {
+        setIsStatusModalOpen(false);
+        setSelectedOS(null);
+    };
+
     const handleConfirmStatusUpdate = async (statusData: any) => {
         if (!selectedOS) return;
         await ordemServicoService.updateStatus(selectedOS.id, statusData);
@@ -58,125 +68,180 @@ export function ListaOS() {
         await refetch();
     };
 
-    const totalPages = data ? Math.ceil(data.count / 25) : 0;
+    const totalPages = data ? Math.ceil(data.count / ITEMS_PER_PAGE) : 0;
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="bg-white shadow-sm border-b sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-gray-100 rounded-lg transition">
-                                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                            </button>
-                            <div><h1 className="text-2xl font-bold text-gray-900">Ordens de Serviço</h1><p className="text-sm text-gray-600">{data?.count || 0} registros encontrados</p></div>
-                        </div>
-                        <button onClick={() => navigate('/os/nova')} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium flex items-center space-x-2">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                            <span>Nova OS</span>
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div className="bg-white rounded-xl shadow-sm border p-4 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-                            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSearch()} placeholder="Número OS, cliente, chassi..." className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" />
+        <AppLayout>
+            <div className="p-8 animate-fadeIn space-y-8">
+                {/* Header Page */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+                            <FileText className="w-6 h-6 text-blue-400" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-                            <select value={tipoFilter} onChange={(e) => setTipoFilter(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none">
-                                <option value="">Todos</option><option value="NORMAL">Normal (N)</option><option value="GARANTIA">Garantia (W)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none">
-                                <option value="">Todos</option>
-                                <option value="EM_EXECUCAO">Em Execução</option><option value="AGUARDANDO_PECAS">Aguardando Peças</option>
-                                <option value="AGUARDANDO_APROVACAO_ORCAMENTO">Aguardando Orçamento</option><option value="AGUARDANDO_PAGAMENTO">Aguardando Pagamento</option>
-                                <option value="EM_DIAGNOSTICO">Em Diagnóstico</option><option value="EM_TRANSITO">Em Trânsito</option>
-                                <option value="PAUSADA">Pausada</option><option value="CONCLUIDA">Concluída</option>
-                                <option value="FATURADA">Faturada</option><option value="CANCELADA">Cancelada</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div className="flex justify-end space-x-3 mt-4">
-                        <button onClick={handleClearFilters} className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition font-medium">Limpar</button>
-                        <button onClick={handleSearch} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium">Filtrar</button>
-                    </div>
-                </div>
-
-                {isLoading ? (
-                    <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div></div>
-                ) : data && data.data.length > 0 ? (
-                    <>
-                        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-gray-50 border-b">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número OS</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data Abertura</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {data.data.map((os: any) => (
-                                            <tr key={os.id} className="hover:bg-gray-50 transition">
-                                                <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-gray-900">{os.numero_os}</div></td>
-                                                <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2 py-1 rounded text-xs font-medium ${os.tipo_os === 'NORMAL' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>{os.tipo_os === 'NORMAL' ? 'N' : 'W'}</span></td>
-                                                <td className="px-6 py-4"><div className="text-sm text-gray-900">{os.nome_cliente_digitavel || '-'}</div>{os.chassi && (<div className="text-xs text-gray-500">Chassi: {os.chassi}</div>)}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(os.data_abertura)}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(os.status_atual)}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{formatCurrency(os.valor_liquido_total)}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <div className="flex items-center justify-end space-x-2">
-                                                        <button onClick={() => handleOpenStatusModal(os)} className="text-amber-600 hover:text-amber-900 transition" title="Alterar Status">
-                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                                                        </button>
-                                                        <button onClick={() => navigate(`/os/editar/${os.id}`)} className="text-indigo-600 hover:text-indigo-900 transition" title="Editar">
-                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                            <h1 className="text-2xl font-bold text-[var(--text-primary)]">Gestão de Ordens de Serviço</h1>
+                            <div className="flex items-center gap-3 mt-1">
+                                <span className="text-sm text-[var(--text-muted)] flex items-center gap-1">
+                                    <LayoutDashboard className="w-3.5 h-3.5" />
+                                    Operacional
+                                </span>
+                                <span className="w-1 h-1 rounded-full bg-[var(--border-subtle)]" />
+                                <span className="text-sm text-blue-400 font-medium">{data?.count || 0} Registros</span>
                             </div>
                         </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <Button
+                            variant="secondary"
+                            onClick={() => refetch()}
+                            leftIcon={<RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />}
+                        >
+                            Atualizar
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={() => navigate('/os/nova')}
+                            leftIcon={<Plus className="w-4 h-4" />}
+                            className="shadow-lg shadow-blue-500/20"
+                        >
+                            Nova OS
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Filters Section */}
+                <div className="glass-card-enterprise p-1 border-none shadow-none bg-transparent">
+                    <FilterBar
+                        onFilterChange={handleFilterChange}
+                        className="bg-[var(--surface-light)] border border-[var(--border-subtle)] !shadow-none rounded-2xl p-6"
+                    />
+                </div>
+
+                {/* Table Section */}
+                {isLoading ? (
+                    <div className="glass-card-enterprise rounded-2xl overflow-hidden border border-[var(--border-subtle)]">
+                        <div className="p-6 space-y-4">
+                            <Skeleton className="h-10 w-full rounded-lg" />
+                            {[1, 2, 3, 4, 5].map((i) => (
+                                <Skeleton key={i} className="h-16 w-full rounded-lg opacity-20" style={{ animationDelay: `${i * 100}ms` }} />
+                            ))}
+                        </div>
+                    </div>
+                ) : data && data.data.length > 0 ? (
+                    <div className="space-y-6">
+                        <Table>
+                            <THead>
+                                <TR>
+                                    <TH>Nº OS</TH>
+                                    <TH>Tipo</TH>
+                                    <TH>Cliente / Equipamento</TH>
+                                    <TH>Data Abertura</TH>
+                                    <TH>Status</TH>
+                                    <TH>Valor Líquido</TH>
+                                    <TH className="text-right">Ações</TH>
+                                </TR>
+                            </THead>
+                            <TBody>
+                                {data.data.map((os: any) => (
+                                    <TR key={os.id}>
+                                        <TD className="font-bold text-white tracking-wider">{os.numero_os}</TD>
+                                        <TD><TipoBadge tipo={os.tipo_os} /></TD>
+                                        <TD>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-[var(--text-primary)] truncate max-w-[300px]">
+                                                    {os.nome_cliente_digitavel || 'Cliente não identificado'}
+                                                </span>
+                                                <span className="text-[10px] text-[var(--text-muted)] flex items-center gap-1 mt-0.5">
+                                                    <Search className="w-2.5 h-2.5" />
+                                                    {os.chassi || 'Sem Chassi'}
+                                                </span>
+                                            </div>
+                                        </TD>
+                                        <TD className="text-[var(--text-muted)]">{formatarData(os.data_abertura)}</TD>
+                                        <TD><StatusBadge status={os.status_atual} /></TD>
+                                        <TD>
+                                            <span className="font-bold text-emerald-400">
+                                                {formatarValor(os.valor_liquido_total)}
+                                            </span>
+                                        </TD>
+                                        <TD className="text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => handleOpenStatusModal(os)}
+                                                    className="p-2 rounded-lg hover:bg-amber-500/10 text-amber-500 transition-colors group"
+                                                    title="Mudar Status"
+                                                >
+                                                    <History className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                                </button>
+                                                <button
+                                                    onClick={() => navigate(`/os/editar/${os.id}`)}
+                                                    className="p-2 rounded-lg hover:bg-blue-500/10 text-blue-500 transition-colors group"
+                                                    title="Editar OS"
+                                                >
+                                                    <Edit2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                                </button>
+                                            </div>
+                                        </TD>
+                                    </TR>
+                                ))}
+                            </TBody>
+                        </Table>
+
+                        {/* Pagination */}
                         {totalPages > 1 && (
-                            <div className="flex items-center justify-between mt-6">
-                                <div className="text-sm text-gray-700">Página {page} de {totalPages}</div>
-                                <div className="flex space-x-2">
-                                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed">Anterior</button>
-                                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed">Próxima</button>
+                            <div className="flex items-center justify-between px-2">
+                                <span className="text-sm text-[var(--text-muted)] font-medium">
+                                    Página {page} de {totalPages}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                                        disabled={page === 1}
+                                        className="p-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-light)] hover:bg-[var(--surface-hover)] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronLeft className="w-5 h-5 text-[var(--text-secondary)]" />
+                                    </button>
+                                    <button
+                                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                        disabled={page === totalPages}
+                                        className="p-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-light)] hover:bg-[var(--surface-hover)] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronRight className="w-5 h-5 text-[var(--text-secondary)]" />
+                                    </button>
                                 </div>
                             </div>
                         )}
-                    </>
+                    </div>
                 ) : (
-                    <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhuma OS encontrada</h3>
-                        <p className="mt-1 text-sm text-gray-500">Comece criando uma nova ordem de serviço.</p>
-                        <div className="mt-6">
-                            <button onClick={() => navigate('/os/nova')} className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                                <svg className="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>Nova OS
-                            </button>
-                        </div>
+                    <div className="glass-card-enterprise p-12 rounded-2xl border border-[var(--border-subtle)]">
+                        <EmptyState
+                            title="Nenhuma Ordem de Serviço encontrada"
+                            description="Tente ajustar seus filtros ou crie uma nova OS para começar."
+                            action={{
+                                label: "Limpar Filtros",
+                                onClick: () => {
+                                    setUiFilters({ tipo: 'TODOS', status: 'TODOS', diasCategoria: 'TODOS' });
+                                    setPage(1);
+                                },
+                                icon: RefreshCw
+                            }}
+                        />
                     </div>
                 )}
             </div>
-            {selectedOS && (<ModalAtualizarStatusOS isOpen={isStatusModalOpen} onClose={handleCloseStatusModal} onConfirm={handleConfirmStatusUpdate} currentStatus={selectedOS.status_atual} osId={selectedOS.id} numeroOS={selectedOS.numero_os} />)}
-        </div>
+
+            {selectedOS && (
+                <ModalAtualizarStatusOS
+                    isOpen={isStatusModalOpen}
+                    onClose={handleCloseStatusModal}
+                    onConfirm={handleConfirmStatusUpdate}
+                    currentStatus={selectedOS.status_atual}
+                    osId={selectedOS.id}
+                    numeroOS={selectedOS.numero_os}
+                />
+            )}
+        </AppLayout>
     );
 }

@@ -15,7 +15,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
         persistSession: true,
         detectSessionInUrl: true,
         // Storage key única para evitar conflitos entre abas
-        storageKey: 'mardisa-auth-session',
+        storageKey: 'visao360-auth-session',
         // Usar fluxo PKCE que é mais estável
         flowType: 'pkce',
     },

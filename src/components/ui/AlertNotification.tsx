@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Check, CheckCheck, X, AlertCircle, Info, AlertTriangle } from 'lucide-react';
+import { Bell, Check, CheckCheck, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import { alertasService } from '../../services/alertasService';
 import { Database } from '../../types/database.types';
+import { supabase } from '../../lib/supabase';
 import { formatarDataHora } from '../../utils/osHelpers';
 import { useNavigate } from 'react-router-dom';
 

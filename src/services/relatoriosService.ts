@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { exportService, RelatorioDados, formatarMoeda, formatarData, formatarPorcentagem } from './exportService';
-import { calcularDiasEmAberto, determinarNivelUrgencia } from '../utils/osHelpers';
+import { calcularDiasEmAberto } from '../utils/osHelpers';
 
 export const relatoriosService = {
     /**
@@ -96,8 +96,20 @@ export const relatoriosService = {
         const { data, error } = await query;
         if (error) throw error;
 
+        interface ConsultorPerformance {
+            id: string;
+            nome: string;
+            total: number;
+            concluidas: number;
+            emAndamento: number;
+            valorTotal: number;
+            diasAcumulados: number;
+            tempoMedio?: number;
+            taxaConclusao?: number;
+        }
+
         // Agrupar por consultor
-        const porConsultor = (data || []).reduce((acc: any, os: any) => {
+        const porConsultor = (data || []).reduce<Record<string, ConsultorPerformance>>((acc, os: any) => {
             const id = os.consultor_id || 'sem_consultor';
             const nome = os.profiles?.first_name
                 ? `${os.profiles.first_name} ${os.profiles.last_name || ''}`.trim()
@@ -131,11 +143,11 @@ export const relatoriosService = {
             return acc;
         }, {});
 
-        const consultores = Object.values(porConsultor).map((c: any) => ({
+        const consultores = Object.values(porConsultor).map((c) => ({
             ...c,
             tempoMedio: c.concluidas > 0 ? c.diasAcumulados / c.concluidas : 0,
             taxaConclusao: c.total > 0 ? (c.concluidas / c.total) * 100 : 0,
-        })).sort((a: any, b: any) => b.total - a.total);
+        })).sort((a, b) => b.total - a.total);
 
         return consultores;
     },

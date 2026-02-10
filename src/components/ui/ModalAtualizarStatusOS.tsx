@@ -54,7 +54,7 @@ export const ModalAtualizarStatusOS: React.FC<ModalAtualizarStatusOSProps> = ({
     onClose,
     onConfirm,
     currentStatus,
-    osId,
+    osId: _osId,
     numeroOS,
 }) => {
     const [formData, setFormData] = useState<StatusUpdateData>({

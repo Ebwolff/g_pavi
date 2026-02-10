@@ -2,9 +2,11 @@ import { AppLayout } from '@/components/AppLayout';
 import { Settings as SettingsIcon, User, Database, Bell, Shield, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+// Card removed if unused
 
 export function Configuracoes() {
-    const { profile, signOut } = useAuth();
+    const { profile, logout: signOut } = useAuth();
 
     return (
         <AppLayout>
@@ -12,11 +14,13 @@ export function Configuracoes() {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                     <div>
-                        <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2 flex items-center gap-3">
-                            <SettingsIcon className="w-8 h-8 text-indigo-500" />
+                        <h1 className="text-3xl font-black text-[var(--text-primary)] mb-2 flex items-center gap-3 tracking-tight">
+                            <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
+                                <SettingsIcon className="w-8 h-8 text-indigo-500" />
+                            </div>
                             Configurações
                         </h1>
-                        <p className="text-[var(--text-muted)] text-lg">
+                        <p className="text-[var(--text-muted)] text-lg font-medium ml-1">
                             Gerencie seu perfil e preferências do sistema.
                         </p>
                     </div>
@@ -50,35 +54,25 @@ export function Configuracoes() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">
-                                        Nome Completo
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={`${profile?.first_name || ''} ${profile?.last_name || ''}`}
-                                        disabled
-                                        className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-secondary)] opacity-70 cursor-not-allowed font-medium"
-                                    />
-                                </div>
+                                <Input
+                                    label="Nome Completo"
+                                    value={`${profile?.first_name || ''} ${profile?.last_name || ''}`}
+                                    disabled
+                                    className="opacity-70"
+                                />
 
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">
-                                        Username
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={profile?.username || ''}
-                                        disabled
-                                        className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-secondary)] opacity-70 cursor-not-allowed font-medium"
-                                    />
-                                </div>
+                                <Input
+                                    label="Username"
+                                    value={profile?.username || ''}
+                                    disabled
+                                    className="opacity-70"
+                                />
 
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">
                                         Permissão
                                     </label>
-                                    <div className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-secondary)] opacity-70 cursor-not-allowed font-medium uppercase tracking-wide flex items-center gap-2">
+                                    <div className="w-full px-4 py-3.5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-secondary)] opacity-70 cursor-not-allowed font-medium uppercase tracking-wide flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                                         {profile?.role?.replace('_', ' ') || '-'}
                                     </div>
@@ -88,7 +82,7 @@ export function Configuracoes() {
                                     <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">
                                         Status da Conta
                                     </label>
-                                    <div className={`w-full px-4 py-3 rounded-xl border font-bold text-sm tracking-wide flex items-center gap-2 ${profile?.is_active
+                                    <div className={`w-full px-4 py-3.5 rounded-xl border font-bold text-sm tracking-wide flex items-center gap-2 ${profile?.is_active
                                         ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                                         : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
                                         }`}>
@@ -126,7 +120,7 @@ export function Configuracoes() {
                             <p className="text-sm text-[var(--text-muted)] mb-6 leading-relaxed">
                                 Gerencie como e quando você recebe alertas do sistema.
                             </p>
-                            <Button variant="secondary" fullWidth disabled className="opacity-50">
+                            <Button variant="secondary" disabled className="opacity-50 w-full">
                                 Em Desenvolvimento
                             </Button>
                         </div>

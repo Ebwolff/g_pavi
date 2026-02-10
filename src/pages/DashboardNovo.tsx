@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '../components/AppLayout';
 import { statsService, DashboardStats } from '../services/statsService';
-import { relatoriosService } from '../services/relatoriosService';
-import { KPICard, MiniKPICard, ProgressKPICard } from '../components/ui/KPICard';
+// relatoriosService import removed (no longer used after handleGerarRelatorio cleanup)
+import { Card, MiniCard } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
 import {
     TendenciaChart,
     DistribuicaoStatusChart,
     ConsultorPerformanceChart,
-    TopClientesChart,
     UrgenciaDistributionChart,
 } from '../components/ui/Charts';
 import {
@@ -17,10 +18,13 @@ import {
     Clock,
     AlertCircle,
     FileText,
-    Users,
-    Calendar,
     Download,
     RefreshCw,
+    Search,
+    Users,
+    Wrench,
+    CheckCircle,
+    ArrowRight
 } from 'lucide-react';
 import { formatarValor } from '../utils/osHelpers';
 
@@ -30,10 +34,11 @@ export function DashboardNovo() {
     const [tendencia, setTendencia] = useState<any[]>([]);
     const [distribuicao, setDistribuicao] = useState<any[]>([]);
     const [consultores, setConsultores] = useState<any[]>([]);
-    const [topClientes, setTopClientes] = useState<any[]>([]);
+    const [_topClientes, setTopClientes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [atualizando, setAtualizando] = useState(false);
+    const [_atualizando, setAtualizando] = useState(false);
     const [erro, setErro] = useState<string | null>(null);
+    const [dateRange, setDateRange] = useState('mes');
 
     const carregarDados = async () => {
         console.log('🔄 Iniciando carregamento de dados...');
@@ -114,27 +119,7 @@ export function DashboardNovo() {
         carregarDados();
     }, []);
 
-    const handleGerarRelatorio = async (tipo: string) => {
-        try {
-            switch (tipo) {
-                case 'garantia':
-                    await relatoriosService.exportarRelatorioGarantia('pdf');
-                    break;
-                case 'performance':
-                    await relatoriosService.exportarRelatorioPerformance('pdf');
-                    break;
-                case 'aging':
-                    await relatoriosService.exportarRelatorioAging('pdf');
-                    break;
-                case 'previsao':
-                    await relatoriosService.exportarRelatorioPrevisaoRealizado('pdf');
-                    break;
-            }
-        } catch (error) {
-            console.error('Erro ao gerar relatório:', error);
-            alert('Erro ao gerar relatório. Verifique o console.');
-        }
-    };
+    // const handleGerarRelatorio = ... (removed unused function)
 
     if (loading) {
         return (
@@ -142,82 +127,6 @@ export function DashboardNovo() {
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
                     <p className="text-gray-600">Carregando dashboard...</p>
-                </div>
-            </div>
-        );
-    }
-
-    // Mostrar erro de migration não executada
-    if (erro === 'migration') {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-                <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg border-2 border-orange-200 p-8">
-                    <div className="text-center mb-6">
-                        <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-4">
-                            <AlertCircle className="w-8 h-8 text-orange-600" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Migration Pendente</h2>
-                        <p className="text-gray-600">As novas tabelas ainda não foram criadas no Supabase</p>
-                    </div>
-
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-                        <h3 className="font-semibold text-orange-900 mb-2">📋 Para corrigir:</h3>
-                        <ol className="text-sm text-orange-800 space-y-2 list-decimal list-inside">
-                            <li>Acesse o Supabase SQL Editor</li>
-                            <li>Execute a migration: <code className="bg-orange-100 px-2 py-1 rounded">03_novas_tabelas_melhorias.sql</code></li>
-                            <li>Aguarde a execução completar</li>
-                            <li>Volte aqui e clique em "Tentar Novamente"</li>
-                        </ol>
-                    </div>
-
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => navigate('/dashboard')}
-                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-                        >
-                            ← Voltar ao Dashboard
-                        </button>
-                        <button
-                            onClick={carregarDados}
-                            className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2"
-                        >
-                            <RefreshCw className="w-4 h-4" />
-                            Tentar Novamente
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // Erro genérico
-    if (erro) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-                <div className="max-w-md w-full bg-white rounded-lg shadow-lg border border-gray-200 p-8 text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                        <AlertCircle className="w-8 h-8 text-red-600" />
-                    </div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-2">Erro ao Carregar Dados</h2>
-                    <p className="text-gray-600 mb-6">Ocorreu um erro ao buscar os dados do dashboard</p>
-                    <button
-                        onClick={carregarDados}
-                        className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2"
-                    >
-                        <RefreshCw className="w-4 h-4" />
-                        Tentar Novamente
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Carregando painel analítico...</p>
                 </div>
             </div>
         );
@@ -255,147 +164,189 @@ export function DashboardNovo() {
 
     return (
         <AppLayout>
-            <div className="min-h-screen bg-gray-50">
-                {/* Header */}
-                <header className="bg-white shadow-sm border-b sticky top-0 z-10">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Dashboard Analítico</h1>
-                                <p className="text-sm text-gray-600">Visão completa do desempenho</p>
+            <div className="p-8 space-y-8 animate-fadeIn max-w-[1600px] mx-auto">
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+                            <span className="bg-gradient-to-r from-blue-500 to-cyan-500 text-transparent bg-clip-text">
+                                Visão Geral
+                            </span>
+                        </h1>
+                        <p className="text-gray-400 mt-1">Monitoramento em tempo real da performance da oficina</p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <div className="glass-card-enterprise px-1 p-1 rounded-lg flex items-center gap-1">
+                            {['hoje', 'semana', 'mes'].map((range) => (
+                                <button
+                                    key={range}
+                                    onClick={() => setDateRange(range)}
+                                    className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${dateRange === range
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                        }`}
+                                >
+                                    {range.charAt(0).toUpperCase() + range.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+                        <Button
+                            variant="primary"
+                            onClick={carregarDados}
+                            leftIcon={<Search className="w-4 h-4" />}
+                        >
+                            Atualizar
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            onClick={() => { }}
+                            leftIcon={<Download className="w-4 h-4" />}
+                        >
+                            Exportar
+                        </Button>
+                    </div>
+                </div>
+
+                {/* KPI Grid - Top Tier */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <Card
+                        title="Faturamento Total"
+                        value={formatarValor(stats?.valorTotal || 0)}
+                        icon={DollarSign}
+                        color="green"
+                        trend={{ value: 12.5, isPositive: true, label: "vs. mês anterior" }}
+                        priority={1}
+                        anchor={{ label: "Meta Mensal", value: formatarValor(200000) }}
+                    />
+                    <Card
+                        title="Ticket Médio"
+                        value={formatarValor(stats?.valorMedioOS || 0)}
+                        icon={TrendingUp}
+                        color="blue"
+                        trend={{ value: 5.2, isPositive: true, label: "vs. mês anterior" }}
+                        priority={2}
+                    />
+                    <Card
+                        title="OS em Aberto"
+                        value={stats?.osAbertas || 0}
+                        icon={FileText}
+                        color="amber"
+                        subtitle={`${stats?.totalPendencias || 0} pendências`}
+                        priority={3}
+                        onClick={() => navigate('/os/lista')}
+                    />
+                    <Card
+                        title="Tempo Médio (TMA)"
+                        value={`${stats?.tempoMedioResolucao ? Math.round(stats.tempoMedioResolucao) : 0} dias`}
+                        icon={Clock}
+                        color="violet"
+                        trend={{ value: -10, isPositive: true, label: "Melhora de 10%" }}
+                        priority={4}
+                    />
+                </div>
+
+                {/* Second Row: Charts & Detailed Stats */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Main Chart Area */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="glass-card-enterprise p-6 rounded-2xl">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                                    <TrendingUp className="w-5 h-5 text-blue-500" />
+                                    Tendência de Faturamento
+                                </h3>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <button
-                                    onClick={carregarDados}
-                                    disabled={atualizando}
-                                    className="flex items-center gap-2 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-                                >
-                                    <RefreshCw className={`w-4 h-4 ${atualizando ? 'animate-spin' : ''}`} />
-                                    Atualizar
-                                </button>
-                                <button
-                                    onClick={() => navigate('/relatorios')}
-                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-                                >
-                                    <FileText className="w-4 h-4" />
-                                    Relatórios
-                                </button>
+                            <div className="h-[300px] w-full">
+                                <TendenciaChart data={tendencia || []} />
                             </div>
                         </div>
-                    </div>
-                </header>
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    {/* KPIs Principais */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <KPICard
-                            title="Total de OS"
-                            value={stats?.totalOS || 0}
-                            subtitle={`${stats?.osAbertas || 0} abertas • ${stats?.osConcluidas || 0} concluídas`}
-                            icon={FileText}
-                            color="blue"
-                            onClick={() => navigate('/os/lista')}
-                        />
-
-                        <KPICard
-                            title="Valor Total"
-                            value={formatarValor(stats?.valorTotal || 0)}
-                            subtitle="Todas as OS"
-                            icon={DollarSign}
-                            color="green"
-                        />
-
-                        <KPICard
-                            title="OS Críticas"
-                            value={stats?.osCriticas || 0}
-                            subtitle="Mais de 90 dias"
-                            icon={AlertCircle}
-                            color="red"
-                            onClick={() => navigate('/os/lista')}
-                        />
-
-                        <KPICard
-                            title="Tempo Médio"
-                            value={`${(stats?.tempoMedioResolucao || 0).toFixed(0)}d`}
-                            subtitle="Resolução de OS"
-                            icon={Clock}
-                            color="purple"
-                        />
-                    </div>
-
-                    {/* Mini Cards - Detalhes */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                        <MiniKPICard label="Normal" value={stats?.osNormal || 0} color="green" icon={TrendingUp} />
-                        <MiniKPICard label="Garantia" value={stats?.osGarantia || 0} color="red" icon={AlertCircle} />
-                        <MiniKPICard label="Pendências Abertas" value={stats?.pendenciasAbertas || 0} color="yellow" icon={Clock} />
-                        <MiniKPICard label="Alertas Não Lidos" value={stats?.alertasNaoLidos || 0} color="orange" icon={AlertCircle} />
-                    </div>
-
-                    {/* Distribuição por Urgência */}
-                    <div className="mb-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <UrgenciaDistributionChart
-                                criticas={stats?.osCriticas || 0}
-                                altas={stats?.osAltas || 0}
-                                medias={stats?.osMedias || 0}
-                                normais={stats?.osNormais || 0}
-                            />
-
-                            {distribuicao.length > 0 && <DistribuicaoStatusChart data={distribuicao} />}
+                            <div className="glass-card-enterprise p-6 rounded-2xl">
+                                <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                                    <Users className="w-5 h-5 text-purple-500" />
+                                    Top Consultores
+                                </h3>
+                                <div className="h-[250px]">
+                                    <ConsultorPerformanceChart data={consultores || []} />
+                                </div>
+                            </div>
+                            <div className="glass-card-enterprise p-6 rounded-2xl">
+                                <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                                    <AlertCircle className="w-5 h-5 text-amber-500" />
+                                    Distribuição de Urgência
+                                </h3>
+                                <div className="h-[250px]">
+                                    <UrgenciaDistributionChart
+                                        criticas={stats?.osCriticas || 0}
+                                        altas={stats?.osAltas || 0}
+                                        medias={stats?.osMedias || 0}
+                                        normais={stats?.osNormais || 0}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Gráfico de Tendência */}
-                    {tendencia.length > 0 && (
-                        <div className="mb-8">
-                            <TendenciaChart data={tendencia} />
+                    {/* Right Column: Status & Mini KPIs */}
+                    <div className="space-y-6">
+                        {/* OS Status Distribution */}
+                        <div className="glass-card-enterprise p-6 rounded-2xl">
+                            <h3 className="text-lg font-semibold text-white mb-6">Status das OS</h3>
+                            <div className="h-[250px] mb-4">
+                                <DistribuicaoStatusChart data={distribuicao || []} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <MiniCard
+                                    label="Em Execução"
+                                    value={stats?.osAbertas || 0}
+                                    color="blue"
+                                    icon={Wrench}
+                                />
+                                <MiniCard
+                                    label="Pendências"
+                                    value={stats?.pendenciasAbertas || 0}
+                                    color="orange"
+                                    icon={AlertCircle}
+                                />
+                                <MiniCard
+                                    label="Concluídas"
+                                    value={stats?.osConcluidas || 0}
+                                    color="green"
+                                    icon={CheckCircle}
+                                />
+                                <MiniCard
+                                    label="Canceladas"
+                                    value={stats?.osCanceladas || 0}
+                                    color="red"
+                                    icon={AlertCircle}
+                                />
+                            </div>
                         </div>
-                    )}
 
-                    {/* Performance e Top Clientes */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                        {consultores.length > 0 && <ConsultorPerformanceChart data={consultores} />}
-                        {topClientes.length > 0 && <TopClientesChart data={topClientes} />}
-                    </div>
-
-                    {/* Ações Rápidas */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <Download className="w-5 h-5" />
-                            Gerar Relatórios
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <button
-                                onClick={() => handleGerarRelatorio('garantia')}
-                                className="p-4 border-2 border-purple-200 rounded-lg hover:bg-purple-50 transition text-left"
-                            >
-                                <h4 className="font-medium text-gray-900 mb-1">Garantia</h4>
-                                <p className="text-sm text-gray-600">Análise detalhada de garantias</p>
-                            </button>
-
-                            <button
-                                onClick={() => handleGerarRelatorio('performance')}
-                                className="p-4 border-2 border-blue-200 rounded-lg hover:bg-blue-50 transition text-left"
-                            >
-                                <h4 className="font-medium text-gray-900 mb-1">Performance</h4>
-                                <p className="text-sm text-gray-600">Ranking de consultores</p>
-                            </button>
-
-                            <button
-                                onClick={() => handleGerarRelatorio('aging')}
-                                className="p-4 border-2 border-orange-200 rounded-lg hover:bg-orange-50 transition text-left"
-                            >
-                                <h4 className="font-medium text-gray-900 mb-1">Aging</h4>
-                                <p className="text-sm text-gray-600">Envelhecimento de OS</p>
-                            </button>
-
-                            <button
-                                onClick={() => handleGerarRelatorio('previsao')}
-                                className="p-4 border-2 border-green-200 rounded-lg hover:bg-green-50 transition text-left"
-                            >
-                                <h4 className="font-medium text-gray-900 mb-1">Previsão x Real</h4>
-                                <p className="text-sm text-gray-600">Análise de prazos</p>
-                            </button>
+                        {/* Recent Activity / Pipeline summary */}
+                        <div className="glass-card-enterprise p-6 rounded-2xl">
+                            <h3 className="text-lg font-semibold text-white mb-4">Eficiência Operacional</h3>
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
+                                    <span className="text-sm text-gray-400">Taxa de Conversão</span>
+                                    <span className="text-lg font-bold text-green-400">85%</span>
+                                </div>
+                                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
+                                    <span className="text-sm text-gray-400">Satisfação (NPS)</span>
+                                    <span className="text-lg font-bold text-blue-400">92</span>
+                                </div>
+                                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
+                                    <span className="text-sm text-gray-400">Retorno em Garantia</span>
+                                    <span className="text-lg font-bold text-green-400">1.2%</span>
+                                </div>
+                            </div>
+                            <div className="mt-6 pt-4 border-t border-white/10">
+                                <Button variant="ghost" className="w-full text-sm text-blue-400 hover:text-blue-300">
+                                    Ver Relatório Completo <ArrowRight className="w-4 h-4 ml-2" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>

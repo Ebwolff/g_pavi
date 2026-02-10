@@ -1,5 +1,5 @@
 /**
- * MARDISA Agro - Sistema de Permissões por Role
+ * Visão 360 - Sistema de Permissões por Role
  * 
  * Define quais páginas/funcionalidades cada role pode acessar
  */

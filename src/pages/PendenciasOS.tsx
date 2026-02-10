@@ -1,193 +1,162 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import { Database } from '../types/database.types';
-import { formatarData, formatarDataHora } from '../utils/osHelpers';
-import { CustomBadge } from '../components/ui/StatusBadge';
-import { AlertCircle, Clock, CheckCircle, XCircle, Plus, Filter, Search } from 'lucide-react';
-
-type Pendencia = Database['public']['Tables']['pendencias_os']['Row'];
-type PendenciaComOS = Pendencia & {
-    ordens_servico?: {
-        numero_os: string;
-        nome_cliente_digitavel: string | null;
-    };
-};
+import { useQuery } from '@tanstack/react-query';
+import { AppLayout } from '@/components/AppLayout';
+import { Card } from '@/components/ui/Card';
+import { Table, THead, TBody, TR, TH, TD } from '@/components/ui/Table';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Button } from '@/components/ui/Button';
+import { pendenciaService } from '@/services/pendencia.service';
+import { formatarData } from '@/utils/osHelpers';
+import {
+    AlertCircle,
+    Clock,
+    CheckCircle,
+    Plus,
+    Search,
+    Filter,
+    ArrowLeft,
+    RefreshCw,
+    ExternalLink
+} from 'lucide-react';
 
 export function PendenciasOS() {
     const navigate = useNavigate();
-    const [pendencias, setPendencias] = useState<PendenciaComOS[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [filtroTipo, setFiltroTipo] = useState<string>('TODOS');
-    const [filtroStatus, setFiltroStatus] = useState<string>('TODOS');
-    const [busca, setBusca] = useState('');
-
-    useEffect(() => {
-        carregarPendencias();
-    }, []);
-
-    const carregarPendencias = async () => {
-        try {
-            setLoading(true);
-            const { data, error } = await supabase
-                .from('pendencias_os')
-                .select(`
-          *,
-          ordens_servico (
-            numero_os,
-            nome_cliente_digitavel
-          )
-        `)
-                .order('data_inicio', { ascending: false });
-
-            if (error) throw error;
-            setPendencias(data || []);
-        } catch (error) {
-            console.error('Erro ao carregar pendências:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const pendenciasFiltradas = pendencias.filter((p) => {
-        if (filtroTipo !== 'TODOS' && p.tipo_pendencia !== filtroTipo) return false;
-        if (filtroStatus !== 'TODOS' && p.status !== filtroStatus) return false;
-        if (busca && !p.descricao.toLowerCase().includes(busca.toLowerCase())) return false;
-        return true;
+    const [uiFilters, setUiFilters] = useState({
+        busca: '',
+        tipo: 'TODOS',
+        status: 'TODOS'
     });
 
+    const { data: pendencias, isLoading, refetch } = useQuery({
+        queryKey: ['pendencias', uiFilters],
+        queryFn: () => pendenciaService.list({
+            search: uiFilters.busca || undefined,
+            tipo: uiFilters.tipo === 'TODOS' ? undefined : uiFilters.tipo,
+            status: uiFilters.status === 'TODOS' ? undefined : uiFilters.status
+        })
+    });
+
+    const stats = useMemo(() => {
+        if (!pendencias) return { total: 0, pendentes: 0, emAndamento: 0, resolvidas: 0 };
+        return {
+            total: pendencias.length,
+            pendentes: pendencias.filter(p => p.status === 'PENDENTE').length,
+            emAndamento: pendencias.filter(p => p.status === 'EM_ANDAMENTO').length,
+            resolvidas: pendencias.filter(p => p.status === 'RESOLVIDO').length,
+        };
+    }, [pendencias]);
+
     const getIconeTipo = (tipo: string) => {
-        const icons: Record<string, JSX.Element> = {
-            PECAS: <AlertCircle className="h-5 w-5 text-orange-500" />,
-            SERVICO: <Clock className="h-5 w-5 text-blue-500" />,
-            TERCEIROS: <AlertCircle className="h-5 w-5 text-purple-500" />,
-            GARANTIA: <AlertCircle className="h-5 w-5 text-red-500" />,
-            CLIENTE: <AlertCircle className="h-5 w-5 text-yellow-500" />,
-            OUTROS: <AlertCircle className="h-5 w-5 text-gray-500" />,
+        const colors: Record<string, string> = {
+            PECAS: 'text-amber-400',
+            SERVICO: 'text-blue-400',
+            TERCEIROS: 'text-purple-400',
+            GARANTIA: 'text-rose-400',
+            CLIENTE: 'text-emerald-400',
+            OUTROS: 'text-slate-400',
         };
-        return icons[tipo] || icons.OUTROS;
-    };
-
-    const getCorStatus = (status: string): 'blue' | 'yellow' | 'green' | 'red' | 'gray' => {
-        const cores: Record<string, 'blue' | 'yellow' | 'green' | 'red' | 'gray'> = {
-            PENDENTE: 'yellow',
-            EM_ANDAMENTO: 'blue',
-            RESOLVIDO: 'green',
-            CANCELADO: 'red',
-        };
-        return cores[status] || 'gray';
-    };
-
-    const estatisticas = {
-        total: pendenciasFiltradas.length,
-        pendentes: pendenciasFiltradas.filter((p) => p.status === 'PENDENTE').length,
-        emAndamento: pendenciasFiltradas.filter((p) => p.status === 'EM_ANDAMENTO').length,
-        resolvidas: pendenciasFiltradas.filter((p) => p.status === 'RESOLVIDO').length,
+        return <AlertCircle className={`h-4 w-4 ${colors[tipo] || 'text-slate-400'}`} />;
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <button
-                                onClick={() => navigate('/dashboard')}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition"
-                            >
-                                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-                            <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Gestão de Pendências</h1>
-                                <p className="text-sm text-gray-600">{estatisticas.total} pendências encontradas</p>
-                            </div>
-                        </div>
+        <AppLayout>
+            <div className="p-8 animate-fadeIn space-y-8">
+                {/* Header Page */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
                         <button
-                            onClick={() => navigate('/pendencias/nova')}
-                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium flex items-center space-x-2"
+                            onClick={() => navigate('/dashboard')}
+                            className="p-2.5 rounded-xl transition-all border border-[var(--border-subtle)] bg-[var(--surface-light)] hover:bg-[var(--surface-hover)] text-[var(--text-secondary)]"
                         >
-                            <Plus className="w-5 h-5" />
-                            <span>Nova Pendência</span>
+                            <ArrowLeft className="w-5 h-5" />
                         </button>
-                    </div>
-                </div>
-            </header>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                {/* Estatísticas */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-600">Total</p>
-                                <p className="text-2xl font-bold text-gray-900">{estatisticas.total}</p>
-                            </div>
-                            <AlertCircle className="h-8 w-8 text-gray-400" />
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-600">Pendentes</p>
-                                <p className="text-2xl font-bold text-yellow-600">{estatisticas.pendentes}</p>
-                            </div>
-                            <Clock className="h-8 w-8 text-yellow-400" />
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-600">Em Andamento</p>
-                                <p className="text-2xl font-bold text-blue-600">{estatisticas.emAndamento}</p>
-                            </div>
-                            <Clock className="h-8 w-8 text-blue-400" />
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-600">Resolvidas</p>
-                                <p className="text-2xl font-bold text-green-600">{estatisticas.resolvidas}</p>
-                            </div>
-                            <CheckCircle className="h-8 w-8 text-green-400" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Filtros */}
-                <div className="bg-white rounded-lg shadow p-4 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                <Search className="inline h-4 w-4 mr-1" />
-                                Buscar
+                            <h1 className="text-2xl font-bold text-[var(--text-primary)]">Gestão de Pendências</h1>
+                            <p className="text-sm text-[var(--text-muted)] mt-0.5">Controle de gargalos e pendências técnicas/comerciais</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <Button
+                            variant="secondary"
+                            onClick={() => refetch()}
+                            className="bg-[var(--surface-light)] border-[var(--border-subtle)]"
+                            leftIcon={<RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />}
+                        >
+                            Atualizar
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={() => navigate('/pendencias/nova')}
+                            leftIcon={<Plus className="w-4 h-4" />}
+                            className="shadow-lg shadow-blue-500/20"
+                        >
+                            Nova Pendência
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <Card
+                        title="Total de Pendências"
+                        value={stats.total}
+                        icon={AlertCircle}
+                        subtitle="Volume total registrado"
+                    />
+                    <Card
+                        title="Pendentes"
+                        value={stats.pendentes}
+                        icon={Clock}
+                        color="amber"
+                        trend={{ value: 12, label: 'vs mês anterior', isPositive: false }}
+                        subtitle="Aguardando início"
+                    />
+                    <Card
+                        title="Em Andamento"
+                        value={stats.emAndamento}
+                        icon={RefreshCw}
+                        color="blue"
+                        subtitle="Em execução técnica"
+                    />
+                    <Card
+                        title="Resolvidas"
+                        value={stats.resolvidas}
+                        icon={CheckCircle}
+                        color="emerald"
+                        subtitle="Ciclo finalizado"
+                    />
+                </div>
+
+                {/* Filter Bar */}
+                <div className="glass-card-enterprise p-6 rounded-2xl border border-[var(--border-subtle)]">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-[var(--text-muted)] uppercase ml-1 flex items-center gap-2">
+                                <Search className="w-3 h-3" /> Buscar
                             </label>
                             <input
                                 type="text"
-                                value={busca}
-                                onChange={(e) => setBusca(e.target.value)}
-                                placeholder="Buscar por descrição..."
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                value={uiFilters.busca}
+                                onChange={(e) => setUiFilters(prev => ({ ...prev, busca: e.target.value }))}
+                                placeholder="Descrição ou OS..."
+                                className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                <Filter className="inline h-4 w-4 mr-1" />
-                                Tipo
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-[var(--text-muted)] uppercase ml-1 flex items-center gap-2">
+                                <Filter className="w-3 h-3" /> Tipo
                             </label>
                             <select
-                                value={filtroTipo}
-                                onChange={(e) => setFiltroTipo(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                value={uiFilters.tipo}
+                                onChange={(e) => setUiFilters(prev => ({ ...prev, tipo: e.target.value }))}
+                                className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none appearance-none cursor-pointer"
                             >
-                                <option value="TODOS">Todos</option>
+                                <option value="TODOS">Todos os Tipos</option>
                                 <option value="PECAS">Peças</option>
                                 <option value="SERVICO">Serviço</option>
                                 <option value="TERCEIROS">Terceiros</option>
@@ -197,17 +166,16 @@ export function PendenciasOS() {
                             </select>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                <Filter className="inline h-4 w-4 mr-1" />
-                                Status
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-[var(--text-muted)] uppercase ml-1 flex items-center gap-2">
+                                <Filter className="w-3 h-3" /> Status
                             </label>
                             <select
-                                value={filtroStatus}
-                                onChange={(e) => setFiltroStatus(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                value={uiFilters.status}
+                                onChange={(e) => setUiFilters(prev => ({ ...prev, status: e.target.value }))}
+                                className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none appearance-none cursor-pointer"
                             >
-                                <option value="TODOS">Todos</option>
+                                <option value="TODOS">Todos os Status</option>
                                 <option value="PENDENTE">Pendente</option>
                                 <option value="EM_ANDAMENTO">Em Andamento</option>
                                 <option value="RESOLVIDO">Resolvido</option>
@@ -217,91 +185,122 @@ export function PendenciasOS() {
                     </div>
                 </div>
 
-                {/* Lista de Pendências */}
-                {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-                    </div>
-                ) : pendenciasFiltradas.length > 0 ? (
-                    <div className="bg-white rounded-lg shadow overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-gray-50 border-b">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descrição</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">OS</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data Início</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Previsão</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200">
-                                    {pendenciasFiltradas.map((pendencia) => (
-                                        <tr key={pendencia.id} className="hover:bg-gray-50 transition">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center gap-2">
-                                                    {getIconeTipo(pendencia.tipo_pendencia)}
-                                                    <span className="text-sm font-medium text-gray-900">
-                                                        {pendencia.tipo_pendencia}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-sm text-gray-900">{pendencia.descricao}</div>
-                                                {pendencia.responsavel && (
-                                                    <div className="text-xs text-gray-500">Resp: {pendencia.responsavel}</div>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4  whitespace-nowrap">
-                                                <button
-                                                    onClick={() => navigate(`/os/editar/${pendencia.os_id}`)}
-                                                    className="text-sm text-indigo-600 hover:text-indigo-900"
-                                                >
-                                                    {pendencia.ordens_servico?.numero_os || '-'}
-                                                </button>
-                                                {pendencia.ordens_servico?.nome_cliente_digitavel && (
-                                                    <div className="text-xs text-gray-500">
-                                                        {pendencia.ordens_servico.nome_cliente_digitavel}
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {formatarData(pendencia.data_inicio)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {pendencia.data_prevista ? formatarData(pendencia.data_prevista) : '-'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <CustomBadge label={pendencia.status} color={getCorStatus(pendencia.status)} />
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                                <button
-                                                    onClick={() => navigate(`/pendencias/editar/${pendencia.id}`)}
-                                                    className="text-indigo-600 hover:text-indigo-900"
-                                                >
-                                                    Editar
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                {/* Table Section */}
+                {isLoading ? (
+                    <div className="glass-card-enterprise rounded-2xl overflow-hidden border border-[var(--border-subtle)]">
+                        <div className="p-6 space-y-4">
+                            <Skeleton className="h-10 w-full rounded-lg" />
+                            {[1, 2, 3, 4, 5].map((i) => (
+                                <Skeleton key={i} className="h-16 w-full rounded-lg opacity-20" style={{ animationDelay: `${i * 100}ms` }} />
+                            ))}
                         </div>
                     </div>
+                ) : pendencias && pendencias.length > 0 ? (
+                    <div className="glass-card-enterprise rounded-2xl overflow-hidden border border-[var(--border-subtle)]">
+                        <Table>
+                            <THead>
+                                <TR>
+                                    <TH>Tipo</TH>
+                                    <TH>Descrição / Responsável</TH>
+                                    <TH>Ordem de Serviço</TH>
+                                    <TH>Datas</TH>
+                                    <TH>Status</TH>
+                                    <TH className="text-right">Ações</TH>
+                                </TR>
+                            </THead>
+                            <TBody>
+                                {pendencias.map((pendencia) => (
+                                    <TR key={pendencia.id}>
+                                        <TD>
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
+                                                    {getIconeTipo(pendencia.tipo_pendencia)}
+                                                </div>
+                                                <span className="text-xs font-bold text-[var(--text-primary)] tracking-tight">
+                                                    {pendencia.tipo_pendencia}
+                                                </span>
+                                            </div>
+                                        </TD>
+                                        <TD>
+                                            <div className="space-y-1">
+                                                <p className="text-sm text-white font-medium leading-tight">{pendencia.descricao}</p>
+                                                {pendencia.responsavel && (
+                                                    <p className="text-[11px] text-[var(--text-muted)] flex items-center gap-1">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500/50"></span>
+                                                        Resp: {pendencia.responsavel}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </TD>
+                                        <TD>
+                                            <div
+                                                className="group flex flex-col cursor-pointer"
+                                                onClick={() => navigate(`/os/editar/${pendencia.os_id}`)}
+                                            >
+                                                <div className="flex items-center gap-1.5 text-blue-400 group-hover:text-blue-300 transition-colors">
+                                                    <span className="text-sm font-bold tracking-wider">
+                                                        {pendencia.ordens_servico?.numero_os || '-'}
+                                                    </span>
+                                                    <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                </div>
+                                                {pendencia.ordens_servico?.nome_cliente_digitavel && (
+                                                    <span className="text-[10px] text-[var(--text-muted)] line-clamp-1 max-w-[150px]">
+                                                        {pendencia.ordens_servico.nome_cliente_digitavel}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </TD>
+                                        <TD>
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-2 text-[11px]">
+                                                    <span className="text-[var(--text-muted)] w-8">Início:</span>
+                                                    <span className="text-[var(--text-secondary)] font-medium">{formatarData(pendencia.data_inicio)}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-[11px]">
+                                                    <span className="text-[var(--text-muted)] w-8">Prev:</span>
+                                                    <span className={pendencia.data_prevista ? "text-amber-400 font-medium" : "text-[var(--text-muted)]"}>
+                                                        {pendencia.data_prevista ? formatarData(pendencia.data_prevista) : 'N/A'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </TD>
+                                        <TD>
+                                            <StatusBadge status={pendencia.status as any} />
+                                        </TD>
+                                        <TD className="text-right">
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                onClick={() => navigate(`/pendencias/editar/${pendencia.id}`)}
+                                                className="h-8 py-0 px-3 bg-white/5 border-white/10 hover:bg-white/10"
+                                            >
+                                                Ver Detalhes
+                                            </Button>
+                                        </TD>
+                                    </TR>
+                                ))}
+                            </TBody>
+                        </Table>
+                    </div>
                 ) : (
-                    <div className="bg-white rounded-lg shadow p-12 text-center">
-                        <AlertCircle className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhuma pendência encontrada</h3>
-                        <p className="mt-1 text-sm text-gray-500">
-                            {busca || filtroTipo !== 'TODOS' || filtroStatus !== 'TODOS'
-                                ? 'Tente ajustar os filtros.'
-                                : 'Comece criando uma nova pendência.'}
-                        </p>
+                    <div className="glass-card-enterprise p-16 rounded-2xl border border-[var(--border-subtle)]">
+                        <EmptyState
+                            title="Nenhuma pendência localizada"
+                            description={uiFilters.busca ? "Não encontramos resultados para sua busca. Tente termos menos específicos." : "Parece que você está em dia! Nenhuma pendência registrada no momento."}
+                            action={{
+                                label: uiFilters.busca || uiFilters.tipo !== 'TODOS' || uiFilters.status !== 'TODOS' ? "Limpar Filtros" : "Criar Nova Pendência",
+                                onClick: () => {
+                                    if (uiFilters.busca || uiFilters.tipo !== 'TODOS' || uiFilters.status !== 'TODOS') {
+                                        setUiFilters({ busca: '', tipo: 'TODOS', status: 'TODOS' });
+                                    } else {
+                                        navigate('/pendencias/nova');
+                                    }
+                                }
+                            }}
+                        />
                     </div>
                 )}
             </div>
-        </div>
+        </AppLayout>
     );
 }

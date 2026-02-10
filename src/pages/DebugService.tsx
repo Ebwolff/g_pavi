@@ -1,19 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '../components/AppLayout';
 import { supabase } from '../lib/supabase';
-import { AppLayout } from '../components/AppLayout';
-import { supabase } from '../lib/supabase';
-import { statsService } from '../services/statsService';
 import { dashboardService } from '../services/dashboard.service';
 
 export function DebugService() {
     const [logs, setLogs] = useState<string[]>([]);
-    const [loading, setLoading] = useState(false);
 
     const addLog = (msg: string) => setLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - ${msg}`]);
 
     const runTest = async (name: string, fn: () => Promise<any>) => {
-        setLoading(true);
         addLog(`🔄 Iniciando teste: ${name}...`);
         try {
             const start = performance.now();
@@ -33,7 +28,7 @@ export function DebugService() {
             console.error(`Erro ${name}:`, error);
             addLog(`❌ Erro Exception: ${error.message || JSON.stringify(error)}`);
         } finally {
-            setLoading(false);
+            // Finished
         }
     };
 

@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-    LineChart,
     Line,
     BarChart,
     Bar,

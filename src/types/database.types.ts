@@ -478,6 +478,110 @@ export interface Database {
                     duracao_segundos?: number | null;
                 };
             };
+            itens_os: {
+                Row: {
+                    id: string;
+                    ordem_servico_id: string;
+                    descricao: string;
+                    quantidade: number;
+                    valor_unitario: number;
+                    status_separacao: string;
+                    solicitacao_compra_id: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    ordem_servico_id: string;
+                    descricao: string;
+                    quantidade: number;
+                    valor_unitario: number;
+                    status_separacao?: string;
+                    solicitacao_compra_id?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    ordem_servico_id?: string;
+                    descricao?: string;
+                    quantidade?: number;
+                    valor_unitario?: number;
+                    status_separacao?: string;
+                    solicitacao_compra_id?: string | null;
+                    created_at?: string;
+                };
+            };
+            solicitacoes_compra: {
+                Row: {
+                    id: string;
+                    ordem_servico_id: string | null;
+                    item_os_id: string | null;
+                    codigo_peca: string | null;
+                    descricao_peca: string;
+                    quantidade: number;
+                    unidade: string;
+                    urgencia: Database["public"]["Enums"]["urgencia_compra"];
+                    status: Database["public"]["Enums"]["status_solicitacao_compra"];
+                    valor_total: number;
+                    valor_unitario: number | null;
+                    fornecedor: string | null;
+                    data_previsao_entrega: string | null;
+                    data_solicitacao: string;
+                    data_entrega_real: string | null;
+                    numero_pedido_fornecedor: string | null;
+                    solicitante_id: string | null;
+                    comprador_id: string | null;
+                    observacoes: string | null;
+                    motivo_cancelamento: string | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    ordem_servico_id?: string | null;
+                    item_os_id?: string | null;
+                    codigo_peca?: string | null;
+                    descricao_peca: string;
+                    quantidade: number;
+                    unidade: string;
+                    urgencia?: Database["public"]["Enums"]["urgencia_compra"];
+                    status?: Database["public"]["Enums"]["status_solicitacao_compra"];
+                    valor_total?: number;
+                    valor_unitario?: number | null;
+                    fornecedor?: string | null;
+                    data_previsao_entrega?: string | null;
+                    data_solicitacao?: string;
+                    data_entrega_real?: string | null;
+                    numero_pedido_fornecedor?: string | null;
+                    solicitante_id?: string | null;
+                    comprador_id?: string | null;
+                    observacoes?: string | null;
+                    motivo_cancelamento?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    ordem_servico_id?: string | null;
+                    item_os_id?: string | null;
+                    codigo_peca?: string | null;
+                    descricao_peca?: string;
+                    quantidade?: number;
+                    unidade?: string;
+                    urgencia?: Database["public"]["Enums"]["urgencia_compra"];
+                    status?: Database["public"]["Enums"]["status_solicitacao_compra"];
+                    valor_total?: number;
+                    valor_unitario?: number | null;
+                    fornecedor?: string | null;
+                    data_previsao_entrega?: string | null;
+                    data_solicitacao?: string;
+                    data_entrega_real?: string | null;
+                    numero_pedido_fornecedor?: string | null;
+                    solicitante_id?: string | null;
+                    comprador_id?: string | null;
+                    observacoes?: string | null;
+                    motivo_cancelamento?: string | null;
+                    created_at?: string;
+                };
+            };
         };
         Views: {
             vw_os_estatisticas: {
@@ -522,6 +626,23 @@ export interface Database {
                     modelo_maquina: string | null;
                 };
             };
+            vw_pecas_pendentes_separacao: {
+                Row: {
+                    item_id: string;
+                    ordem_servico_id: string;
+                    numero_os: string;
+                    cliente: string;
+                    codigo_peca: string | null;
+                    descricao: string;
+                    quantidade: number;
+                    unidade: string;
+                    status_separacao: string;
+                    estoque_disponivel: number | null;
+                    disponibilidade: 'DISPONIVEL' | 'PARCIAL' | 'INDISPONIVEL';
+                    tecnico_responsavel: string;
+                    data_solicitacao: string;
+                };
+            };
         };
         Functions: {
             get_monthly_stats: {
@@ -535,11 +656,36 @@ export interface Database {
                     valor_total: number;
                 }[];
             };
+            dar_baixa_estoque: {
+                Args: {
+                    p_codigo_peca: string;
+                    p_quantidade: number;
+                };
+                Returns: void;
+            };
+            dar_entrada_estoque: {
+                Args: {
+                    p_codigo_peca: string;
+                    p_descricao: string;
+                    p_quantidade: number;
+                    p_valor_unitario: number;
+                };
+                Returns: void;
+            };
+            gerar_alertas_os_vencidas: {
+                Args: Record<string, never>;
+                Returns: number;
+            };
         };
         Enums: {
             user_role: UserRole;
             tipo_os: TipoOS;
             status_os: StatusOS;
+            status_solicitacao_compra: StatusSolicitacaoCompra;
+            urgencia_compra: UrgenciaCompra;
         };
     };
 }
+
+export type StatusSolicitacaoCompra = 'PENDENTE' | 'EM_COTACAO' | 'AGUARDANDO_ENTREGA' | 'ENTREGUE' | 'CANCELADO' | 'COMPRADO';
+export type UrgenciaCompra = 'BAIXA' | 'MEDIA' | 'ALTA' | 'URGENTE';

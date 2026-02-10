@@ -2,12 +2,9 @@ import { useState, useEffect } from 'react';
 import {
     BarChart3,
     TrendingUp,
-    TrendingDown,
     DollarSign,
     Clock,
     AlertTriangle,
-    CheckCircle,
-    Users,
     Wrench,
     RefreshCw,
     ChevronRight,
@@ -20,12 +17,20 @@ import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Database } from '@/types/database.types';
 
 // Helper para formatar valor
 const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 };
+
+type OSRow = Database['public']['Tables']['ordens_servico']['Row'];
+interface OSDiretoria extends OSRow {
+    consultor?: {
+        first_name?: string;
+        last_name?: string;
+    } | null;
+}
 
 interface KPIDiretoria {
     totalOS: number;
@@ -92,7 +97,7 @@ export default function PainelDiretoria() {
 
             if (error) throw error;
 
-            const os = todasOS || [];
+            const os = (todasOS || []) as OSDiretoria[];
 
             // Calcular KPIs
             const osAbertas = os.filter(o => !['CONCLUIDA', 'FATURADA', 'CANCELADA'].includes(o.status_atual));

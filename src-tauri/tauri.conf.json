@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "mardisa-tauri",
+  "productName": "Visão 360",
   "version": "0.1.0",
-  "identifier": "com.mardisa.agro",
+  "identifier": "com.mardisa.visao360",
   "build": {
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "npm run build",
@@ -12,13 +12,13 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "mardisa-tauri",
+        "title": "Visão 360",
         "width": 800,
         "height": 600
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://*.supabase.in; script-src 'self' 'unsafe-eval' 'unsafe-inline';"
     }
   },
   "bundle": {

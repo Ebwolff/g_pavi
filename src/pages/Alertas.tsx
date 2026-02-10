@@ -109,15 +109,8 @@ export function Alertas() {
         }
     };
 
-    const getCorPrioridade = (prioridade: string): 'blue' | 'yellow' | 'orange' | 'red' | 'gray' => {
-        const cores: Record<string, 'blue' | 'yellow' | 'orange' | 'red' | 'gray'> = {
-            URGENTE: 'red',
-            ALTA: 'orange',
-            NORMAL: 'blue',
-            BAIXA: 'gray',
-        };
-        return cores[prioridade] || 'gray';
-    };
+
+
 
     const estatisticas = {
         total: alertas.length,
@@ -295,14 +288,14 @@ export function Alertas() {
                             <div
                                 key={alerta.id}
                                 className={`group p-6 rounded-2xl border transition-all duration-300 relative overflow-hidden ${!alerta.lido
-                                        ? 'bg-[var(--surface-light)] border-blue-500/30 shadow-[0_4px_20px_rgba(59,130,246,0.1)]'
-                                        : 'bg-[var(--surface)] border-[var(--border-subtle)] opacity-70 hover:opacity-100'
+                                    ? 'bg-[var(--surface-light)] border-blue-500/30 shadow-[0_4px_20px_rgba(59,130,246,0.1)]'
+                                    : 'bg-[var(--surface)] border-[var(--border-subtle)] opacity-70 hover:opacity-100'
                                     }`}
                             >
                                 {/* Priority Indicator Line */}
                                 <div className={`absolute left-0 top-0 bottom-0 w-1 ${alerta.prioridade === 'URGENTE' ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]' :
-                                        alerta.prioridade === 'ALTA' ? 'bg-orange-500' :
-                                            alerta.prioridade === 'NORMAL' ? 'bg-blue-500' : 'bg-slate-500'
+                                    alerta.prioridade === 'ALTA' ? 'bg-orange-500' :
+                                        alerta.prioridade === 'NORMAL' ? 'bg-blue-500' : 'bg-slate-500'
                                     }`} />
 
                                 <div className="flex items-start gap-4 pl-3">

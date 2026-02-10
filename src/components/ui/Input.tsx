@@ -35,17 +35,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                     ref={ref}
                     id={inputId}
                     className={cn(
-                        "w-full bg-white border-2 rounded-xl focus:outline-none transition-all duration-200",
-                        "placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed",
+                        "w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl focus:outline-none transition-all duration-200",
+                        "text-[var(--text-primary)] font-medium placeholder:text-[var(--text-muted)] disabled:opacity-50 disabled:cursor-not-allowed",
                         // Size & Padding
                         "py-3.5",
                         Icon ? "pl-12 pr-4" : "px-4",
                         // Border & Shadow States
                         isFocused
-                            ? "border-[#16a34a] shadow-[0_0_0_4px_rgba(22,163,74,0.1)]"
-                            : "border-gray-200 hover:border-gray-300",
+                            ? "border-blue-500 ring-2 ring-blue-500/10"
+                            : "hover:border-[var(--border-hover)]",
                         // Error State
-                        error && "border-red-300 focus:border-red-500 focus:shadow-[0_0_0_4px_rgba(239,68,68,0.1)]",
+                        error && "border-rose-500 focus:ring-rose-500/10",
                         className
                     )}
                     onFocus={(e) => {
@@ -64,16 +64,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                     <label
                         htmlFor={inputId}
                         className={cn(
-                            "absolute left-4 transition-all duration-200 pointer-events-none bg-white px-1",
+                            "absolute left-4 transition-all duration-200 pointer-events-none px-1",
                             (isFocused || hasValue)
-                                ? "-top-2.5 text-xs font-medium"
-                                : "top-1/2 -translate-y-1/2 text-gray-400 opacity-0",
+                                ? "-top-2.5 text-xs font-bold uppercase tracking-wider bg-[var(--bg-primary)] rounded-md py-0.5"
+                                : "top-1/2 -translate-y-1/2 text-[var(--text-muted)]",
                             // Icon adjustment for label
                             Icon && !isFocused && !hasValue && "left-11", // Align with text when placeholder usually is
                             Icon && (isFocused || hasValue) && "left-4", // Return to left when floating
 
-                            isFocused ? "text-[#16a34a]" : "text-gray-400",
-                            error && "text-red-500"
+                            isFocused ? "text-blue-400" : "text-[var(--text-muted)]",
+                            error && "text-rose-400"
                         )}
                     >
                         {label}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Plus, Search } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Button } from './Button';
 
@@ -64,6 +64,7 @@ export function ModalAdicionarPeca({ isOpen, onClose, osId, onSuccess }: ModalAd
                         codigo_peca: peca.codigo_peca || null,
                         descricao: peca.descricao,
                         quantidade: peca.quantidade,
+                        valor_unitario: 0,
                         status_separacao: 'PENDENTE'
                     }))
                 );
@@ -73,7 +74,7 @@ export function ModalAdicionarPeca({ isOpen, onClose, osId, onSuccess }: ModalAd
             // Atualizar status da OS para AGUARDANDO_PECAS
             await supabase
                 .from('ordens_servico')
-                .update({ status: 'AGUARDANDO_PECAS' })
+                .update({ status_atual: 'AGUARDANDO_PECAS' })
                 .eq('id', osId);
 
             onSuccess();

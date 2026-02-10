@@ -73,7 +73,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                         </div>
                         <div>
                             <h1 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
-                                Gestão 360
+                                Visão 360
                             </h1>
                             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                                 Agro System

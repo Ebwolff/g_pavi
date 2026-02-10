@@ -9,7 +9,6 @@ import {
     Users,
     Wrench,
     ChevronRight,
-    Clock,
     AlertTriangle
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -149,8 +148,8 @@ export function AgendaTecnicos() {
                         <div
                             key={tecnico.id}
                             className={`rounded-xl border p-4 transition-all ${totalOS > 0
-                                    ? 'bg-white/[0.03] border-white/10 hover:bg-white/[0.05]'
-                                    : 'bg-white/[0.01] border-white/5'
+                                ? 'bg-white/[0.03] border-white/10 hover:bg-white/[0.05]'
+                                : 'bg-white/[0.01] border-white/5'
                                 }`}
                         >
                             {/* Header do Técnico */}
@@ -175,8 +174,8 @@ export function AgendaTecnicos() {
                                         <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                                     )}
                                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${totalOS > 0
-                                            ? 'bg-emerald-500/20 text-emerald-400'
-                                            : 'bg-slate-500/20 text-slate-400'
+                                        ? 'bg-emerald-500/20 text-emerald-400'
+                                        : 'bg-slate-500/20 text-slate-400'
                                         }`}>
                                         {totalOS}
                                     </span>

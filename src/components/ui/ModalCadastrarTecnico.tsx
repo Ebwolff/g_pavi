@@ -160,7 +160,7 @@ export function ModalCadastrarTecnico({ isOpen, onClose, onSuccess }: ModalCadas
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 disabled={loading}
                                 className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-amber-500/50 focus:bg-white/10 transition-all disabled:opacity-50 text-[var(--text-primary)]"
-                                placeholder="joao.silva@mardisa.com"
+                                placeholder="joao.silva@visao360.com"
                                 required
                             />
                         </div>

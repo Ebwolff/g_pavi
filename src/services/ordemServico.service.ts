@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database.types';
 
-type OrdemServico = Database['public']['Tables']['ordens_servico']['Row'];
+
 type OrdemServicoInsert = Database['public']['Tables']['ordens_servico']['Insert'];
 type OrdemServicoUpdate = Database['public']['Tables']['ordens_servico']['Update'];
 

@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthState>()(
                 }),
         }),
         {
-            name: 'mardisa-auth-storage',
+            name: 'visao360-auth-storage',
             partialize: (state) => ({
                 // Não persistir dados sensíveis
                 isAuthenticated: state.isAuthenticated,
