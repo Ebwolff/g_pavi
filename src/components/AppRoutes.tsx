@@ -24,29 +24,29 @@ const PainelFeramental = lazy(() => import('../pages/PainelFeramental'));
 // Loading skeleton premium
 function PageSkeleton() {
     return (
-        <div className="min-h-screen bg-[var(--bg-primary)]">
+        <div className="min-h-screen bg-white">
             <div className="flex">
                 {/* Sidebar skeleton */}
-                <div className="w-64 h-screen bg-[var(--surface)] border-r border-[var(--border-subtle)] p-4 hidden md:block">
-                    <div className="h-8 w-32 bg-white/5 rounded-lg mb-8 animate-pulse" />
-                    <div className="space-y-3">
+                <div className="w-64 h-screen bg-green-50/50 border-r border-green-100 p-4 hidden md:block">
+                    <div className="h-8 w-32 bg-green-100/50 rounded-lg mb-8 animate-pulse" />
+                    <div className="space-y-4">
                         {[1, 2, 3, 4, 5, 6].map(i => (
-                            <div key={i} className="h-10 bg-white/5 rounded-lg animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
+                            <div key={i} className="h-10 bg-green-100/30 rounded-lg animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
                         ))}
                     </div>
                 </div>
                 {/* Content skeleton */}
                 <div className="flex-1 p-8">
-                    <div className="h-8 w-48 bg-white/5 rounded-lg mb-2 animate-pulse" />
-                    <div className="h-4 w-72 bg-white/5 rounded-lg mb-8 animate-pulse" />
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+                    <div className="h-8 w-48 bg-gray-100 rounded-lg mb-2 animate-pulse" />
+                    <div className="h-4 w-72 bg-gray-50 rounded-lg mb-8 animate-pulse" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
                         {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="h-32 bg-white/5 rounded-2xl border border-white/5 animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
+                            <div key={i} className="h-32 bg-white rounded-2xl border border-gray-100 shadow-sm animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
                         ))}
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <div className="h-80 bg-white/5 rounded-2xl border border-white/5 animate-pulse" />
-                        <div className="h-80 bg-white/5 rounded-2xl border border-white/5 animate-pulse" style={{ animationDelay: '200ms' }} />
+                    <div className="space-y-6">
+                        <div className="h-[400px] bg-white rounded-2xl border border-gray-100 shadow-sm animate-pulse" />
+                        <div className="h-64 bg-white rounded-2xl border border-gray-100 shadow-sm animate-pulse" style={{ animationDelay: '200ms' }} />
                     </div>
                 </div>
             </div>

@@ -1,7 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useAuthStore } from '@/stores/authStore';
 import { getDefaultRoute } from '@/utils/permissions';
 import { WindowControls } from '@/components/WindowControls';
 import { Input } from '@/components/ui/Input';
@@ -16,7 +15,6 @@ export function Login() {
 
     const navigate = useNavigate();
     const { login } = useAuth();
-    const { profile } = useAuthStore();
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -24,20 +22,15 @@ export function Login() {
         setIsLoading(true);
 
         try {
-            console.log('🔐 [Login] Iniciando tentativa de login para:', email);
-
             const result = await login(email, password);
-            console.log('📨 [Login] Resultado do login:', { user: !!result.user, profile: !!result.profile });
 
             const userRole = result.profile?.role;
             const targetRoute = userRole ? getDefaultRoute(userRole) : '/tecnico';
 
-            console.log(`🚀 [Login] Redirecionando para: ${targetRoute} (Role: ${userRole || 'N/A'})`);
-
-            // Força um pequeno delay para garantir que o estado do Zustand atualizou
+            // Pequeno delay para garantir sincronia do authState
             setTimeout(() => {
                 navigate(targetRoute);
-            }, 100);
+            }, 50);
 
         } catch (err: any) {
             console.error('❌ [Login] Erro:', err);

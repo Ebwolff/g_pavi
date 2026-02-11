@@ -15,16 +15,12 @@ export interface SignUpData extends LoginCredentials {
 
 class AuthService {
     async login({ email, password }: LoginCredentials) {
-        console.log('🔐 [AuthService] Iniciando login...');
-
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
 
         if (error) throw error;
-
-        console.log('✅ [AuthService] Login bem-sucedido! Buscando perfil...');
 
         // Busca o perfil imediatamente após o login bem-sucedido
         const { data: profile, error: profileError } = await supabase
