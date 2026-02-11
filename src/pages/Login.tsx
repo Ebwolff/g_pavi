@@ -24,19 +24,21 @@ export function Login() {
         setIsLoading(true);
 
         try {
-            console.log('🔐 [Login] Iniciando tentativa de login...');
+            console.log('🔐 [Login] Iniciando tentativa de login para:', email);
 
             const result = await login(email, password);
-            const userProfile = result.profile;
+            console.log('📨 [Login] Resultado do login:', { user: !!result.user, profile: !!result.profile });
 
-            console.log('📨 [Login] Perfil carregado:', userProfile?.role);
-
-            // Redirecionamento dinâmico baseado no role
-            const userRole = userProfile?.role;
+            const userRole = result.profile?.role;
             const targetRoute = userRole ? getDefaultRoute(userRole) : '/tecnico';
 
-            console.log(`✅ [Login] Indo para: ${targetRoute}`);
-            navigate(targetRoute);
+            console.log(`🚀 [Login] Redirecionando para: ${targetRoute} (Role: ${userRole || 'N/A'})`);
+
+            // Força um pequeno delay para garantir que o estado do Zustand atualizou
+            setTimeout(() => {
+                navigate(targetRoute);
+            }, 100);
+
         } catch (err: any) {
             console.error('❌ [Login] Erro:', err);
             let msg = err.message || 'Erro ao realizar login.';
