@@ -64,7 +64,16 @@ export function ModalCadastrarTecnico({ isOpen, onClose, onSuccess }: ModalCadas
             onClose();
 
         } catch (err: any) {
-            setError(err.message || 'Erro ao cadastrar técnico');
+            console.error('❌ [ModalCadastrarTecnico] Erro no cadastro:', err);
+
+            let errorMessage = err.message || 'Erro ao cadastrar técnico';
+
+            // Tentar extrair detalhes se for erro da função
+            if (err.details) {
+                errorMessage = `${errorMessage} (${err.details})`;
+            }
+
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
