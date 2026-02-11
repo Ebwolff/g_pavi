@@ -1,6 +1,8 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/stores/authStore';
+import { getDefaultRoute } from '@/utils/permissions';
 import { WindowControls } from '@/components/WindowControls';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -13,6 +15,8 @@ export function Login() {
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
+    const { login } = useAuth();
+    const { profile } = useAuthStore();
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -20,22 +24,19 @@ export function Login() {
         setIsLoading(true);
 
         try {
-            console.log('🔐 [Login] Chamando Supabase diretamente...');
+            console.log('🔐 [Login] Iniciando tentativa de login...');
 
-            // Chamar Supabase diretamente, sem useAuth ou authService
-            const { data, error: authError } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
+            const result = await login(email, password);
+            const userProfile = result.profile;
 
-            console.log('📨 [Login] Resposta recebida:', { hasData: !!data, hasError: !!authError });
+            console.log('📨 [Login] Perfil carregado:', userProfile?.role);
 
-            if (authError) {
-                throw authError;
-            }
+            // Redirecionamento dinâmico baseado no role
+            const userRole = userProfile?.role;
+            const targetRoute = userRole ? getDefaultRoute(userRole) : '/tecnico';
 
-            console.log('✅ [Login] Login OK! Navegando para /tecnico...');
-            navigate('/tecnico');
+            console.log(`✅ [Login] Indo para: ${targetRoute}`);
+            navigate(targetRoute);
         } catch (err: any) {
             console.error('❌ [Login] Erro:', err);
             let msg = err.message || 'Erro ao realizar login.';

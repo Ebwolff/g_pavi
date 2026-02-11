@@ -14,10 +14,6 @@ export interface SignUpData extends LoginCredentials {
 }
 
 class AuthService {
-    /**
-     * Faz login do usuário
-     * NOTA: Não busca perfil aqui para evitar hang. O useAuth busca depois.
-     */
     async login({ email, password }: LoginCredentials) {
         console.log('🔐 [AuthService] Iniciando login...');
 
@@ -28,13 +24,23 @@ class AuthService {
 
         if (error) throw error;
 
-        console.log('✅ [AuthService] Login bem-sucedido!');
+        console.log('✅ [AuthService] Login bem-sucedido! Buscando perfil...');
 
-        // Retorna imediatamente - perfil será buscado pelo useAuth
+        // Busca o perfil imediatamente após o login bem-sucedido
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
+
+        if (profileError) {
+            console.warn('⚠️ [AuthService] Perfil não encontrado ou erro:', profileError.message);
+        }
+
         return {
             user: data.user,
             session: data.session,
-            profile: null, // Profile será carregado depois pelo listener de auth
+            profile: profile || null,
         };
     }
 
