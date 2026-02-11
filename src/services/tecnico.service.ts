@@ -100,7 +100,7 @@ class TecnicoService {
      * Busca um técnico pelo ID do Usuário (Auth)
      */
     async getByUserId(userId: string): Promise<Tecnico | null> {
-        // Tenta buscar na tabela tecnicos
+        // 1. Tenta buscar na tabela tecnicos
         const { data: tecnico } = await supabase
             .from('tecnicos' as any)
             .select('*')
@@ -113,6 +113,23 @@ class TecnicoService {
                 nome: tecnico.nome_completo,
                 userId: tecnico.user_id,
                 isRegistered: true
+            };
+        }
+
+        // 2. Fallback: Busca no profiles se não estiver na tabela de técnicos
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, role')
+            .eq('id', userId)
+            .eq('role', 'TECNICO')
+            .single();
+
+        if (profile) {
+            return {
+                id: profile.id,
+                nome: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Técnico(a)',
+                userId: profile.id,
+                isRegistered: false
             };
         }
 
