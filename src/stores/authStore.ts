@@ -12,11 +12,13 @@ interface AuthState {
     isAuthenticated: boolean;
     isLoading: boolean;
     isHydrated: boolean;
+    sessionChecked: boolean; // Novo flag para evitar loops
     setUser: (user: User | null) => void;
     setProfile: (profile: Profile | null) => void;
     setSession: (session: any | null) => void;
     setLoading: (loading: boolean) => void;
     setHydrated: (hydrated: boolean) => void;
+    setSessionChecked: (checked: boolean) => void;
     logout: () => void;
 }
 
@@ -29,11 +31,13 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             isLoading: true,
             isHydrated: false,
+            sessionChecked: false,
             setUser: (user) => set({ user, isAuthenticated: !!user }),
             setProfile: (profile) => set({ profile }),
             setSession: (session) => set({ session }),
             setLoading: (isLoading) => set({ isLoading }),
             setHydrated: (isHydrated) => set({ isHydrated }),
+            setSessionChecked: (sessionChecked) => set({ sessionChecked }),
             logout: () =>
                 set({
                     user: null,
@@ -41,6 +45,7 @@ export const useAuthStore = create<AuthState>()(
                     session: null,
                     isAuthenticated: false,
                     isLoading: false,
+                    sessionChecked: false,
                 }),
         }),
         {
@@ -49,10 +54,11 @@ export const useAuthStore = create<AuthState>()(
                 state?.setHydrated(true);
             },
             partialize: (state) => ({
-                // Não persistir isAuthenticated de forma isolada se 
-                // não persistirmos o profile, pois isso confunde o RoleGuard
-                // Melhor deixar o useAuth re-validar tudo no mount
-                isAuthenticated: false,
+                user: state.user,
+                profile: state.profile,
+                session: state.session,
+                // Não persistimos isAuthenticated, isLoading, isHydrated, sessionChecked
+                // Eles devem ser recalculados no boot
             }),
         }
     )

@@ -1,77 +1,113 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { authService } from '@/services/auth.service';
 import { getUserProfile } from '@/lib/supabase';
 
 export function useAuth() {
-    // Usar seletores para evitar re-renders desnecessários
+    // Usar useRef para evitar execução duplicada em Strict Mode ou re-renders rápidos
+    const checkInProgress = useRef(false);
+
     const user = useAuthStore(state => state.user);
     const profile = useAuthStore(state => state.profile);
     const isAuthenticated = useAuthStore(state => state.isAuthenticated);
     const isLoading = useAuthStore(state => state.isLoading);
     const isHydrated = useAuthStore(state => state.isHydrated);
+    const sessionChecked = useAuthStore(state => state.sessionChecked);
 
     const setUser = useAuthStore(state => state.setUser);
     const setProfile = useAuthStore(state => state.setProfile);
     const setSession = useAuthStore(state => state.setSession);
     const setLoading = useAuthStore(state => state.setLoading);
+    const setSessionChecked = useAuthStore(state => state.setSessionChecked);
     const storeLogout = useAuthStore(state => state.logout);
 
-    const checkSession = useCallback(async () => {
+    const checkSession = useCallback(async (force = false) => {
+        // Se já verificamos a sessão e não é forçado, abortar
+        if (sessionChecked && !force) {
+            return;
+        }
+
+        // Se já existe uma checagem em andamento, abortar
+        if (checkInProgress.current) {
+            return;
+        }
+
         try {
+            checkInProgress.current = true;
             console.log('🔐 [useAuth] Verificando sessão...');
 
-            setLoading(true);
+            // Só ativa loading se não tiver usuário (para evitar flicker se já tiver dados persistidos)
+            if (!user) setLoading(true);
 
-            // Tenta obter sessão com timeout de 3s
+            // Tenta obter sessão com timeout de 5s para redes lentas
             const sessionPromise = authService.getSession();
             const timeoutPromise = new Promise<null>((resolve) =>
-                setTimeout(() => resolve(null), 3000)
+                setTimeout(() => resolve(null), 5000)
             );
 
             const session = await Promise.race([sessionPromise, timeoutPromise]);
 
             if (session === null) {
-                console.warn('⚠️ [useAuth] Timeout ao verificar sessão');
-                setLoading(false);
+                console.warn('⚠️ [useAuth] Timeout ou falha ao verificar sessão');
+                // Não deslogar agressivamente em timeout, manter estado anterior se existir
+                // Mas se não tinha user, confirma que não tem
+                if (!user) {
+                    setLoading(false);
+                    setSessionChecked(true);
+                }
                 return;
             }
 
             if (session?.user) {
-                setUser(session.user);
-                setSession(session);
+                // Atualiza store apenas se houver mudanças reais para evitar re-renders
+                if (user?.id !== session.user.id || !isAuthenticated) {
+                    setUser(session.user);
+                    setSession(session);
+                }
 
-                try {
-                    const userProfile = await getUserProfile();
-                    setProfile(userProfile);
-                } catch (error) {
-                    console.warn('Falha ao carregar perfil:', error);
-                    // Fallback se perfil falhar mas user existir
-                    setProfile({
-                        id: session.user.id,
-                        role: 'TECNICO', // Fallback conservador
-                        first_name: session.user.user_metadata?.first_name || 'Usuário',
-                        last_name: session.user.user_metadata?.last_name || '',
-                    } as any);
+                // Carrega perfil se não existir ou se mudou o user
+                if (!profile || profile.id !== session.user.id) {
+                    try {
+                        const userProfile = await getUserProfile();
+                        setProfile(userProfile);
+                    } catch (error) {
+                        console.warn('Falha ao carregar perfil:', error);
+                        // Fallback temporário
+                        setProfile({
+                            id: session.user.id,
+                            role: 'TECNICO',
+                            first_name: session.user.user_metadata?.first_name || 'Usuário',
+                            last_name: session.user.user_metadata?.last_name || '',
+                        } as any);
+                    }
                 }
             } else {
-                setUser(null);
-                setProfile(null);
-                setSession(null);
+                // Se o Supabase diz que não tem sessão, limpamos tudo
+                if (user || isAuthenticated) {
+                    setUser(null);
+                    setProfile(null);
+                    setSession(null);
+                }
             }
         } catch (error) {
             console.error('Error checking session:', error);
         } finally {
+            checkInProgress.current = false;
             setLoading(false);
+            setSessionChecked(true); // Marca como verificado para impedir novos loops
         }
-    }, [setUser, setProfile, setSession, setLoading]);
+    }, [user, profile, isAuthenticated, sessionChecked, setUser, setProfile, setSession, setLoading, setSessionChecked]);
 
     useEffect(() => {
         if (!isHydrated) return;
 
-        checkSession();
+        // Apenas chama checkSession se ainda não foi verificado
+        if (!sessionChecked) {
+            checkSession();
+        }
 
-        // Subscreve a mudanças de autenticação
+        // Subscreve a mudanças de autenticação (SIGN_IN, SIGN_OUT)
+        // Isso lida com login/logout explícito, não precisa de polling agressivo
         const { data: { subscription } } = authService.onAuthStateChange(
             async (event, session) => {
                 console.log('🔄 [useAuth] Evento de auth:', event);
@@ -79,15 +115,21 @@ export function useAuth() {
                 if (event === 'SIGNED_IN' && session?.user) {
                     setUser(session.user);
                     setSession(session);
-                    const userProfile = await getUserProfile();
-                    setProfile(userProfile);
-                } else if (event === 'TOKEN_REFRESHED' && session) {
-                    setSession(session);
-                    if (session.user) setUser(session.user);
+                    if (!profile) {
+                        const userProfile = await getUserProfile();
+                        setProfile(userProfile);
+                    }
+                    setLoading(false);
+                    setSessionChecked(true);
+                } else if (event === 'TokenRefreshed' || event === 'TOKEN_REFRESHED') {
+                    // Apenas atualiza sessão, sem re-renderizar todo o app se user é o mesmo
+                    if (session) setSession(session);
                 } else if (event === 'SIGNED_OUT') {
                     setUser(null);
                     setProfile(null);
                     setSession(null);
+                    setSessionChecked(false); // Permite nova checagem no futuro login
+                    setLoading(false);
                     if (window.location.pathname !== '/login' && window.location.pathname !== '/') {
                         window.location.href = '/login';
                     }
@@ -95,30 +137,10 @@ export function useAuth() {
             }
         );
 
-        // Verificação periódica usando getState() para evitar closures estáticas
-        const sessionCheckInterval = setInterval(async () => {
-            const { user: currentUser } = useAuthStore.getState();
-            if (!currentUser) return;
-
-            try {
-                const currentSession = await authService.getSession();
-                if (!currentSession) {
-                    const refreshData = await authService.refreshSession();
-                    if (!refreshData?.session) {
-                        // Logout forçado se refresh falhar
-                        window.location.href = '/login';
-                    }
-                }
-            } catch (e) {
-                console.warn('Erro na verificação de sessão:', e);
-            }
-        }, 5 * 60 * 1000); // 5 minutos
-
         return () => {
-            clearInterval(sessionCheckInterval);
             subscription?.unsubscribe();
         };
-    }, [isHydrated, checkSession, setUser, setProfile, setSession]);
+    }, [isHydrated, sessionChecked, checkSession, setUser, setProfile, setSession, setSessionChecked, setLoading]);
 
     const login = async (email: string, password: string) => {
         setLoading(true);
@@ -127,6 +149,7 @@ export function useAuth() {
             setUser(result.user);
             setSession(result.session);
             setProfile(result.profile);
+            setSessionChecked(true);
             return result;
         } finally {
             setLoading(false);
@@ -140,14 +163,18 @@ export function useAuth() {
             storeLogout();
         } finally {
             setLoading(false);
+            // Redirecionamento é tratado pelo evento onAuthStateChange
         }
     };
 
     return {
         user,
         profile,
-        isAuthenticated,
-        isLoading: isLoading || !isHydrated,
+        // Retorna true se tiver user, ignorando isLoading para evitar flicker se hydrated
+        isAuthenticated: !!user,
+        // Só mostra loading se NÃO tiver user e ainda estiver carregando/hidratando
+        // Se já tem user (persistido), mostra app imediatamente (stale-while-revalidate)
+        isLoading: !isHydrated || (isLoading && !user),
         login,
         logout,
     };
