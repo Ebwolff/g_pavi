@@ -17,11 +17,33 @@ import {
     Hammer,
     ChevronRight,
     Car,
-    Package
+    Package,
+    Sun,
+    Moon
 } from 'lucide-react';
+import { useThemeStore } from '@/stores/themeStore';
 
 interface AppLayoutProps {
     children: ReactNode;
+}
+
+function ThemeToggleMini() {
+    const { theme, setTheme } = useThemeStore();
+
+    const toggleTheme = () => {
+        if (theme === 'dark') setTheme('light');
+        else setTheme('dark');
+    };
+
+    return (
+        <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg bg-[var(--surface-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            title={`Alternar para modo ${theme === 'dark' ? 'claro' : 'escuro'}`}
+        >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </button>
+    );
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
@@ -141,6 +163,11 @@ export function AppLayout({ children }: AppLayoutProps) {
                         <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
                         <span className="text-sm font-medium">Sair do Sistema</span>
                     </button>
+
+                    {/* Theme Toggle Mini */}
+                    <div className="flex justify-center mt-3">
+                        <ThemeToggleMini />
+                    </div>
 
                     <div className="mt-2 text-center">
                         <span className="text-[10px] text-[var(--text-muted)] opacity-50 font-mono">

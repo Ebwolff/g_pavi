@@ -3,10 +3,13 @@ import { Settings as SettingsIcon, User, Database, Bell, Shield, LogOut } from '
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { useThemeStore } from '@/stores/themeStore';
+import { Sun, Moon, Monitor } from 'lucide-react';
 // Card removed if unused
 
 export function Configuracoes() {
     const { profile, logout: signOut } = useAuth();
+    const { theme, setTheme } = useThemeStore();
 
     return (
         <AppLayout>
@@ -93,12 +96,47 @@ export function Configuracoes() {
                             </div>
                         </div>
 
+                        {/* Aparência */}
+                        <div className="glass-card-enterprise p-8 rounded-3xl border-purple-500/20">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
+                                    <Monitor className="w-6 h-6 text-purple-500" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-[var(--text-primary)]">Aparência</h2>
+                                    <p className="text-[var(--text-muted)] text-sm">Personalize a experiência visual do sistema.</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-4">
+                                {[
+                                    { id: 'light', label: 'Claro', icon: Sun },
+                                    { id: 'dark', label: 'Escuro', icon: Moon },
+                                    { id: 'system', label: 'Sistema', icon: Monitor },
+                                ].map((option) => (
+                                    <button
+                                        key={option.id}
+                                        onClick={() => setTheme(option.id as any)}
+                                        className={`
+                                            flex flex-col items-center justify-center p-4 rounded-2xl border transition-all duration-200 gap-3
+                                            ${theme === option.id
+                                                ? 'bg-purple-500/10 border-purple-500 text-purple-400 font-bold shadow-lg shadow-purple-500/10'
+                                                : 'bg-[var(--surface-hover)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--border-hover)] hover:text-[var(--text-primary)]'}
+                                        `}
+                                    >
+                                        <option.icon className="w-6 h-6" />
+                                        <span className="text-sm">{option.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
                         {/* System Info Banner */}
                         <div className="glass-card-enterprise p-8 rounded-3xl border-white/[0.05] bg-gradient-to-br from-indigo-500/[0.05] to-purple-500/[0.05]">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h3 className="text-lg font-bold text-white mb-1">Gestão 360</h3>
-                                    <p className="text-[var(--text-muted)] text-sm">Versão 2.0.0 (Enterprise Dark)</p>
+                                    <p className="text-[var(--text-muted)] text-sm">Versão 2.1.0 (Enterprise Theme)</p>
                                 </div>
                                 <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
                                     <SettingsIcon className="w-6 h-6 text-white" />

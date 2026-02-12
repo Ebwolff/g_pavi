@@ -1,7 +1,8 @@
-import { Component, ReactNode } from 'react';
+import { Component, ReactNode, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppRoutes } from './components/AppRoutes';
+import { useThemeStore } from '@/stores/themeStore';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -47,6 +48,23 @@ class ErrorBoundary extends Component<
 }
 
 function App() {
+    const { theme } = useThemeStore();
+
+    useEffect(() => {
+        const root = window.document.documentElement;
+        root.classList.remove('light', 'dark');
+
+        if (theme === 'system') {
+            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+            root.classList.add(systemTheme);
+            return;
+        }
+
+        root.classList.add(theme);
+    }, [theme]);
+
     return (
         <ErrorBoundary>
             <QueryClientProvider client={queryClient}>

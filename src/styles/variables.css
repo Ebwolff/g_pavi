@@ -1,114 +1,186 @@
 @layer base {
-    :root {
-        /* ============================================
-     * MARDISA AGRO DESIGN SYSTEM
-     * Enterprise Premium SaaS Visual Language
+    @layer base {
+
+        :root,
+        .dark {
+            /* ============================================
+     * MARDISA AGRO DESIGN SYSTEM - DARK MODE (DEFAULT)
      * ============================================ */
 
-        /* ========== BACKGROUNDS ========== */
-        --bg-primary: #0B0F14;
-        --bg-secondary: #0F172A;
-        --surface: #111827;
-        --surface-elevated: #1a2332;
-        --surface-hover: #1e293b;
+            /* ========== BACKGROUNDS ========== */
+            --bg-primary: #0B0F14;
+            --bg-secondary: #0F172A;
+            --surface: #111827;
+            --surface-elevated: #1a2332;
+            --surface-hover: #1e293b;
+            --surface-light: #374151;
+            /* Adicionado para compatibilidade */
 
-        /* ========== ACTION COLORS ========== */
-        --primary: #3B82F6;
-        --primary-hover: #2563eb;
-        --primary-glow: rgba(59, 130, 246, 0.25);
-        --success: #22C55E;
-        --success-glow: rgba(34, 197, 94, 0.2);
-        --warning: #F59E0B;
-        --warning-glow: rgba(245, 158, 11, 0.2);
-        --danger: #EF4444;
-        --danger-glow: rgba(239, 68, 68, 0.2);
+            /* ========== ACTION COLORS (Shared but tweakable) ========== */
+            --primary: #3B82F6;
+            --primary-hover: #2563eb;
+            --primary-glow: rgba(59, 130, 246, 0.25);
+            --success: #22C55E;
+            --success-glow: rgba(34, 197, 94, 0.2);
+            --warning: #F59E0B;
+            --warning-glow: rgba(245, 158, 11, 0.2);
+            --danger: #EF4444;
+            --danger-glow: rgba(239, 68, 68, 0.2);
 
-        /* ========== NEUTRAL COLORS ========== */
-        --text-primary: #E5E7EB;
-        --text-secondary: #9CA3AF;
-        --text-muted: #6B7280;
-        --text-inverse: #0B0F14;
-        --border-subtle: #1F2933;
-        --border-hover: #374151;
+            /* ========== NEUTRAL COLORS ========== */
+            --text-primary: #E5E7EB;
+            --text-secondary: #9CA3AF;
+            --text-muted: #6B7280;
+            --text-inverse: #0B0F14;
+            --border-subtle: #1F2933;
+            --border-hover: #374151;
 
-        /* ========== TYPOGRAPHY ========== */
-        --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-        --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            /* ========== GLASSMORPHISM (Enterprise Pro Max) ========== */
+            --glass-bg: rgba(17, 24, 39, 0.75);
+            --glass-bg-solid: rgba(17, 24, 39, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-border-hover: rgba(255, 255, 255, 0.15);
+            --glass-blur: 16px;
 
-        /* Font Sizes */
-        --size-display: 2.5rem;
-        --size-kpi: 2.25rem;
-        --size-h1: 1.75rem;
-        --size-h2: 1.375rem;
-        --size-h3: 1.125rem;
-        --size-body: 0.9375rem;
-        --size-body-sm: 0.875rem;
-        --size-caption: 0.75rem;
+            /* ========== ACCENTS (For Badges/Charts) ========== */
+            --accent-blue: #3b82f6;
+            --accent-blue-glow: rgba(59, 130, 246, 0.15);
+            --accent-emerald: #10b981;
+            --accent-emerald-glow: rgba(16, 185, 129, 0.15);
+            --accent-amber: #f59e0b;
+            --accent-amber-glow: rgba(245, 158, 11, 0.15);
+            --accent-rose: #f43f5e;
+            --accent-rose-glow: rgba(244, 63, 94, 0.15);
+            --accent-violet: #8b5cf6;
+            --accent-violet-glow: rgba(139, 92, 246, 0.15);
 
-        /* Font Weights */
-        --weight-normal: 400;
-        --weight-medium: 500;
-        --weight-semibold: 600;
-        --weight-bold: 700;
+            /* ========== SHADOWS ========== */
+            --shadow-subtle: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+            --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+            --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.25);
+            --shadow-elevated: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        }
 
-        /* ========== SPACING (8px Grid) ========== */
-        --space-1: 0.25rem;
-        --space-2: 0.5rem;
-        --space-3: 0.75rem;
-        --space-4: 1rem;
-        --space-5: 1.25rem;
-        --space-6: 1.5rem;
-        --space-8: 2rem;
-        --space-10: 2.5rem;
-        --space-12: 3rem;
+        .light {
+            /* ============================================
+     * MARDISA AGRO DESIGN SYSTEM - LIGHT MODE
+     * High Contrast Enterprise White Theme
+     * ============================================ */
 
-        /* ========== BORDER RADIUS (Official) ========== */
-        --radius-sm: 8px;
-        --radius-md: 12px;
-        --radius-lg: 16px;
-        --radius-xl: 20px;
-        --radius-full: 9999px;
+            /* ========== BACKGROUNDS ========== */
+            --bg-primary: #F3F4F6;
+            /* Gray 100 - Mais suave para os olhos que branco puro */
+            --bg-secondary: #FFFFFF;
+            /* White - Para Sidebar/Cards */
+            --surface: #FFFFFF;
+            --surface-elevated: #F9FAFB;
+            /* Gray 50 */
+            --surface-hover: #F3F4F6;
+            /* Gray 100 */
+            --surface-light: #E5E7EB;
+            /* Gray 200 */
 
-        /* ========== GLASSMORPHISM (Enterprise Pro Max) ========== */
-        --glass-bg: rgba(17, 24, 39, 0.75);
-        /* Mais opaco para legibilidade */
-        --glass-bg-solid: rgba(17, 24, 39, 0.95);
-        --glass-border: rgba(255, 255, 255, 0.08);
-        /* Mais visível */
-        --glass-border-hover: rgba(255, 255, 255, 0.15);
-        --glass-blur: 16px;
-        /* Desfoque mais suave */
+            /* ========== ACTION COLORS (Slightly Darker for Contrast on White) ========== */
+            --primary: #2563EB;
+            /* Blue 600 */
+            --primary-hover: #1D4ED8;
+            /* Blue 700 */
+            --primary-glow: rgba(37, 99, 235, 0.15);
+            --success: #16A34A;
+            /* Green 600 */
+            --success-glow: rgba(22, 163, 74, 0.15);
+            --warning: #D97706;
+            /* Amber 600 */
+            --warning-glow: rgba(217, 119, 6, 0.15);
+            --danger: #DC2626;
+            /* Red 600 */
+            --danger-glow: rgba(220, 38, 38, 0.15);
 
-        /* ========== TRANSITIONS (Smooth Physics) ========== */
-        --duration-fast: 150ms;
-        --duration-base: 250ms;
-        /* Um pouco mais lento para elegância */
-        --duration-slow: 400ms;
-        --easing: cubic-bezier(0.4, 0, 0.2, 1);
-        /* Easing profissional */
+            /* ========== NEUTRAL COLORS ========== */
+            --text-primary: #111827;
+            /* Gray 900 */
+            --text-secondary: #4B5563;
+            /* Gray 600 */
+            --text-muted: #6B7280;
+            /* Gray 500 */
+            --text-inverse: #F9FAFB;
+            /* Gray 50 */
+            --border-subtle: #E5E7EB;
+            /* Gray 200 */
+            --border-hover: #D1D5DB;
+            /* Gray 300 */
 
-        /* ========== LEGACY COMPATIBILITY ========== */
-        --forest-green: #14532d;
-        --accent-green: #22C55E;
-        --success-green: #22c55e;
-        --off-white: #F3F4F6;
-        --graphite-950: #020617;
-        --graphite-900: #0F172A;
-        --graphite-850: #1e293b;
-        --graphite-800: #334155;
-        --graphite-700: #475569;
-        --graphite-600: #64748b;
-        --graphite-500: #94a3b8;
-        --graphite-400: #cbd5e1;
-        --graphite-300: #e2e8f0;
-        --graphite-200: #f1f5f9;
-        --graphite-100: #f8fafc;
-        --graphite-50: #ffffff;
+            /* ========== GLASSMORPHISM (Light Mode Frost) ========== */
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-bg-solid: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(0, 0, 0, 0.05);
+            --glass-border-hover: rgba(0, 0, 0, 0.1);
+            --glass-blur: 16px;
 
-        /* ========== SHADOWS (Enterprise Depth) ========== */
-        --shadow-subtle: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-        --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-        --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.25);
-        --shadow-elevated: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            /* ========== ACCENTS (Darker for Light Mode) ========== */
+            --accent-blue: #2563eb;
+            --accent-blue-glow: rgba(37, 99, 235, 0.1);
+            --accent-emerald: #059669;
+            --accent-emerald-glow: rgba(5, 150, 105, 0.1);
+            --accent-amber: #d97706;
+            --accent-amber-glow: rgba(217, 119, 6, 0.1);
+            --accent-rose: #e11d48;
+            --accent-rose-glow: rgba(225, 29, 72, 0.1);
+            --accent-violet: #7c3aed;
+            --accent-violet-glow: rgba(124, 58, 237, 0.1);
+
+            /* ========== SHADOWS (Softer but Defined) ========== */
+            --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Shared Variables */
+        :root {
+            /* ========== TYPOGRAPHY ========== */
+            --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+            /* Font Sizes */
+            --size-display: 2.5rem;
+            --size-kpi: 2.25rem;
+            --size-h1: 1.75rem;
+            --size-h2: 1.375rem;
+            --size-h3: 1.125rem;
+            --size-body: 0.9375rem;
+            --size-body-sm: 0.875rem;
+            --size-caption: 0.75rem;
+
+            /* Font Weights */
+            --weight-normal: 400;
+            --weight-medium: 500;
+            --weight-semibold: 600;
+            --weight-bold: 700;
+
+            /* ========== SPACING (8px Grid) ========== */
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-3: 0.75rem;
+            --space-4: 1rem;
+            --space-5: 1.25rem;
+            --space-6: 1.5rem;
+            --space-8: 2rem;
+            --space-10: 2.5rem;
+            --space-12: 3rem;
+
+            /* ========== BORDER RADIUS (Official) ========== */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+
+            /* ========== TRANSITIONS (Smooth Physics) ========== */
+            --duration-fast: 150ms;
+            --duration-base: 250ms;
+            --duration-slow: 400ms;
+            --easing: cubic-bezier(0.4, 0, 0.2, 1);
+        }
     }
 }
