@@ -99,7 +99,7 @@ export function Card({
         <div
             className={`
                 group relative overflow-hidden rounded-2xl transition-all duration-300
-                border border-white/5 bg-gray-900/60 backdrop-blur-xl
+                glass-card-enterprise
                 hover:-translate-y-1 hover:shadow-2xl hover:border-opacity-50
                 ${onClick ? 'cursor-pointer' : ''} 
                 ${className}
@@ -117,7 +117,7 @@ export function Card({
                 className="absolute inset-0 transition-all duration-300 opacity-0 group-hover:opacity-100 pointer-events-none"
                 style={{
                     boxShadow: `inset 0 0 20px ${theme.bg}, 0 0 20px ${theme.glow}`,
-                    border: `1px solid ${theme.border}`
+                    borderColor: theme.border
                 }}
             />
 
@@ -133,7 +133,7 @@ export function Card({
                 <div className="flex justify-between items-start mb-4">
                     {/* Icon Container */}
                     <div
-                        className="p-3 rounded-xl transition-all duration-300 bg-white/[0.03] border border-white/[0.05] group-hover:bg-white/[0.08]"
+                        className="p-3 rounded-xl transition-all duration-300 bg-[var(--surface-light)] border border-[var(--border-subtle)] group-hover:bg-[var(--surface-hover)]"
                     >
                         <Icon
                             className="w-6 h-6 transition-colors duration-300"
@@ -171,34 +171,34 @@ export function Card({
 
                 {/* Content */}
                 <div>
-                    <h3 className="text-sm font-medium text-gray-400 mb-1 tracking-wide group-hover:text-gray-300 transition-colors">
+                    <h3 className="text-sm font-medium text-[var(--text-muted)] mb-1 tracking-wide group-hover:text-[var(--text-secondary)] transition-colors">
                         {title}
                     </h3>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold tracking-tight text-white group-hover:scale-105 transition-transform duration-300 origin-left">
+                        <span className="text-3xl font-bold tracking-tight text-[var(--text-primary)] group-hover:scale-105 transition-transform duration-300 origin-left">
                             {value}
                         </span>
                         {trend && (
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-[var(--text-muted)]">
                                 {trend.label}
                             </span>
                         )}
                     </div>
-                    {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+                    {subtitle && <p className="text-xs text-[var(--text-muted)] mt-1">{subtitle}</p>}
 
                     {/* Ancoragem */}
                     {anchor && (
-                        <div className="mt-3 pt-3 border-t border-white/[0.05] flex items-center justify-between text-xs">
-                            <span className="text-gray-500">{anchor.label}</span>
-                            <span className="font-medium text-gray-400">{anchor.value}</span>
+                        <div className="mt-3 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs">
+                            <span className="text-[var(--text-muted)]">{anchor.label}</span>
+                            <span className="font-medium text-[var(--text-secondary)]">{anchor.value}</span>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Background Glow Effect */}
+            {/* Background Glow Effect - Adjusted for visibility in light mode */}
             <div
-                className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full blur-[60px] opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none"
+                className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full blur-[60px] opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none mix-blend-multiply dark:mix-blend-screen"
                 style={{ background: theme.text }}
             />
         </div>
@@ -214,21 +214,21 @@ export interface MiniCardProps {
 
 export function MiniCard({ label, value, icon: Icon, color = 'blue' }: MiniCardProps) {
     const colorClasses = {
-        blue: 'from-blue-500/10 to-blue-500/5 border-blue-500/20 text-blue-400',
-        green: 'from-green-500/10 to-green-500/5 border-green-500/20 text-green-400',
-        red: 'from-red-500/10 to-red-500/5 border-red-500/20 text-red-400',
-        yellow: 'from-yellow-500/10 to-yellow-500/5 border-yellow-500/20 text-yellow-400',
-        purple: 'from-purple-500/10 to-purple-500/5 border-purple-500/20 text-purple-400',
-        orange: 'from-orange-500/10 to-orange-500/5 border-orange-500/20 text-orange-400',
+        blue: 'from-blue-500/10 to-blue-500/5 border-blue-500/20 text-blue-500',
+        green: 'from-green-500/10 to-green-500/5 border-green-500/20 text-green-500',
+        red: 'from-red-500/10 to-red-500/5 border-red-500/20 text-red-500',
+        yellow: 'from-yellow-500/10 to-yellow-500/5 border-yellow-500/20 text-yellow-500',
+        purple: 'from-purple-500/10 to-purple-500/5 border-purple-500/20 text-purple-500',
+        orange: 'from-orange-500/10 to-orange-500/5 border-orange-500/20 text-orange-500',
     };
 
     return (
-        <div className={`bg-gradient-to-br ${colorClasses[color]} rounded-xl border p-4 backdrop-blur-sm`}>
+        <div className={`glass-card-enterprise bg-gradient-to-br ${colorClasses[color]} p-4 backdrop-blur-sm`}>
             <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs font-semibold uppercase tracking-wider opacity-80">{label}</h3>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">{label}</h3>
                 {Icon && <Icon className="w-4 h-4" />}
             </div>
-            <p className="text-2xl font-black">{value}</p>
+            <p className="text-2xl font-black text-[var(--text-primary)]">{value}</p>
         </div>
     );
 }
@@ -260,22 +260,22 @@ export function ProgressCard({
     return (
         <div className="glass-card-enterprise p-6 rounded-xl">
             <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-gray-400">{title}</h3>
-                <span className="text-xs text-gray-500 font-mono">{percentage.toFixed(0)}%</span>
+                <h3 className="text-sm font-medium text-[var(--text-muted)]">{title}</h3>
+                <span className="text-xs text-[var(--text-muted)] font-mono">{percentage.toFixed(0)}%</span>
             </div>
 
             <div className="flex items-end gap-2 mb-3">
-                <span className="text-2xl font-bold text-white">
+                <span className="text-2xl font-bold text-[var(--text-primary)]">
                     {current}
                     {unit}
                 </span>
-                <span className="text-sm text-gray-600 mb-1">
+                <span className="text-sm text-[var(--text-muted)] mb-1">
                     / {target}
                     {unit}
                 </span>
             </div>
 
-            <div className="w-full bg-white/[0.05] rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-[var(--surface-hover)] rounded-full h-2 overflow-hidden">
                 <div
                     className={`${bgColors[color]} h-2 rounded-full transition-all duration-1000 ease-out`}
                     style={{ width: `${percentage}%` }}
