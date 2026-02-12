@@ -2,7 +2,6 @@ import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { getDefaultRoute } from '@/utils/permissions';
-import { WindowControls } from '@/components/WindowControls';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Loader2, Tractor, Mail, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
@@ -50,8 +49,7 @@ export function Login() {
 
     return (
         <div className="min-h-screen flex bg-white">
-            {/* Window Controls */}
-            <WindowControls />
+            {/* Window Controls removed as per user request */}
 
             {/* Left Side - Login Form */}
             <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-12">
