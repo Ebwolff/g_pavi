@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Wrench,
     Package,
@@ -27,6 +28,7 @@ import { AgendaTecnicos } from '@/components/dashboard/AgendaTecnicos';
 
 
 export default function PainelTecnico() {
+    const navigate = useNavigate();
     const { user, profile } = useAuth();
     const queryClient = useQueryClient();
     const gerenteRoles = ['GERENTE', 'CHEFE_OFICINA'];
@@ -200,7 +202,8 @@ export default function PainelTecnico() {
                             {osAtribuidas.map((os: any) => (
                                 <div
                                     key={os.id}
-                                    className="glass-card-enterprise p-6 rounded-3xl border border-white/[0.03] hover:bg-white/[0.04] transition-all group relative overflow-hidden"
+                                    className="glass-card-enterprise p-6 rounded-3xl border border-white/[0.03] hover:bg-white/[0.04] hover:border-white/[0.1] hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden cursor-pointer"
+                                    onClick={() => navigate(`/os/${os.id}`)}
                                 >
                                     <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
                                         <div className="flex-1 space-y-4 w-full">

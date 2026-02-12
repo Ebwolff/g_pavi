@@ -97,26 +97,30 @@ export function Card({
 
     return (
         <div
-            className={`group relative overflow-hidden rounded-2xl transition-all duration-300 ${onClick ? 'cursor-pointer' : ''} ${className}`}
+            className={`
+                group relative overflow-hidden rounded-2xl transition-all duration-300
+                border border-white/5 bg-gray-900/60 backdrop-blur-xl
+                hover:-translate-y-1 hover:shadow-2xl hover:border-opacity-50
+                ${onClick ? 'cursor-pointer' : ''} 
+                ${className}
+            `}
             onClick={onClick}
             style={{
-                background: 'rgba(17, 24, 39, 0.6)', // glass-bg
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
                 boxShadow: 'var(--shadow-card)',
                 animationDelay: `${priority * 0.1}s`
             }}
-            onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = `0 20px 40px -5px rgba(0,0,0,0.4), 0 0 15px ${theme.glow}`;
-                e.currentTarget.style.borderColor = theme.border;
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'var(--shadow-card)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
-            }}
         >
+            {/* Hover Border & Glow Injection via CSS Variables isn't easy with Tailwind alone without dynamic styles, 
+                but we can use style for the specific dynamic color while keeping layout in Tailwind 
+            */}
+            <div
+                className="absolute inset-0 transition-all duration-300 opacity-0 group-hover:opacity-100 pointer-events-none"
+                style={{
+                    boxShadow: `inset 0 0 20px ${theme.bg}, 0 0 20px ${theme.glow}`,
+                    border: `1px solid ${theme.border}`
+                }}
+            />
+
             {/* Top Color Line */}
             <div
                 className="absolute top-0 left-0 w-full h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -129,11 +133,7 @@ export function Card({
                 <div className="flex justify-between items-start mb-4">
                     {/* Icon Container */}
                     <div
-                        className="p-3 rounded-xl transition-all duration-300"
-                        style={{
-                            background: 'rgba(255,255,255,0.03)',
-                            border: '1px solid rgba(255,255,255,0.05)'
-                        }}
+                        className="p-3 rounded-xl transition-all duration-300 bg-white/[0.03] border border-white/[0.05] group-hover:bg-white/[0.08]"
                     >
                         <Icon
                             className="w-6 h-6 transition-colors duration-300"
@@ -171,11 +171,11 @@ export function Card({
 
                 {/* Content */}
                 <div>
-                    <h3 className="text-sm font-medium text-gray-400 mb-1 tracking-wide">
+                    <h3 className="text-sm font-medium text-gray-400 mb-1 tracking-wide group-hover:text-gray-300 transition-colors">
                         {title}
                     </h3>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold tracking-tight text-white">
+                        <span className="text-3xl font-bold tracking-tight text-white group-hover:scale-105 transition-transform duration-300 origin-left">
                             {value}
                         </span>
                         {trend && (
