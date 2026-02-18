@@ -11,6 +11,7 @@ import {
     Package
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
 import { tecnicoService } from '@/services/tecnico.service';
 import { ordemServicoService } from '@/services/ordemServico.service';
 import { AppLayout } from '@/components/AppLayout';
@@ -21,6 +22,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { AssignTechnicianModal } from '@/components/ui/AssignTechnicianModal';
 import { ModalCadastrarTecnico } from '@/components/ui/ModalCadastrarTecnico';
 import { Card } from '@/components/ui/Card';
+import { ModalDetalhesTecnico } from '@/components/ui/ModalDetalhesTecnico';
 
 interface OSNaoAtribuida {
     id: string;
@@ -37,10 +39,34 @@ const PainelChefeOficina: React.FC = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedOS, setSelectedOS] = useState<OSNaoAtribuida | null>(null);
     const [modalCadastroOpen, setModalCadastroOpen] = useState(false);
+    const [modalDetalhesOpen, setModalDetalhesOpen] = useState(false);
+    const [selectedTecnico, setSelectedTecnico] = useState<any | null>(null);
+
+    // Refs para scroll suave
+    const tecnicosRef = React.useRef<HTMLDivElement>(null);
+    const pendenciasRef = React.useRef<HTMLDivElement>(null);
+    const distribucaoRef = React.useRef<HTMLDivElement>(null);
+
+    const scrollToRef = (ref: React.RefObject<HTMLDivElement | null>) => {
+        ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
     const { data: tecnicos = [], isLoading: isLoadingTecnicos } = useQuery({
         queryKey: ['tecnicos-stats'],
-        queryFn: () => tecnicoService.getAll(true)
+        queryFn: async () => {
+            const allTecnicos = await tecnicoService.getAll(true);
+
+            // Buscar OS para popular o modal de detalhes
+            const { data: osData } = await supabase
+                .from('ordens_servico')
+                .select('*')
+                .not('status_atual', 'in', '(CANCELADA,FATURADA)');
+
+            return allTecnicos.map(t => ({
+                ...t,
+                ordens_servico: (osData || []).filter((os: any) => os.tecnico_id === t.id)
+            }));
+        }
     });
 
     // Todas as OS ativas
@@ -51,6 +77,11 @@ const PainelChefeOficina: React.FC = () => {
             return result.data;
         }
     });
+
+    const openTecnicoDetails = (tecnico: any) => {
+        setSelectedTecnico(tecnico);
+        setModalDetalhesOpen(true);
+    };
 
     // Cálculos derivados
     const osAtivas = todasOS.filter((os: any) => !['FATURADA', 'CANCELADA'].includes(os.status_atual));
@@ -143,14 +174,42 @@ const PainelChefeOficina: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <Card title="Técnicos Ativos" value={estatisticas.totalTecnicos} icon={Users} color="blue" priority={1} />
-                    <Card title="OS em Execução" value={estatisticas.osEmAndamento} icon={Clock} color="blue" priority={2} />
-                    <Card title="OS Sem Técnico" value={estatisticas.osSemTecnico} icon={UserPlus} color={estatisticas.osSemTecnico > 0 ? "rose" : "blue"} priority={3} />
-                    <Card title="Atrasos Críticos" value={estatisticas.osCriticas} icon={AlertTriangle} color={estatisticas.osCriticas > 0 ? "rose" : "blue"} priority={4} />
+                    <Card
+                        title="Técnicos Ativos"
+                        value={estatisticas.totalTecnicos}
+                        icon={Users}
+                        color="blue"
+                        priority={1}
+                        onClick={() => scrollToRef(tecnicosRef)}
+                    />
+                    <Card
+                        title="OS em Execução"
+                        value={estatisticas.osEmAndamento}
+                        icon={Clock}
+                        color="blue"
+                        priority={2}
+                        onClick={() => scrollToRef(distribucaoRef)}
+                    />
+                    <Card
+                        title="OS Sem Técnico"
+                        value={estatisticas.osSemTecnico}
+                        icon={UserPlus}
+                        color={estatisticas.osSemTecnico > 0 ? "rose" : "blue"}
+                        priority={3}
+                        onClick={() => scrollToRef(pendenciasRef)}
+                    />
+                    <Card
+                        title="Atrasos Críticos"
+                        value={estatisticas.osCriticas}
+                        icon={AlertTriangle}
+                        color={estatisticas.osCriticas > 0 ? "rose" : "blue"}
+                        priority={4}
+                        onClick={() => scrollToRef(pendenciasRef)}
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="glass-card-enterprise p-8 rounded-3xl shadow-2xl border border-[var(--border-subtle)] bg-[var(--surface)]">
+                    <div ref={distribucaoRef} className="glass-card-enterprise p-8 rounded-3xl shadow-2xl border border-[var(--border-subtle)] bg-[var(--surface)]">
                         <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
                             <PieChart className="w-5 h-5 text-amber-500" />
                             Distribuição da Demanda
@@ -189,8 +248,12 @@ const PainelChefeOficina: React.FC = () => {
                             {isLoading ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl" />) : tecnicos.length === 0 ? (
                                 <p className="text-center py-12 text-[var(--text-muted)] text-sm italic border border-dashed border-[var(--border-subtle)] rounded-2xl">Nenhum técnico disponível na base</p>
                             ) : (
-                                tecnicos.map((tecnico: any) => (
-                                    <div key={tecnico.id} className="p-5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-2xl flex items-center justify-between hover:bg-[var(--surface-hover)] transition-all group">
+                                (tecnicos || []).map((tecnico: any) => (
+                                    <div
+                                        key={tecnico.id}
+                                        onClick={() => openTecnicoDetails(tecnico)}
+                                        className="p-5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-2xl flex items-center justify-between hover:bg-[var(--surface-hover)] transition-all group cursor-pointer"
+                                    >
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-2.5">
                                                 <span className={`w-2.5 h-2.5 rounded-full ${tecnico.isRegistered ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
@@ -216,7 +279,7 @@ const PainelChefeOficina: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="space-y-6 pt-4">
+                <div ref={pendenciasRef} className="space-y-6 pt-4">
                     <h3 className="text-xs font-black text-orange-400 uppercase tracking-[0.2em] flex items-center gap-2 px-2">
                         <AlertTriangle className="w-4 h-4" />
                         Pendências de Alocação ({osNaoAtribuidas.length})
@@ -274,6 +337,15 @@ const PainelChefeOficina: React.FC = () => {
                 isOpen={modalCadastroOpen}
                 onClose={() => setModalCadastroOpen(false)}
                 onSuccess={() => queryClient.invalidateQueries({ queryKey: ['tecnicos-stats'] })}
+            />
+
+            <ModalDetalhesTecnico
+                isOpen={modalDetalhesOpen}
+                onClose={() => {
+                    setModalDetalhesOpen(false);
+                    setSelectedTecnico(null);
+                }}
+                tecnico={selectedTecnico}
             />
         </AppLayout>
     );
