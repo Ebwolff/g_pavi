@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '../components/AppLayout';
 import { statsService, DashboardStats } from '../services/statsService';
 import { useAuth } from '../hooks/useAuth';
-// relatoriosService import removed (no longer used after handleGerarRelatorio cleanup)
+import { relatoriosService } from '../services/relatoriosService';
 import { Card, MiniCard } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import {
@@ -217,7 +217,7 @@ export function DashboardNovo() {
                         </Button>
                         <Button
                             variant="secondary"
-                            onClick={() => { }}
+                            onClick={() => relatoriosService.exportarRelatorioPerformance('csv')}
                             leftIcon={<Download className="w-4 h-4" />}
                         >
                             Exportar
@@ -348,19 +348,27 @@ export function DashboardNovo() {
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
                                     <span className="text-sm text-gray-400">Taxa de Conversão</span>
-                                    <span className="text-lg font-bold text-green-400">85%</span>
+                                    <span className="text-lg font-bold text-green-400">
+                                        {stats?.taxaConversao ? Math.round(stats.taxaConversao) : 0}%
+                                    </span>
                                 </div>
                                 <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
                                     <span className="text-sm text-gray-400">Satisfação (NPS)</span>
-                                    <span className="text-lg font-bold text-blue-400">92</span>
+                                    <span className="text-lg font-bold text-blue-400">{stats?.nps || 0}</span>
                                 </div>
                                 <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
                                     <span className="text-sm text-gray-400">Retorno em Garantia</span>
-                                    <span className="text-lg font-bold text-green-400">1.2%</span>
+                                    <span className="text-lg font-bold text-green-400">
+                                        {stats?.retornoGarantia ? stats.retornoGarantia.toFixed(1) : 0}%
+                                    </span>
                                 </div>
                             </div>
                             <div className="mt-6 pt-4 border-t border-white/10">
-                                <Button variant="ghost" className="w-full text-sm text-blue-400 hover:text-blue-300">
+                                <Button
+                                    variant="ghost"
+                                    className="w-full text-sm text-blue-400 hover:text-blue-300"
+                                    onClick={() => navigate('/relatorios')}
+                                >
                                     Ver Relatório Completo <ArrowRight className="w-4 h-4 ml-2" />
                                 </Button>
                             </div>

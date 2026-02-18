@@ -1,15 +1,79 @@
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
-import { Settings as SettingsIcon, User, Database, Bell, Shield, LogOut } from 'lucide-react';
+import { Settings as SettingsIcon, User, Database, Bell, Shield, LogOut, Save, Edit2, X, Check } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useThemeStore } from '@/stores/themeStore';
 import { Sun, Moon, Monitor } from 'lucide-react';
-// Card removed if unused
+import { profileService } from '@/services/profile.service';
+import { useAuthStore } from '@/stores/authStore';
 
 export function Configuracoes() {
     const { profile, logout: signOut } = useAuth();
     const { theme, setTheme } = useThemeStore();
+    const setProfile = useAuthStore(state => state.setProfile);
+
+    // Estados de edição
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [tempFirstName, setTempFirstName] = useState('');
+    const [tempLastName, setTempLastName] = useState('');
+    const [tempUsername, setTempUsername] = useState('');
+    const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+    // Estados de preferências
+    const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+        return localStorage.getItem('notifications_enabled') !== 'false';
+    });
+
+    useEffect(() => {
+        if (profile) {
+            setTempFirstName(profile.first_name || '');
+            setTempLastName(profile.last_name || '');
+            setTempUsername(profile.username || '');
+        }
+    }, [profile]);
+
+    const handleSaveProfile = async () => {
+        if (!profile?.id) return;
+
+        setIsSaving(true);
+        setSaveMessage(null);
+
+        try {
+            // Verificar disponibilidade do username se mudou
+            if (tempUsername !== profile.username) {
+                const isAvailable = await profileService.checkUsernameAvailability(tempUsername, profile.id);
+                if (!isAvailable) {
+                    throw new Error('Este username já está em uso.');
+                }
+            }
+
+            const updatedProfile = await profileService.updateProfile(profile.id, {
+                first_name: tempFirstName,
+                last_name: tempLastName,
+                username: tempUsername,
+            });
+
+            setProfile(updatedProfile);
+            setIsEditing(false);
+            setSaveMessage({ type: 'success', text: 'Perfil atualizado com sucesso!' });
+
+            setTimeout(() => setSaveMessage(null), 3000);
+        } catch (error: any) {
+            console.error('Erro ao salvar perfil:', error);
+            setSaveMessage({ type: 'error', text: error.message || 'Erro ao salvar alterações.' });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const toggleNotifications = () => {
+        const newValue = !notificationsEnabled;
+        setNotificationsEnabled(newValue);
+        localStorage.setItem('notifications_enabled', String(newValue));
+    };
 
     return (
         <AppLayout>
@@ -41,34 +105,62 @@ export function Configuracoes() {
                     {/* Perfil do Usuário */}
                     <div className="lg:col-span-2 space-y-8">
                         <div className="glass-card-enterprise p-8 rounded-3xl border-indigo-500/20">
-                            <div className="flex items-center gap-6 mb-8">
-                                <div className="w-20 h-20 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
-                                    <User className="w-10 h-10 text-indigo-500" />
+                            <div className="flex items-center justify-between mb-8">
+                                <div className="flex items-center gap-6">
+                                    <div className="w-20 h-20 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
+                                        <User className="w-10 h-10 text-indigo-500" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-1">
+                                            {profile?.first_name} {profile?.last_name}
+                                        </h2>
+                                        <p className="text-[var(--text-muted)] flex items-center gap-2">
+                                            <Shield className="w-4 h-4 text-emerald-500" />
+                                            {profile?.role?.replace('_', ' ') || 'Usuário'}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-1">
-                                        {profile?.first_name} {profile?.last_name}
-                                    </h2>
-                                    <p className="text-[var(--text-muted)] flex items-center gap-2">
-                                        <Shield className="w-4 h-4 text-emerald-500" />
-                                        {profile?.role?.replace('_', ' ') || 'Usuário'}
-                                    </p>
-                                </div>
+                                <Button
+                                    variant={isEditing ? "ghost" : "primary"}
+                                    onClick={() => setIsEditing(!isEditing)}
+                                    leftIcon={isEditing ? <X className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
+                                    size="sm"
+                                >
+                                    {isEditing ? 'Cancelar' : 'Editar Perfil'}
+                                </Button>
                             </div>
+
+                            {saveMessage && (
+                                <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 animate-slideDown ${saveMessage.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                    }`}>
+                                    {saveMessage.type === 'success' ? <Check className="w-5 h-5" /> : <X className="w-5 h-5" />}
+                                    <span className="font-bold text-sm">{saveMessage.text}</span>
+                                </div>
+                            )}
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <Input
-                                    label="Nome Completo"
-                                    value={`${profile?.first_name || ''} ${profile?.last_name || ''}`}
-                                    disabled
-                                    className="opacity-70"
+                                    label="Nome"
+                                    value={isEditing ? tempFirstName : profile?.first_name || ''}
+                                    onChange={(e) => setTempFirstName(e.target.value)}
+                                    disabled={!isEditing}
+                                    className={!isEditing ? "opacity-70" : ""}
+                                />
+
+                                <Input
+                                    label="Sobrenome"
+                                    value={isEditing ? tempLastName : profile?.last_name || ''}
+                                    onChange={(e) => setTempLastName(e.target.value)}
+                                    disabled={!isEditing}
+                                    className={!isEditing ? "opacity-70" : ""}
                                 />
 
                                 <Input
                                     label="Username"
-                                    value={profile?.username || ''}
-                                    disabled
-                                    className="opacity-70"
+                                    value={isEditing ? tempUsername : profile?.username || ''}
+                                    onChange={(e) => setTempUsername(e.target.value)}
+                                    disabled={!isEditing}
+                                    className={!isEditing ? "opacity-70" : ""}
                                 />
 
                                 <div className="space-y-2">
@@ -80,20 +172,20 @@ export function Configuracoes() {
                                         {profile?.role?.replace('_', ' ') || '-'}
                                     </div>
                                 </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">
-                                        Status da Conta
-                                    </label>
-                                    <div className={`w-full px-4 py-3.5 rounded-xl border font-bold text-sm tracking-wide flex items-center gap-2 ${profile?.is_active
-                                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                                        : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
-                                        }`}>
-                                        <div className={`w-2 h-2 rounded-full ${profile?.is_active ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                                        {profile?.is_active ? 'ATIVO' : 'INATIVO'}
-                                    </div>
-                                </div>
                             </div>
+
+                            {isEditing && (
+                                <div className="mt-8 flex justify-end">
+                                    <Button
+                                        variant="primary"
+                                        onClick={handleSaveProfile}
+                                        isLoading={isSaving}
+                                        leftIcon={<Save className="w-4 h-4" />}
+                                    >
+                                        Salvar Alterações
+                                    </Button>
+                                </div>
+                            )}
                         </div>
 
                         {/* Aparência */}
@@ -149,18 +241,33 @@ export function Configuracoes() {
                     <div className="space-y-6">
                         {/* Notifications */}
                         <div className="glass-card-enterprise p-6 rounded-2xl border-white/[0.03] hover:border-blue-500/20 transition-all group">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-                                    <Bell className="w-5 h-5 text-blue-500" />
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                        <Bell className="w-5 h-5 text-blue-500" />
+                                    </div>
+                                    <h3 className="font-bold text-[var(--text-primary)] group-hover:text-blue-400 transition-colors">Notificações</h3>
                                 </div>
-                                <h3 className="font-bold text-[var(--text-primary)] group-hover:text-blue-400 transition-colors">Notificações</h3>
+                                <button
+                                    onClick={toggleNotifications}
+                                    className={`w-12 h-6 rounded-full transition-all duration-300 relative ${notificationsEnabled ? 'bg-blue-600' : 'bg-gray-700'
+                                        }`}
+                                >
+                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-300 ${notificationsEnabled ? 'left-7' : 'left-1'
+                                        }`} />
+                                </button>
                             </div>
                             <p className="text-sm text-[var(--text-muted)] mb-6 leading-relaxed">
-                                Gerencie como e quando você recebe alertas do sistema.
+                                {notificationsEnabled
+                                    ? 'As notificações estão ativadas para este navegador.'
+                                    : 'Você silenciou as notificações deste sistema.'}
                             </p>
-                            <Button variant="secondary" disabled className="opacity-50 w-full">
-                                Em Desenvolvimento
-                            </Button>
+                            <div className={`px-4 py-2 rounded-lg border flex items-center justify-center gap-2 text-xs font-bold uppercase transition-all ${notificationsEnabled
+                                ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                                : 'bg-gray-500/10 border-gray-500/20 text-gray-400'
+                                }`}>
+                                {notificationsEnabled ? 'Sons Ativados' : 'Sons Desativados'}
+                            </div>
                         </div>
 
                         {/* Database Status */}

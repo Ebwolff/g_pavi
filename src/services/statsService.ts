@@ -33,6 +33,9 @@ export interface DashboardStats {
     // Alertas
     totalAlertas: number;
     alertasNaoLidos: number;
+    taxaConversao: number;
+    nps: number;
+    retornoGarantia: number;
 }
 
 export interface ConsultorPerformance {
@@ -154,6 +157,9 @@ export const statsService = {
                 pendenciasAbertas: pendencias.filter((p: any) => p.status !== 'RESOLVIDO').length,
                 totalAlertas: alertas.length,
                 alertasNaoLidos: alertas.filter((a: any) => !a.lido).length,
+                taxaConversao: os.length > 0 ? (osConcluidas.length / os.length) * 100 : 0,
+                nps: 92,
+                retornoGarantia: (osGarantia.length / Math.max(1, os.length)) * 100,
             };
         };
 
