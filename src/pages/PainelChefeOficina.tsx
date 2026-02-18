@@ -32,6 +32,7 @@ interface OSNaoAtribuida {
     modelo_maquina: string | null;
     data_abertura: string;
     dias_em_aberto: number;
+    descricao_problema: string | null;
 }
 
 const PainelChefeOficina: React.FC = () => {
@@ -41,6 +42,7 @@ const PainelChefeOficina: React.FC = () => {
     const [modalCadastroOpen, setModalCadastroOpen] = useState(false);
     const [modalDetalhesOpen, setModalDetalhesOpen] = useState(false);
     const [selectedTecnico, setSelectedTecnico] = useState<any | null>(null);
+    const [expandedOS, setExpandedOS] = useState<string | null>(null);
 
     // Refs para scroll suave
     const tecnicosRef = React.useRef<HTMLDivElement>(null);
@@ -106,6 +108,7 @@ const PainelChefeOficina: React.FC = () => {
             modelo_maquina: o.modelo_maquina,
             data_abertura: o.data_abertura,
             dias_em_aberto: Math.floor((Date.now() - new Date(o.data_abertura).getTime()) / (1000 * 60 * 60 * 24)),
+            descricao_problema: o.descricao_problema || 'Nenhuma descrição detalhada fornecida.',
         }));
 
     const statusCounts = osAtivas.reduce((acc: any, os: any) => {
@@ -290,7 +293,11 @@ const PainelChefeOficina: React.FC = () => {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {osNaoAtribuidas.map((os) => (
-                                <div key={os.id} className="glass-card-enterprise p-6 rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-between hover:bg-[var(--surface-hover)] transition-all group relative overflow-hidden">
+                                <div
+                                    key={os.id}
+                                    className={`glass-card-enterprise p-6 rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-between hover:bg-[var(--surface-hover)] transition-all group relative overflow-hidden cursor-pointer ${expandedOS === os.id ? 'ring-2 ring-orange-500/50' : ''}`}
+                                    onClick={() => setExpandedOS(expandedOS === os.id ? null : os.id)}
+                                >
                                     <div className="absolute -top-6 -right-6 p-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity pointer-events-none">
                                         <UserPlus className="w-32 h-32 text-orange-500 rotate-12" />
                                     </div>
@@ -299,18 +306,44 @@ const PainelChefeOficina: React.FC = () => {
                                             <span className="text-[10px] font-black text-orange-400 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 shadow-sm">#{os.numero_os}</span>
                                             <StatusBadge status={os.tipo_os as any} size="sm" />
                                         </div>
-                                        <h4 className="text-base font-black text-[var(--text-primary)] uppercase leading-tight line-clamp-2 min-h-[2.5em]">{os.nome_cliente_digitavel || 'S/ Proprietário'}</h4>
+                                        <h4 className="text-base font-black text-[var(--text-primary)] uppercase leading-tight line-clamp-2 min-h-[2.5em]">
+                                            {os.nome_cliente_digitavel || 'S/ Proprietário'}
+                                        </h4>
                                         <p className="text-xs text-[var(--text-muted)] font-medium flex items-center gap-1.5">
                                             <Package className="w-3.5 h-3.5" />
                                             {os.modelo_maquina || 'Máquina não especificada'}
                                         </p>
+
+                                        {expandedOS === os.id && (
+                                            <div className="mt-4 p-4 bg-[var(--surface)] border border-orange-500/20 rounded-2xl animate-slideDown">
+                                                <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                                    <AlertTriangle className="w-3 h-3" />
+                                                    Relato do Problema
+                                                </p>
+                                                <p className="text-sm font-medium text-[var(--text-primary)] leading-relaxed italic border-l-2 border-orange-500/30 pl-3">
+                                                    "{os.descricao_problema}"
+                                                </p>
+                                            </div>
+                                        )}
+
                                         <div className={`flex items-center gap-3 text-[10px] font-black uppercase p-3 rounded-xl border ${os.dias_em_aberto > 7 ? 'bg-rose-500/5 border-rose-500/20 text-rose-400' : 'bg-[var(--surface)] border-[var(--border-subtle)] text-[var(--text-muted)]'}`}>
                                             <div className={`w-2 h-2 rounded-full ${os.dias_em_aberto > 7 ? 'bg-rose-500 animate-pulse' : 'bg-slate-500/40'}`} />
                                             <span>{os.dias_em_aberto} dias em espera</span>
                                         </div>
                                     </div>
                                     <div className="mt-6 pt-5 border-t border-[var(--border-subtle)] relative z-10">
-                                        <Button variant="secondary" size="sm" onClick={() => openAssignModal(os)} leftIcon={<UserPlus className="w-4 h-4" />} className="w-full text-[10px] font-black tracking-widest uppercase hover:bg-orange-500 hover:text-white transition-all">Atribuir Técnico</Button>
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                openAssignModal(os);
+                                            }}
+                                            leftIcon={<UserPlus className="w-4 h-4" />}
+                                            className="w-full text-[10px] font-black tracking-widest uppercase hover:bg-orange-500 hover:text-white transition-all"
+                                        >
+                                            Atribuir Técnico
+                                        </Button>
                                     </div>
                                 </div>
                             ))}
