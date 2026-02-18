@@ -209,7 +209,7 @@ const PainelChefeOficina: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div ref={distribucaoRef} className="glass-card-enterprise p-8 rounded-3xl shadow-2xl border border-[var(--border-subtle)] bg-[var(--surface)]">
+                    <div id="distribuicao-oficina" ref={distribucaoRef} className="glass-card-enterprise p-8 rounded-3xl shadow-2xl border border-[var(--border-subtle)] bg-[var(--surface)] scroll-mt-8">
                         <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
                             <PieChart className="w-5 h-5 text-amber-500" />
                             Distribuição da Demanda
@@ -239,7 +239,7 @@ const PainelChefeOficina: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="glass-card-enterprise p-8 rounded-3xl shadow-2xl border border-[var(--border-subtle)] bg-[var(--surface)]">
+                    <div id="carga-tecnica" ref={tecnicosRef} className="glass-card-enterprise p-8 rounded-3xl shadow-2xl border border-[var(--border-subtle)] bg-[var(--surface)] scroll-mt-8">
                         <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
                             <Users className="w-5 h-5 text-emerald-500" />
                             Carga Técnica da Equipe
@@ -279,7 +279,7 @@ const PainelChefeOficina: React.FC = () => {
                     </div>
                 </div>
 
-                <div ref={pendenciasRef} className="space-y-6 pt-4">
+                <div id="pendencias-alocacao" ref={pendenciasRef} className="space-y-6 pt-4 scroll-mt-8">
                     <h3 className="text-xs font-black text-orange-400 uppercase tracking-[0.2em] flex items-center gap-2 px-2">
                         <AlertTriangle className="w-4 h-4" />
                         Pendências de Alocação ({osNaoAtribuidas.length})
