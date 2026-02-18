@@ -64,7 +64,7 @@ export default function PainelTecnico() {
             const result = await ordemServicoService.list(filters, 1, 100);
 
             return result.data
-                .filter(os => !['FATURADA', 'CANCELADA'].includes(os.status_atual))
+                .filter(os => !['FATURADA', 'CANCELADA'].includes(os.status_atual) && !!os.tecnico_id)
                 .map((os: any) => ({
                     id: os.id,
                     numero_os: os.numero_os,
