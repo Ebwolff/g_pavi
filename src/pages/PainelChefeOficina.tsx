@@ -91,12 +91,19 @@ const PainelChefeOficina: React.FC = () => {
     const limite60Dias = new Date();
     limite60Dias.setDate(limite60Dias.getDate() - 60);
 
+    const osSemTecnico = osAtivas.filter((o: any) => !o.tecnico_id);
+    const totalHorasSemTecnico = osSemTecnico.reduce((acc: number, o: any) => {
+        const horas = (Date.now() - new Date(o.data_abertura).getTime()) / (1000 * 60 * 60);
+        return acc + horas;
+    }, 0);
+
     const estatisticas = {
         totalTecnicos: tecnicos.length,
         osEmAndamento: osAtivas.filter((o: any) => o.status_atual === 'EM_EXECUCAO').length,
         osAguardandoPecas: osAtivas.filter((o: any) => o.status_atual === 'AGUARDANDO_PECAS').length,
-        osSemTecnico: osAtivas.filter((o: any) => !o.tecnico_id).length,
+        osSemTecnico: osSemTecnico.length,
         osCriticas: osAtivas.filter((o: any) => new Date(o.data_abertura) < limite60Dias).length,
+        leadTimeTriagem: osSemTecnico.length > 0 ? (totalHorasSemTecnico / osSemTecnico.length).toFixed(1) : 0,
     };
 
     const osNaoAtribuidas: OSNaoAtribuida[] = osAtivas
@@ -177,7 +184,7 @@ const PainelChefeOficina: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                     <Card
                         title="Técnicos Ativos"
                         value={estatisticas.totalTecnicos}
@@ -203,11 +210,19 @@ const PainelChefeOficina: React.FC = () => {
                         onClick={() => scrollToRef(pendenciasRef)}
                     />
                     <Card
+                        title="Lead Time Triagem"
+                        value={`${estatisticas.leadTimeTriagem}h`}
+                        icon={Clock}
+                        color={Number(estatisticas.leadTimeTriagem) > 24 ? "rose" : "amber"}
+                        priority={4}
+                        trend={{ value: 0, label: 'média atual', isPositive: false }}
+                    />
+                    <Card
                         title="Atrasos Críticos"
                         value={estatisticas.osCriticas}
                         icon={AlertTriangle}
                         color={estatisticas.osCriticas > 0 ? "rose" : "blue"}
-                        priority={4}
+                        priority={5}
                         onClick={() => scrollToRef(pendenciasRef)}
                     />
                 </div>

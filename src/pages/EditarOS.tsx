@@ -237,7 +237,7 @@ export function EditarOS() {
                             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-3xl pointer-events-none" />
                             <h2 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
                                 <Settings className="w-4 h-4" />
-                                Configurações do Fluxo
+                                Configuração do Atendimento
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-3">
@@ -288,28 +288,28 @@ export function EditarOS() {
                             </h2>
                             <div className="space-y-8">
                                 <Input
-                                    label="Cliente"
+                                    label="Razão Social / Nome Completo"
                                     icon={User}
                                     value={formData.nomeCliente}
                                     onChange={(e) => handleInputChange('nomeCliente', e.target.value)}
-                                    placeholder="Nome completo do proprietário"
+                                    placeholder="Digite o nome do cliente..."
                                     className="bg-[var(--surface-light)]"
                                 />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <Input
-                                        label="Modelo Comercial"
+                                        label="Modelo do Ativo"
                                         icon={Briefcase}
                                         value={formData.modeloMaquina}
                                         onChange={(e) => handleInputChange('modeloMaquina', e.target.value)}
-                                        placeholder="Ex: T250, A950"
+                                        placeholder="Ex: T250 / 8R 370"
                                         className="bg-[var(--surface-light)]"
                                     />
                                     <Input
-                                        label="Número de Série / Chassi"
+                                        label="Nº Chassi / Série"
                                         icon={Hash}
                                         value={formData.chassi}
                                         onChange={(e) => handleInputChange('chassi', e.target.value)}
-                                        placeholder="Identificação única"
+                                        placeholder="Identificador Único"
                                         className="bg-[var(--surface-light)] uppercase"
                                     />
                                 </div>
@@ -320,7 +320,7 @@ export function EditarOS() {
                         <div className="bg-[var(--surface)] p-8 rounded-3xl border border-[var(--border-subtle)] shadow-2xl">
                             <h2 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
                                 <Wrench className="w-4 h-4" />
-                                Laudo Técnico
+                                Detalhamento Técnico
                             </h2>
                             <div className="space-y-8">
                                 <Textarea

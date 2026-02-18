@@ -128,7 +128,7 @@ export function NovaOS() {
                             <h2 className="text-sm font-black text-blue-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
                                 <span className="w-8 h-[2px] bg-blue-500/30 rounded-full" />
                                 <Settings className="w-4 h-4" />
-                                Parâmetros Técnicos
+                                Configuração do Atendimento
                             </h2>
 
                             <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
@@ -178,7 +178,7 @@ export function NovaOS() {
                             <h2 className="text-sm font-black text-emerald-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
                                 <span className="w-8 h-[2px] bg-emerald-500/30 rounded-full" />
                                 <User className="w-4 h-4" />
-                                Cliente & Ativo
+                                Proprietário & Equipamento
                             </h2>
 
                             <div className="space-y-6">
@@ -215,7 +215,7 @@ export function NovaOS() {
                             <div className="p-8 border-b border-white/[0.03] bg-white/[0.01]">
                                 <h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-[0.2em] flex items-center gap-3">
                                     <Wrench className="w-4 h-4 text-amber-400" />
-                                    Relato Técnico Inicial
+                                    Detalhamento Técnico
                                 </h2>
                             </div>
                             <div className="p-8 pb-10">

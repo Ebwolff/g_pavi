@@ -18,6 +18,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { tecnicoService } from '@/services/tecnico.service';
 import { ordemServicoService } from '@/services/ordemServico.service';
+import { frotaService } from '@/services/frotaService';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -50,11 +51,20 @@ export default function PainelTecnico() {
         enabled: !!user?.id
     });
 
-    // 2. Buscar OS do Técnico
+    // 2. Buscar Veículo do Técnico
+    const { data: veiculoAlocado } = useQuery({
+        queryKey: ['veiculo-tecnico', tecnico?.id],
+        queryFn: async () => {
+            if (!tecnico?.id) return null;
+            return frotaService.getVeiculoDoTecnico(tecnico.id);
+        },
+        enabled: !!tecnico?.id
+    });
+
+    // 3. Buscar OS do Técnico
     const { data: osAtribuidas = [], isLoading: isLoadingOS } = useQuery({
         queryKey: ['os-tecnico', tecnico?.id, isGerente],
         queryFn: async () => {
-            // Se for gerente, traz todas as ativas. Se for técnico, traz apenas as dele.
             const filters: any = {};
             if (!isGerente) {
                 if (!tecnico?.id) return [];
@@ -65,17 +75,24 @@ export default function PainelTecnico() {
 
             return result.data
                 .filter(os => !['FATURADA', 'CANCELADA'].includes(os.status_atual) && !!os.tecnico_id)
-                .map((os: any) => ({
-                    id: os.id,
-                    numero_os: os.numero_os,
-                    nome_cliente_digitavel: os.nome_cliente_digitavel,
-                    modelo_maquina: os.modelo_maquina,
-                    status: os.status_atual,
-                    data_abertura: os.data_abertura,
-                    descricao_problema: os.descricao_problema || '',
-                    pecas_lancadas: os.itens?.length || 0,
-                    nome_tecnico: os.tecnico?.nome_completo // Pegar nome do técnico responsável
-                }));
+                .map((os: any) => {
+                    const temPecasPendentes = os.itens?.some((i: any) => i.status_separacao === 'PENDENTE' || i.status_separacao === 'AGUARDANDO_COMPRA');
+                    const todasPecasEntregues = os.itens?.length > 0 && !temPecasPendentes;
+
+                    return {
+                        id: os.id,
+                        numero_os: os.numero_os,
+                        nome_cliente_digitavel: os.nome_cliente_digitavel,
+                        modelo_maquina: os.modelo_maquina,
+                        status: os.status_atual,
+                        data_abertura: os.data_abertura,
+                        descricao_problema: os.descricao_problema || '',
+                        pecas_lancadas: os.itens?.length || 0,
+                        temPecasPendentes,
+                        todasPecasEntregues,
+                        nome_tecnico: os.tecnico?.nome_completo
+                    };
+                });
         },
         enabled: isGerente || !!tecnico?.id
     });
@@ -199,6 +216,26 @@ export default function PainelTecnico() {
                                                     <RefreshCw className="w-3 h-3" />
                                                     {new Date(os.data_abertura).toLocaleDateString('pt-BR')}
                                                 </span>
+
+                                                {/* Indicadores Visão 360 */}
+                                                {os.temPecasPendentes && (
+                                                    <span className="text-[10px] font-black text-rose-400 bg-rose-500/10 px-2 py-1.5 rounded-lg border border-rose-500/20 flex items-center gap-1.5 animate-pulse">
+                                                        <Box className="w-3 h-3" />
+                                                        Peças Pendentes
+                                                    </span>
+                                                )}
+                                                {os.todasPecasEntregues && (
+                                                    <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-1.5 rounded-lg border border-emerald-500/20 flex items-center gap-1.5">
+                                                        <CheckCircle className="w-3 h-3" />
+                                                        Kit de Peças Pronto
+                                                    </span>
+                                                )}
+                                                {veiculoAlocado && (
+                                                    <span className="text-[10px] font-black text-blue-400 bg-blue-500/10 px-2 py-1.5 rounded-lg border border-blue-500/20 flex items-center gap-1.5">
+                                                        <Clock className="w-3 h-3" />
+                                                        Veículo: {veiculoAlocado.placa}
+                                                    </span>
+                                                )}
                                             </div>
 
                                             <div>

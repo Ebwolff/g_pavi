@@ -353,8 +353,18 @@ export function DashboardNovo() {
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
+                                    <span className="text-sm text-gray-400">Taxa de Retrabalho</span>
+                                    <span className={`text-sm font-bold ${stats?.taxaRetrabalho && stats.taxaRetrabalho > 5 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                        {stats?.taxaRetrabalho.toFixed(1)}%
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
+                                    <span className="text-sm text-gray-400">Produtividade Líquida</span>
+                                    <span className="text-sm font-bold text-blue-400">{stats?.produtividadeLiquida.toFixed(1)}%</span>
+                                </div>
+                                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
                                     <span className="text-sm text-gray-400">Satisfação (NPS)</span>
-                                    <span className="text-lg font-bold text-blue-400">{stats?.nps || 0}</span>
+                                    <span className="text-sm font-bold text-emerald-400">{stats?.nps}</span>
                                 </div>
                                 <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
                                     <span className="text-sm text-gray-400">Retorno em Garantia</span>
