@@ -587,45 +587,6 @@
         color: #64748b;
     }
 
-    /* Input/Select Contrast Fix for Dark Mode */
-    input,
-    select,
-    textarea {
-        color: #1f2937 !important;
-        background-color: #ffffff !important;
-    }
-
-    input::placeholder {
-        color: #6b7280 !important;
-    }
-
-    option {
-        background-color: #ffffff !important;
-        color: #1f2937 !important;
-    }
-
-    select option {
-        background-color: #ffffff;
-        color: #1f2937;
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-        color: #1f2937 !important;
-        background-color: #ffffff !important;
-    }
-
-    label {
-        color: inherit;
-    }
-
-    select:focus option,
-    select option:checked {
-        background-color: #e5e7eb;
-        color: #1f2937;
-    }
-
     /* Visão 360 Scrollbar */
     .scrollbar-visao360::-webkit-scrollbar {
         width: 6px;

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, X, Calendar, DollarSign, User, Tag } from 'lucide-react';
+import { Search, Filter, X, Calendar, DollarSign, User, Tag, ChevronDown } from 'lucide-react';
 import { TipoOS, StatusOS } from '../../types/database.types';
+import { cn } from '@/lib/utils';
+import { Input } from './Input';
 
 export interface OSFilters {
     busca?: string;
@@ -45,7 +47,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         // Carregar filtros do localStorage
         const savedFilters = localStorage.getItem('os_filters');
         if (savedFilters) {
-            setFilters(JSON.parse(savedFilters));
+            try {
+                setFilters(JSON.parse(savedFilters));
+            } catch (e) {
+                console.error('Erro ao carregar filtros salvos:', e);
+            }
         }
     }, []);
 
@@ -79,78 +85,89 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
     const activeCount = countActiveFilters();
 
+    const selectClassName = "w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none appearance-none cursor-pointer font-medium";
+
     return (
-        <div className={`bg-white rounded-lg shadow p-4 ${className}`}>
+        <div className={cn("bg-[var(--surface)] transition-all", className)}>
             {/* Barra de busca principal */}
-            <div className="flex gap-2 mb-4">
-                <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                    <input
-                        type="text"
-                        placeholder="Buscar por número de OS, cliente, chassi..."
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="flex-1">
+                    <Input
+                        icon={Search}
+                        placeholder="Número da OS, cliente ou plano..."
                         value={filters.busca || ''}
                         onChange={(e) => handleFilterChange('busca', e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="bg-[var(--surface-light)]"
                     />
                 </div>
-                <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${showFilters
-                            ? 'bg-blue-50 border-blue-300 text-blue-700'
-                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                        }`}
-                >
-                    <Filter className="h-5 w-5" />
-                    Filtros
-                    {activeCount > 0 && (
-                        <span className="bg-blue-500 text-white rounded-full px-2 py-0.5 text-xs font-medium">
-                            {activeCount}
-                        </span>
-                    )}
-                </button>
-                {activeCount > 0 && (
+                <div className="flex gap-3">
                     <button
-                        onClick={clearFilters}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                        onClick={() => setShowFilters(!showFilters)}
+                        className={cn(
+                            "flex items-center gap-2.5 px-6 py-3 rounded-xl border font-bold text-sm transition-all",
+                            showFilters
+                                ? "bg-blue-500/10 border-blue-500/30 text-blue-400 shadow-lg shadow-blue-500/10"
+                                : "bg-[var(--surface-light)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] shadow-sm"
+                        )}
                     >
-                        <X className="h-5 w-5" />
-                        Limpar
+                        <Filter className={cn("h-4 w-4 transition-transform", showFilters && "scale-110")} />
+                        Painel de Filtros
+                        {activeCount > 0 && (
+                            <span className="bg-blue-500 text-white rounded-full min-w-[20px] h-5 flex items-center justify-center text-[10px] font-black px-1">
+                                {activeCount}
+                            </span>
+                        )}
                     </button>
-                )}
+                    {activeCount > 0 && (
+                        <button
+                            onClick={clearFilters}
+                            className="flex items-center gap-2 px-6 py-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-light)] text-[var(--text-secondary)] hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/30 transition-all font-bold text-sm shadow-sm"
+                        >
+                            <X className="h-4 w-4" />
+                            Limpar
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Painel de filtros expandido */}
-            {showFilters && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
-                    {/* Tipo de OS */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            <Tag className="inline h-4 w-4 mr-1" />
-                            Tipo de OS
-                        </label>
+            <div
+                className={cn(
+                    "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-300 origin-top overflow-hidden",
+                    showFilters ? "max-h-[1000px] opacity-100 pt-6 border-t border-[var(--border-subtle)] mb-4" : "max-h-0 opacity-0 pointer-events-none"
+                )}
+            >
+                {/* Tipo de OS */}
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] ml-1 flex items-center gap-2">
+                        <Tag className="h-3 w-3" /> Tipo de Registro
+                    </label>
+                    <div className="relative">
                         <select
                             value={filters.tipo}
                             onChange={(e) => handleFilterChange('tipo', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className={selectClassName}
                         >
-                            <option value="TODOS">Todos</option>
-                            <option value="NORMAL">Normal</option>
-                            <option value="GARANTIA">Garantia</option>
+                            <option value="TODOS">Todas as Modalidades</option>
+                            <option value="NORMAL">Venda Normal (Direta)</option>
+                            <option value="GARANTIA">Garantia de Fábrica</option>
                         </select>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
                     </div>
+                </div>
 
-                    {/* Status */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            <Tag className="inline h-4 w-4 mr-1" />
-                            Status
-                        </label>
+                {/* Status */}
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] ml-1 flex items-center gap-2">
+                        <Activity className="h-3 w-3" /> Status Operacional
+                    </label>
+                    <div className="relative">
                         <select
                             value={filters.status}
                             onChange={(e) => handleFilterChange('status', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className={selectClassName}
                         >
-                            <option value="TODOS">Todos</option>
+                            <option value="TODOS">Todos os Status</option>
                             <option value="EM_EXECUCAO">Em Execução</option>
                             <option value="AGUARDANDO_PECAS">Aguardando Peças</option>
                             <option value="PAUSADA">Pausada</option>
@@ -158,144 +175,122 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                             <option value="FATURADA">Faturada</option>
                             <option value="CANCELADA">Cancelada</option>
                         </select>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
                     </div>
+                </div>
 
-                    {/* Dias em Aberto */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            <Calendar className="inline h-4 w-4 mr-1" />
-                            Dias em Aberto
-                        </label>
+                {/* Dias em Aberto */}
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] ml-1 flex items-center gap-2">
+                        <Clock className="h-3 w-3" /> Ciclo de Vida (SLA)
+                    </label>
+                    <div className="relative">
                         <select
                             value={filters.diasCategoria}
                             onChange={(e) => handleFilterChange('diasCategoria', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className={selectClassName}
                         >
-                            <option value="TODOS">Todos</option>
-                            <option value="MENOR_30">Menos de 30 dias</option>
-                            <option value="ENTRE_30_60">30 a 60 dias</option>
-                            <option value="ENTRE_60_90">60 a 90 dias</option>
-                            <option value="MAIOR_90">Mais de 90 dias</option>
+                            <option value="TODOS">Qualquer Período</option>
+                            <option value="MENOR_30">Recentes (Até 30 dias)</option>
+                            <option value="ENTRE_30_60">Médio Prazo (30 a 60 dias)</option>
+                            <option value="ENTRE_60_90">Alerta (60 a 90 dias)</option>
+                            <option value="MAIOR_90">Crítico (Acima de 90 dias)</option>
                         </select>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
                     </div>
+                </div>
 
-                    {/* Consul tor */}
-                    {consultores.length > 0 && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                <User className="inline h-4 w-4 mr-1" />
-                                Consultor
-                            </label>
+                {/* Consultor */}
+                {consultores.length > 0 && (
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] ml-1 flex items-center gap-2">
+                            <User className="h-3 w-3" /> Responsável Técnico
+                        </label>
+                        <div className="relative">
                             <select
                                 value={filters.consultorId || ''}
                                 onChange={(e) => handleFilterChange('consultorId', e.target.value || undefined)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className={selectClassName}
                             >
-                                <option value="">Todos</option>
+                                <option value="">Todos os Consultores</option>
                                 {consultores.map((consultor) => (
                                     <option key={consultor.id} value={consultor.id}>
                                         {consultor.nome}
                                     </option>
                                 ))}
                             </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
                         </div>
-                    )}
-
-                    {/* Valor Mínimo */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            <DollarSign className="inline h-4 w-4 mr-1" />
-                            Valor Mínimo (R$)
-                        </label>
-                        <input
-                            type="number"
-                            placeholder="0.00"
-                            value={filters.valorMin || ''}
-                            onChange={(e) => handleFilterChange('valorMin', e.target.value ? parseFloat(e.target.value) : undefined)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
                     </div>
+                )}
 
-                    {/* Valor Máximo */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            <DollarSign className="inline h-4 w-4 mr-1" />
-                            Valor Máximo (R$)
-                        </label>
-                        <input
-                            type="number"
-                            placeholder="0.00"
-                            value={filters.valorMax || ''}
-                            onChange={(e) => handleFilterChange('valorMax', e.target.value ? parseFloat(e.target.value) : undefined)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
-
-                    {/* Data Início */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            <Calendar className="inline h-4 w-4 mr-1" />
-                            Data Início
-                        </label>
-                        <input
-                            type="date"
-                            value={filters.dataInicio || ''}
-                            onChange={(e) => handleFilterChange('dataInicio', e.target.value || undefined)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
-
-                    {/* Data Fim */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            <Calendar className="inline h-4 w-4 mr-1" />
-                            Data Fim
-                        </label>
-                        <input
-                            type="date"
-                            value={filters.dataFim || ''}
-                            onChange={(e) => handleFilterChange('dataFim', e.target.value || undefined)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
-
-                    {/* Chassi */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Chassi</label>
-                        <input
-                            type="text"
-                            placeholder="Buscar por chassi"
-                            value={filters.chassi || ''}
-                            onChange={(e) => handleFilterChange('chassi', e.target.value || undefined)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
-
-                    {/* Cliente */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
-                        <input
-                            type="text"
-                            placeholder="Buscar por cliente"
-                            value={filters.cliente || ''}
-                            onChange={(e) => handleFilterChange('cliente', e.target.value || undefined)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
-
-                    {/* Modelo */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Modelo</label>
-                        <input
-                            type="text"
-                            placeholder="Buscar por modelo"
-                            value={filters.modelo || ''}
-                            onChange={(e) => handleFilterChange('modelo', e.target.value || undefined)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
+                {/* Data Início */}
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] ml-1 flex items-center gap-2">
+                        <Calendar className="h-3 w-3" /> Abertura Inicial
+                    </label>
+                    <Input
+                        type="date"
+                        value={filters.dataInicio || ''}
+                        onChange={(e) => handleFilterChange('dataInicio', e.target.value || undefined)}
+                        className="bg-[var(--surface-light)]"
+                    />
                 </div>
-            )}
+
+                {/* Data Fim */}
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] ml-1 flex items-center gap-2">
+                        <Calendar className="h-3 w-3" /> Abertura Final
+                    </label>
+                    <Input
+                        type="date"
+                        value={filters.dataFim || ''}
+                        onChange={(e) => handleFilterChange('dataFim', e.target.value || undefined)}
+                        className="bg-[var(--surface-light)]"
+                    />
+                </div>
+
+                {/* Chassi */}
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] ml-1">Número de Série / Chassi</label>
+                    <Input
+                        placeholder="Ex: 8HGT..."
+                        value={filters.chassi || ''}
+                        onChange={(e) => handleFilterChange('chassi', e.target.value || undefined)}
+                        className="bg-[var(--surface-light)] uppercase"
+                    />
+                </div>
+
+                {/* Cliente */}
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] ml-1">Proprietário / Cliente</label>
+                    <Input
+                        placeholder="Nome social ou CPF/CNPJ..."
+                        value={filters.cliente || ''}
+                        onChange={(e) => handleFilterChange('cliente', e.target.value || undefined)}
+                        className="bg-[var(--surface-light)]"
+                    />
+                </div>
+
+                {/* Modelo */}
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] ml-1">Modelo Comercial</label>
+                    <Input
+                        placeholder="Ex: T250, Valmet 148..."
+                        value={filters.modelo || ''}
+                        onChange={(e) => handleFilterChange('modelo', e.target.value || undefined)}
+                        className="bg-[var(--surface-light)]"
+                    />
+                </div>
+            </div>
         </div>
     );
 };
+
+// Adicionei os ícones que faltavam para evitar erros de lint (Activity, Clock)
+const Activity = (props: any) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-activity"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+);
+const Clock = (props: any) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+);

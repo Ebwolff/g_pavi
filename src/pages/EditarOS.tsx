@@ -233,19 +233,20 @@ export function EditarOS() {
                     {/* Main Content Area */}
                     <div className="lg:col-span-2 space-y-8">
                         {/* Status e Tipo */}
-                        <div className="glass-card-enterprise p-8 rounded-3xl border border-white/5 shadow-2xl">
-                            <h2 className="text-xs font-black text-blue-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                        <div className="bg-[var(--surface)] p-8 rounded-3xl border border-[var(--border-subtle)] shadow-2xl relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-3xl pointer-events-none" />
+                            <h2 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
                                 <Settings className="w-4 h-4" />
                                 Configurações do Fluxo
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-3">
-                                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Status do Atendimento</label>
+                                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider ml-1">Status do Atendimento</label>
                                     <div className="relative group">
                                         <select
                                             value={formData.statusOS}
                                             onChange={(e) => handleInputChange('statusOS', e.target.value)}
-                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-2xl px-5 py-4 text-white font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none appearance-none cursor-pointer"
+                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-2xl px-5 py-4 text-[var(--text-primary)] font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none appearance-none cursor-pointer"
                                         >
                                             <option value="EM_EXECUCAO">Em Execução</option>
                                             <option value="AGUARDANDO_PECAS">Aguardando Peças</option>
@@ -254,24 +255,24 @@ export function EditarOS() {
                                             <option value="FATURADA">Faturada</option>
                                             <option value="CANCELADA">Cancelada</option>
                                         </select>
-                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-muted)]">
-                                            <Settings className="w-4 h-4" />
+                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-muted)] group-hover:text-blue-500 transition-colors">
+                                            <Activity className="w-4 h-4" />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Modalidade de Faturamento</label>
-                                    <div className="relative">
+                                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider ml-1">Modalidade de Faturamento</label>
+                                    <div className="relative group">
                                         <select
                                             value={formData.tipoOS}
                                             onChange={(e) => handleInputChange('tipoOS', e.target.value as any)}
-                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-2xl px-5 py-4 text-white font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none appearance-none cursor-pointer"
+                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-2xl px-5 py-4 text-[var(--text-primary)] font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none appearance-none cursor-pointer"
                                         >
-                                            <option value="NORMAL">Normal (N)</option>
-                                            <option value="GARANTIA">Garantia (G)</option>
+                                            <option value="NORMAL">Venda Normal</option>
+                                            <option value="GARANTIA">Garantia Técnica</option>
                                         </select>
-                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-muted)]">
+                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-muted)] group-hover:text-blue-500 transition-colors">
                                             <ClipboardList className="w-4 h-4" />
                                         </div>
                                     </div>
@@ -280,8 +281,8 @@ export function EditarOS() {
                         </div>
 
                         {/* Dados de Identificação */}
-                        <div className="glass-card-enterprise p-8 rounded-3xl border border-white/5 shadow-2xl">
-                            <h2 className="text-xs font-black text-blue-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                        <div className="bg-[var(--surface)] p-8 rounded-3xl border border-[var(--border-subtle)] shadow-2xl">
+                            <h2 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
                                 <User className="w-4 h-4" />
                                 Proprietário & Equipamento
                             </h2>
@@ -292,6 +293,7 @@ export function EditarOS() {
                                     value={formData.nomeCliente}
                                     onChange={(e) => handleInputChange('nomeCliente', e.target.value)}
                                     placeholder="Nome completo do proprietário"
+                                    className="bg-[var(--surface-light)]"
                                 />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <Input
@@ -300,6 +302,7 @@ export function EditarOS() {
                                         value={formData.modeloMaquina}
                                         onChange={(e) => handleInputChange('modeloMaquina', e.target.value)}
                                         placeholder="Ex: T250, A950"
+                                        className="bg-[var(--surface-light)]"
                                     />
                                     <Input
                                         label="Número de Série / Chassi"
@@ -307,15 +310,15 @@ export function EditarOS() {
                                         value={formData.chassi}
                                         onChange={(e) => handleInputChange('chassi', e.target.value)}
                                         placeholder="Identificação única"
-                                        className="uppercase"
+                                        className="bg-[var(--surface-light)] uppercase"
                                     />
                                 </div>
                             </div>
                         </div>
 
                         {/* Detalhamento Técnico */}
-                        <div className="glass-card-enterprise p-8 rounded-3xl border border-white/5 shadow-2xl">
-                            <h2 className="text-xs font-black text-blue-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                        <div className="bg-[var(--surface)] p-8 rounded-3xl border border-[var(--border-subtle)] shadow-2xl">
+                            <h2 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
                                 <Wrench className="w-4 h-4" />
                                 Laudo Técnico
                             </h2>
@@ -326,6 +329,7 @@ export function EditarOS() {
                                     value={formData.descricaoProblema}
                                     onChange={(e) => handleInputChange('descricaoProblema', e.target.value)}
                                     placeholder="Descreva o problema relatado..."
+                                    className="bg-[var(--surface-light)]"
                                 />
                                 <Textarea
                                     label="Intervenção Realizada"
@@ -333,7 +337,7 @@ export function EditarOS() {
                                     value={formData.solucaoAplicada}
                                     onChange={(e) => handleInputChange('solucaoAplicada', e.target.value)}
                                     placeholder="Descreva a solução técnica aplicada..."
-                                    className="border-emerald-500/20 focus:border-emerald-500"
+                                    className="bg-[var(--surface-light)] border-emerald-500/20 focus:border-emerald-500"
                                 />
                             </div>
                         </div>

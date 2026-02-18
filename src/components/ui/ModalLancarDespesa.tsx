@@ -6,8 +6,10 @@
 import { useState, useEffect } from 'react';
 import { X, Car, Fuel, Utensils, Hotel, CircleDollarSign, MoreHorizontal, Save } from 'lucide-react';
 import { Button } from './Button';
+import { Input } from './Input';
 import { despesasService, TipoDespesa, CreateDespesaInput } from '@/services/despesasService';
 import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/lib/utils';
 
 interface ModalLancarDespesaProps {
     isOpen: boolean;
@@ -112,26 +114,27 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
             {/* Modal */}
-            <div className="relative w-full max-w-lg glass-card-enterprise p-6 rounded-2xl shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto">
+            <div className="relative w-full max-w-lg bg-[var(--surface)] p-6 rounded-2xl shadow-2xl border border-[var(--border-subtle)] max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start justify-between mb-8 border-b border-[var(--border-subtle)] pb-4">
                     <div>
-                        <h2 className="text-xl font-bold text-[var(--text-primary)]">Lançar Despesa</h2>
-                        <p className="text-sm text-[var(--text-muted)] mt-1">
-                            OS: <span className="font-mono font-semibold text-[var(--text-secondary)]">{osNumero}</span>
-                        </p>
+                        <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tight">Lançar Despesa</h2>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-widest">Protocolo OS</span>
+                            <span className="text-sm font-black text-blue-500">#{osNumero}</span>
+                        </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-lg transition-colors" disabled={loading}>
+                    <button onClick={onClose} className="p-2 hover:bg-[var(--surface-hover)] rounded-xl transition-all" disabled={loading}>
                         <X className="w-5 h-5 text-[var(--text-muted)]" />
                     </button>
                 </div>
 
                 {/* Seleção de Tipo */}
-                <div className="mb-6">
-                    <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">
-                        Tipo de Despesa
+                <div className="mb-8">
+                    <label className="block text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4 ml-1">
+                        Selecione a Categoria
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-3">
                         {tiposDespesa.map((tipo) => {
                             const Icon = tipo.icon;
                             const isSelected = tipoSelecionado === tipo.value;
@@ -139,16 +142,24 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
                                 <button
                                     key={tipo.value}
                                     onClick={() => setTipoSelecionado(tipo.value)}
-                                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${isSelected
-                                        ? 'border-[var(--primary)] bg-[var(--primary)]/10'
-                                        : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.04]'
-                                        }`}
+                                    className={cn(
+                                        "flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all group",
+                                        isSelected
+                                            ? "border-blue-500 bg-blue-500/5 shadow-lg shadow-blue-500/5 scale-[1.02]"
+                                            : "border-[var(--border-subtle)] bg-[var(--surface-light)] hover:border-[var(--border-hover)] hover:bg-[var(--surface-hover)]"
+                                    )}
                                     disabled={loading}
                                 >
-                                    <div className={`p-2 rounded-lg ${tipo.color}`}>
-                                        <Icon className="w-4 h-4" />
+                                    <div className={cn(
+                                        "p-2.5 rounded-xl transition-colors",
+                                        isSelected ? "bg-blue-500 text-white" : tipo.color
+                                    )}>
+                                        <Icon className="w-5 h-5 transition-transform group-hover:scale-110" />
                                     </div>
-                                    <span className={`text-[10px] font-bold uppercase tracking-tight ${isSelected ? 'text-[var(--primary)]' : 'text-[var(--text-muted)]'}`}>
+                                    <span className={cn(
+                                        "text-[10px] font-black uppercase tracking-widest text-center",
+                                        isSelected ? "text-blue-500" : "text-[var(--text-muted)]"
+                                    )}>
                                         {tipo.label}
                                     </span>
                                 </button>
@@ -158,60 +169,48 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
                 </div>
 
                 {/* Campos Dinâmicos */}
-                <div className="space-y-4 mb-6">
+                <div className="space-y-6 mb-8">
                     {/* Campos para KM */}
                     {tipoSelecionado === 'KM' && (
                         <>
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
-                                        Km Inicial
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={kmInicial}
-                                        onChange={(e) => setKmInicial(e.target.value)}
-                                        placeholder="0"
-                                        className="w-full px-4 py-2.5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-secondary)] focus:border-[var(--primary)] outline-none"
-                                        disabled={loading}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
-                                        Km Final
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={kmFinal}
-                                        onChange={(e) => setKmFinal(e.target.value)}
-                                        placeholder="0"
-                                        className="w-full px-4 py-2.5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-secondary)] focus:border-[var(--primary)] outline-none"
-                                        disabled={loading}
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
-                                    Valor por Km (R$)
-                                </label>
-                                <input
+                                <Input
+                                    label="Km Inicial"
                                     type="number"
-                                    step="0.01"
-                                    value={valorPorKm}
-                                    onChange={(e) => setValorPorKm(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-secondary)] focus:border-[var(--primary)] outline-none"
+                                    value={kmInicial}
+                                    onChange={(e) => setKmInicial(e.target.value)}
+                                    placeholder="0"
+                                    className="bg-[var(--surface-light)]"
+                                    disabled={loading}
+                                />
+                                <Input
+                                    label="Km Final"
+                                    type="number"
+                                    value={kmFinal}
+                                    onChange={(e) => setKmFinal(e.target.value)}
+                                    placeholder="0"
+                                    className="bg-[var(--surface-light)]"
                                     disabled={loading}
                                 />
                             </div>
+                            <Input
+                                label="Valor por Km (R$)"
+                                type="number"
+                                step="0.01"
+                                value={valorPorKm}
+                                onChange={(e) => setValorPorKm(e.target.value)}
+                                className="bg-[var(--surface-light)]"
+                                disabled={loading}
+                            />
                             {kmRodados > 0 && (
-                                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-blue-400 font-medium">Km Rodados:</span>
-                                        <span className="text-lg font-bold text-blue-400">{kmRodados} km</span>
+                                <div className="p-5 bg-blue-500/5 border border-blue-500/20 rounded-2xl shadow-inner">
+                                    <div className="flex justify-between items-center pb-3 border-b border-blue-500/10">
+                                        <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Distância Percorrida</span>
+                                        <span className="text-xl font-black text-[var(--text-primary)]">{kmRodados} <span className="text-xs font-medium text-blue-400">km</span></span>
                                     </div>
-                                    <div className="flex justify-between items-center mt-2">
-                                        <span className="text-sm text-blue-400 font-medium">Valor Total:</span>
-                                        <span className="text-xl font-black text-white">{formatCurrency(valorTotalKm)}</span>
+                                    <div className="flex justify-between items-center pt-3">
+                                        <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Total do Reembolso</span>
+                                        <span className="text-2xl font-black text-blue-500">{formatCurrency(valorTotalKm)}</span>
                                     </div>
                                 </div>
                             )}
@@ -220,102 +219,84 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
 
                     {/* Campos para Abastecimento */}
                     {tipoSelecionado === 'ABASTECIMENTO' && (
-                        <>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
-                                        Litros (opcional)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        value={quantidade}
-                                        onChange={(e) => setQuantidade(e.target.value)}
-                                        placeholder="0.00"
-                                        className="w-full px-4 py-2.5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-secondary)] focus:border-[var(--primary)] outline-none"
-                                        disabled={loading}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
-                                        Valor Total (R$)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        value={valor}
-                                        onChange={(e) => setValor(e.target.value)}
-                                        placeholder="0.00"
-                                        className="w-full px-4 py-2.5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-secondary)] focus:border-[var(--primary)] outline-none"
-                                        disabled={loading}
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    )}
-
-                    {/* Campos para outras despesas */}
-                    {!['KM', 'ABASTECIMENTO'].includes(tipoSelecionado) && (
-                        <div>
-                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
-                                Valor (R$)
-                            </label>
-                            <input
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input
+                                label="Litros (opcional)"
+                                type="number"
+                                step="0.01"
+                                value={quantidade}
+                                onChange={(e) => setQuantidade(e.target.value)}
+                                placeholder="0.00"
+                                className="bg-[var(--surface-light)]"
+                                disabled={loading}
+                            />
+                            <Input
+                                label="Valor Total (R$)"
                                 type="number"
                                 step="0.01"
                                 value={valor}
                                 onChange={(e) => setValor(e.target.value)}
                                 placeholder="0.00"
-                                className="w-full px-4 py-2.5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-secondary)] focus:border-[var(--primary)] outline-none"
+                                className="bg-[var(--surface-light)]"
                                 disabled={loading}
                             />
                         </div>
                     )}
 
-                    {/* Descrição */}
-                    <div>
-                        <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
-                            Descrição (opcional)
-                        </label>
-                        <input
-                            type="text"
-                            value={descricao}
-                            onChange={(e) => setDescricao(e.target.value)}
-                            placeholder="Adicione uma descrição..."
-                            className="w-full px-4 py-2.5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-secondary)] focus:border-[var(--primary)] outline-none"
+                    {/* Campos para outras despesas */}
+                    {!['KM', 'ABASTECIMENTO'].includes(tipoSelecionado) && (
+                        <Input
+                            label="Valor da Despesa (R$)"
+                            type="number"
+                            step="0.01"
+                            value={valor}
+                            onChange={(e) => setValor(e.target.value)}
+                            placeholder="0.00"
+                            className="bg-[var(--surface-light)]"
                             disabled={loading}
                         />
-                    </div>
+                    )}
+
+                    {/* Descrição */}
+                    <Input
+                        label="Observações / Motivo"
+                        placeholder="Ex: Pedágio na BR-163, Fazenda Boa Vista..."
+                        value={descricao}
+                        onChange={(e) => setDescricao(e.target.value)}
+                        className="bg-[var(--surface-light)]"
+                        disabled={loading}
+                    />
 
                     {/* Data */}
-                    <div>
-                        <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
-                            Data da Despesa
-                        </label>
-                        <input
-                            type="date"
-                            value={dataDespesa}
-                            onChange={(e) => setDataDespesa(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-secondary)] focus:border-[var(--primary)] outline-none"
-                            disabled={loading}
-                        />
-                    </div>
+                    <Input
+                        label="Data do Comprovante"
+                        type="date"
+                        value={dataDespesa}
+                        onChange={(e) => setDataDespesa(e.target.value)}
+                        className="bg-[var(--surface-light)]"
+                        disabled={loading}
+                    />
                 </div>
 
                 {/* Ações */}
-                <div className="flex gap-3">
-                    <Button variant="secondary" onClick={onClose} className="flex-1" disabled={loading}>
-                        Cancelar
+                <div className="flex gap-4 pt-4 border-t border-[var(--border-subtle)]">
+                    <Button
+                        variant="secondary"
+                        onClick={onClose}
+                        className="flex-1 font-bold py-4 rounded-xl"
+                        disabled={loading}
+                    >
+                        Descartar
                     </Button>
                     <Button
                         variant="primary"
                         onClick={handleSubmit}
-                        className="flex-1"
+                        className="flex-1 font-black py-4 rounded-xl shadow-lg shadow-blue-500/20"
                         disabled={loading || (tipoSelecionado === 'KM' ? kmRodados <= 0 : !valor)}
                         isLoading={loading}
                         leftIcon={<Save className="w-4 h-4" />}
                     >
-                        Salvar Despesa
+                        Confirmar Lançamento
                     </Button>
                 </div>
             </div>

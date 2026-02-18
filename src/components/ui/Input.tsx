@@ -36,7 +36,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                     id={inputId}
                     className={cn(
                         "w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl focus:outline-none transition-all duration-200",
-                        "text-[var(--text-primary)] font-medium placeholder:text-[var(--text-muted)] disabled:opacity-50 disabled:cursor-not-allowed",
+                        "text-[var(--text-primary)] font-medium disabled:opacity-50 disabled:cursor-not-allowed",
+                        // Control placeholder visibility to avoid overlap with floating label
+                        (isFocused || hasValue) ? "placeholder:text-[var(--text-muted)]" : "placeholder:text-transparent",
                         // Size & Padding
                         "py-3.5",
                         Icon ? "pl-12 pr-4" : "px-4",
@@ -64,15 +66,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                     <label
                         htmlFor={inputId}
                         className={cn(
-                            "absolute left-4 transition-all duration-200 pointer-events-none px-1",
+                            "absolute left-4 transition-all duration-200 pointer-events-none px-1.5",
                             (isFocused || hasValue)
-                                ? "-top-2.5 text-xs font-bold uppercase tracking-wider bg-[var(--bg-primary)] rounded-md py-0.5"
-                                : "top-1/2 -translate-y-1/2 text-[var(--text-muted)]",
-                            // Icon adjustment for label
-                            Icon && !isFocused && !hasValue && "left-11", // Align with text when placeholder usually is
-                            Icon && (isFocused || hasValue) && "left-4", // Return to left when floating
+                                ? "-top-2.5 text-xs font-black uppercase tracking-widest bg-[var(--surface)] text-blue-400 shadow-sm rounded-md py-0.5 border border-[var(--border-subtle)]"
+                                : "top-1/2 -translate-y-1/2 text-[var(--text-muted)] font-medium",
+                            
+                            // Posicionamento horizontal (ajuste para ícone)
+                            Icon && !isFocused && !hasValue ? "left-12" : "left-4",
 
-                            isFocused ? "text-blue-400" : "text-[var(--text-muted)]",
+                            isFocused ? "text-blue-500" : "text-[var(--text-muted)]",
                             error && "text-rose-400"
                         )}
                     >

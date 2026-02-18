@@ -134,8 +134,8 @@ export function NovaOS() {
                             <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                                 <div className="md:col-span-3 space-y-2">
                                     <Input
-                                        label="Número da OS"
-                                        placeholder="EX: 2026-0001"
+                                        label="Nº da Ordem de Serviço"
+                                        placeholder="XXXX-0000"
                                         value={formData.numero_os}
                                         onChange={(e) => handleInputChange('numero_os', e.target.value)}
                                         icon={Hash}
@@ -183,8 +183,8 @@ export function NovaOS() {
 
                             <div className="space-y-6">
                                 <Input
-                                    label="Cliente / Proprietário"
-                                    placeholder="Razão Social ou Nome Completo"
+                                    label="Razão Social / Nome Completo"
+                                    placeholder="Digite o nome do cliente..."
                                     value={formData.nome_cliente_digitavel}
                                     onChange={(e) => handleInputChange('nome_cliente_digitavel', e.target.value)}
                                     icon={User}
@@ -192,8 +192,8 @@ export function NovaOS() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <Input
-                                        label="Modelo da Máquina"
-                                        placeholder="Ex: Trator Valtra T250"
+                                        label="Modelo do Ativo"
+                                        placeholder="Ex: T250 / 8R 370"
                                         value={formData.modelo_maquina}
                                         onChange={(e) => handleInputChange('modelo_maquina', e.target.value)}
                                         icon={Activity}
@@ -228,10 +228,10 @@ export function NovaOS() {
                                         className="w-full bg-transparent text-[var(--text-primary)] text-lg leading-relaxed placeholder:text-[var(--text-muted)] focus:outline-none resize-none font-medium"
                                     />
                                     <div className="mt-4 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                                        <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider border border-white/5">Motor</span>
-                                        <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider border border-white/5">Transmissão</span>
-                                        <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider border border-white/5">Elétrica</span>
-                                        <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider border border-white/5">Hidráulica</span>
+                                        <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider border border-white/5 cursor-pointer hover:bg-white/10 transition-colors" onClick={() => handleInputChange('descricao_problema', (formData.descricao_problema || '') + '[MOTOR] ')}>Motor</span>
+                                        <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider border border-white/5 cursor-pointer hover:bg-white/10 transition-colors" onClick={() => handleInputChange('descricao_problema', (formData.descricao_problema || '') + '[TRANSMISSÃO] ')}>Transmissão</span>
+                                        <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider border border-white/5 cursor-pointer hover:bg-white/10 transition-colors" onClick={() => handleInputChange('descricao_problema', (formData.descricao_problema || '') + '[ELÉTRICA] ')}>Elétrica</span>
+                                        <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider border border-white/5 cursor-pointer hover:bg-white/10 transition-colors" onClick={() => handleInputChange('descricao_problema', (formData.descricao_problema || '') + '[HIDRÁULICA] ')}>Hidráulica</span>
                                     </div>
                                 </div>
                             </div>
@@ -250,7 +250,7 @@ export function NovaOS() {
                                 <div className="space-y-1 group">
                                     <Input
                                         type="number"
-                                        label="Mão de Obra (R$)"
+                                        label="Mão de Obra"
                                         value={formData.valor_mao_de_obra}
                                         onChange={(e) => handleInputChange('valor_mao_de_obra', e.target.value)}
                                         className="!bg-emerald-500/[0.02] border-emerald-500/10 focus:border-emerald-500"
@@ -260,7 +260,7 @@ export function NovaOS() {
                                 <div className="space-y-1">
                                     <Input
                                         type="number"
-                                        label="Peças & Insumos (R$)"
+                                        label="Peças & Insumos"
                                         value={formData.valor_pecas}
                                         onChange={(e) => handleInputChange('valor_pecas', e.target.value)}
                                         className="!bg-emerald-500/[0.02] border-emerald-500/10 focus:border-emerald-500"
@@ -270,7 +270,7 @@ export function NovaOS() {
                                 <div className="space-y-1">
                                     <Input
                                         type="number"
-                                        label="Deslocamento (R$)"
+                                        label="Deslocamento"
                                         value={formData.valor_deslocamento}
                                         onChange={(e) => handleInputChange('valor_deslocamento', e.target.value)}
                                         className="!bg-emerald-500/[0.02] border-emerald-500/10 focus:border-emerald-500"

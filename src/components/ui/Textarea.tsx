@@ -36,8 +36,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                     id={inputId}
                     className={cn(
                         "w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl focus:outline-none transition-all duration-200",
-                        "text-[var(--text-primary)] font-medium placeholder:text-[var(--text-muted)] disabled:opacity-50 disabled:cursor-not-allowed",
+                        "text-[var(--text-primary)] font-medium disabled:opacity-50 disabled:cursor-not-allowed",
                         "min-h-[100px] py-4",
+                        // Control placeholder visibility
+                        (isFocused || hasValue) ? "placeholder:text-[var(--text-muted)]" : "placeholder:text-transparent",
                         Icon ? "pl-12 pr-4" : "px-4",
                         // Border & Shadow States
                         isFocused
@@ -63,15 +65,15 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                     <label
                         htmlFor={inputId}
                         className={cn(
-                            "absolute left-4 transition-all duration-200 pointer-events-none px-1",
+                            "absolute left-4 transition-all duration-200 pointer-events-none px-1.5",
                             (isFocused || hasValue)
-                                ? "-top-2.5 text-xs font-bold uppercase tracking-wider bg-[var(--bg-primary)] rounded-md py-0.5"
-                                : "top-4 text-[var(--text-muted)]",
-                            // Icon adjustment for label
-                            Icon && !isFocused && !hasValue && "left-11",
-                            Icon && (isFocused || hasValue) && "left-4",
+                                ? "-top-2.5 text-xs font-black uppercase tracking-widest bg-[var(--surface)] text-blue-400 shadow-sm rounded-md py-0.5 border border-[var(--border-subtle)]"
+                                : "top-4 text-[var(--text-muted)] font-medium",
 
-                            isFocused ? "text-blue-400" : "text-[var(--text-muted)]",
+                            // Align with text when placeholder usually is
+                            Icon && !isFocused && !hasValue ? "left-12" : "left-4",
+
+                            isFocused ? "text-blue-500" : "text-[var(--text-muted)]",
                             error && "text-rose-400"
                         )}
                     >

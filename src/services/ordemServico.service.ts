@@ -1,6 +1,14 @@
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database.types';
 
+export type OrdemServico = Database['public']['Tables']['ordens_servico']['Row'] & {
+    tecnico?: any;
+    cliente?: Database['public']['Tables']['clientes']['Row'] | null;
+    maquina?: any;
+    consultor?: Database['public']['Tables']['profiles']['Row'] | null;
+    itens?: Database['public']['Tables']['itens_os']['Row'][] | null;
+};
+
 
 type OrdemServicoInsert = Database['public']['Tables']['ordens_servico']['Insert'];
 type OrdemServicoUpdate = Database['public']['Tables']['ordens_servico']['Update'];
@@ -95,7 +103,7 @@ class OrdemServicoService {
     /**
      * Busca uma OS por ID
      */
-    async getById(id: string) {
+    async getById(id: string): Promise<OrdemServico> {
         const { data, error } = await supabase
             .from('ordens_servico')
             .select(`
@@ -110,7 +118,7 @@ class OrdemServicoService {
             .single();
 
         if (error) throw error;
-        return data;
+        return data as unknown as OrdemServico;
     }
 
     /**
