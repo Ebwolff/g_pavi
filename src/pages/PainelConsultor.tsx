@@ -22,6 +22,8 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 
+import { useAuth } from '@/hooks/useAuth';
+
 // Helper para formatar valor
 const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -54,6 +56,7 @@ const statusLabels: Record<StatusOS, string> = {
 
 export default function PainelConsultor() {
     const navigate = useNavigate();
+    const { profile } = useAuth();
     const [osList, setOsList] = useState<OSDoConsultor[]>([]);
     const [loading, setLoading] = useState(true);
     const [filtroStatus, setFiltroStatus] = useState<StatusOS | 'ABERTAS' | ''>('ABERTAS');
@@ -66,7 +69,11 @@ export default function PainelConsultor() {
         osCriticas: 0,
     });
 
-    // Carregar OS do consultor
+    const isGerente = ['GERENTE', 'CHEFE_OFICINA'].includes(profile?.role?.toUpperCase() || '');
+    const isGarantia = profile?.role?.toUpperCase() === 'CONSULTOR_GARANTIA';
+    const isPosVenda = profile?.role?.toUpperCase() === 'CONSULTOR_POS_VENDA';
+
+    // Carregar OS do consultor com filtros de cargo
     const carregarDados = async () => {
         setLoading(true);
         try {
@@ -75,6 +82,16 @@ export default function PainelConsultor() {
                 .select('*')
                 .order('data_abertura', { ascending: false });
 
+            // 1. Filtro por Cargo (Segregação de Dados)
+            if (!isGerente) {
+                if (isGarantia) {
+                    query = query.eq('tipo_os', 'GARANTIA');
+                } else if (isPosVenda) {
+                    query = query.eq('tipo_os', 'NORMAL');
+                }
+            }
+
+            // 2. Filtros de Status da UI
             if (filtroStatus === 'ABERTAS') {
                 query = query.not('status_atual', 'in', '("CONCLUIDA","FATURADA","CANCELADA")');
             } else if (filtroStatus) {
@@ -120,8 +137,8 @@ export default function PainelConsultor() {
     };
 
     useEffect(() => {
-        carregarDados();
-    }, [filtroStatus]);
+        if (profile) carregarDados();
+    }, [filtroStatus, profile?.role]);
 
     return (
         <AppLayout>
@@ -133,9 +150,11 @@ export default function PainelConsultor() {
                             <div className="p-2 bg-blue-500/10 rounded-xl">
                                 <Users className="w-8 h-8 text-blue-500" />
                             </div>
-                            Painel do Consultor
+                            Painel do Consultor {isGarantia ? '- Garantia' : isPosVenda ? '- Pós-Venda' : ''}
                         </h1>
-                        <p className="text-[var(--text-muted)] mt-1 ml-1">Gestão de carteira e fluxo de ordens de serviço</p>
+                        <p className="text-[var(--text-muted)] mt-1 ml-1">
+                            {isGerente ? 'Gestão global de todas as operações' : `Gestão de carteira exclusiva para ${isGarantia ? 'Garantia' : 'Ordem Normal'}`}
+                        </p>
                     </div>
                     <div className="flex items-center gap-3">
                         <Button
