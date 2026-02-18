@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '../components/AppLayout';
 import { statsService, DashboardStats } from '../services/statsService';
+import { useAuth } from '../hooks/useAuth';
 // relatoriosService import removed (no longer used after handleGerarRelatorio cleanup)
 import { Card, MiniCard } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -39,6 +40,22 @@ export function DashboardNovo() {
     const [_atualizando, setAtualizando] = useState(false);
     const [erro, setErro] = useState<string | null>(null);
     const [dateRange, setDateRange] = useState('mes');
+    const { profile } = useAuth();
+    const role = profile?.role?.toUpperCase();
+    const isGarantia = role === 'CONSULTOR_GARANTIA';
+    const isPosVenda = role === 'CONSULTOR_POS_VENDA';
+
+    const getDashboardTitle = () => {
+        if (isGarantia) return 'Dashboard - Garantia';
+        if (isPosVenda) return 'Dashboard - Pós-Venda';
+        return 'Visão Geral';
+    };
+
+    const getDashboardDesc = () => {
+        if (isGarantia) return 'Monitoramento de performance das OS de Garantia';
+        if (isPosVenda) return 'Monitoramento de performance das OS Normais';
+        return 'Monitoramento em tempo real da performance da oficina';
+    };
 
     const carregarDados = async () => {
         console.log('🔄 Iniciando carregamento de dados...');
@@ -170,10 +187,10 @@ export function DashboardNovo() {
                     <div>
                         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
                             <span className="bg-gradient-to-r from-blue-500 to-cyan-500 text-transparent bg-clip-text">
-                                Visão Geral
+                                {getDashboardTitle()}
                             </span>
                         </h1>
-                        <p className="text-gray-400 mt-1">Monitoramento em tempo real da performance da oficina</p>
+                        <p className="text-gray-400 mt-1">{getDashboardDesc()}</p>
                     </div>
 
                     <div className="flex items-center gap-3">

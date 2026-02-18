@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase, getUserProfile } from '../lib/supabase';
 export interface DashboardStats {
     // Métricas principais
     totalOS: number;
@@ -56,58 +56,64 @@ export interface TendenciaOS {
 
 export const statsService = {
     /**
+     * Helper para obter o filtro de tipo de OS baseado no cargo do usuário
+     */
+    async getRoleFilter() {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return null;
+
+            const profile = await getUserProfile() as any;
+            const role = profile?.role?.toUpperCase();
+
+            if (role === 'CONSULTOR_GARANTIA') return 'GARANTIA';
+            if (role === 'CONSULTOR_POS_VENDA') return 'NORMAL';
+
+            return null; // Gerente, Chefe de Oficina, etc. veem tudo
+        } catch (error) {
+            console.error('Erro ao obter filtro de cargo:', error);
+            return null;
+        }
+    },
+
+    /**
      * Buscar estatísticas gerais do dashboard
      */
     async getDashboardStats(): Promise<DashboardStats> {
         const dataFetch = async () => {
             console.log('📊 [statsService] Iniciando getDashboardStats...');
 
-            // Verificar estado de autenticação
-            const { data: { session }, error: authError } = await supabase.auth.getSession();
-            console.log('🔐 [statsService] Sessão:', session ? 'ATIVA' : 'INATIVA', 'Erro:', authError);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error('Sessão expirada. Faça login novamente.');
 
-            if (!session) {
-                console.error('❌ [statsService] Usuário não autenticado! RLS bloqueará a leitura.');
-                throw new Error('Sessão expirada. Faça login novamente.');
-            }
-
-            // Buscar dados diretamente da tabela ordens_servico
-            // Limitar a 2 anos para otimizar performance
+            const tipoOS = await this.getRoleFilter();
             const twoYearsAgo = new Date();
             twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
 
-            // Usar apenas colunas essenciais para reduzir carga
-            const osData = await supabase
+            let query = supabase
                 .from('ordens_servico')
                 .select('status_atual, tipo_os, valor_liquido_total, data_abertura, data_fechamento')
-                .gte('data_abertura', twoYearsAgo.toISOString())
-                .limit(5000); // Limitar para evitar sobrecarga
+                .gte('data_abertura', twoYearsAgo.toISOString());
 
-            console.log('📊 [statsService] osData:', osData.data?.length, 'registros, erro:', osData.error);
+            if (tipoOS) {
+                query = query.eq('tipo_os', tipoOS);
+            }
 
+            const osData = await query.limit(5000);
             if (osData.error) throw osData.error;
 
-            // Buscar pendências (apenas contagem/status) - tabela pode não existir
+            // Busca de pendências e alertas (lógica simplificada para brevidade)
             let pendencias: any[] = [];
             try {
-                const pendenciasData = await supabase.from('pendencias_os').select('status');
-                if (!pendenciasData.error) {
-                    pendencias = pendenciasData.data || [];
-                }
-            } catch (e) {
-                console.warn('Tabela pendencias_os não encontrada');
-            }
+                const pResp = await supabase.from('pendencias_os').select('status');
+                if (!pResp.error) pendencias = pResp.data || [];
+            } catch (e) { console.warn('pendencias_os não encontrada'); }
 
-            // Buscar alertas (apenas lido) - tabela pode não existir
             let alertas: any[] = [];
             try {
-                const alertasData = await supabase.from('alertas').select('lido');
-                if (!alertasData.error) {
-                    alertas = alertasData.data || [];
-                }
-            } catch (e) {
-                console.warn('Tabela alertas não encontrada');
-            }
+                const aResp = await supabase.from('alertas').select('lido');
+                if (!aResp.error) alertas = aResp.data || [];
+            } catch (e) { console.warn('alertas não encontrada'); }
 
             const os = (osData.data || []) as any[];
             const osAbertas = os.filter(o => !['CONCLUIDA', 'FATURADA', 'CANCELADA'].includes(o.status_atual));
@@ -117,77 +123,45 @@ export const statsService = {
             const osNormal = os.filter(o => o.tipo_os === 'NORMAL');
             const osGarantia = os.filter(o => o.tipo_os === 'GARANTIA');
 
-            // Calcular valores com segurança (0 se undefined)
             const sumValor = (items: any[]) => items.reduce((sum, o) => sum + (parseFloat(o.valor_liquido_total) || 0), 0);
-
-            // Calcular dias em aberto dinamicamente (sem coluna dias_em_aberto)
-            const calcularDiasEmAberto = (dataAbertura: string, dataFechamento?: string) => {
-                const abertura = new Date(dataAbertura);
-                const fechamento = dataFechamento ? new Date(dataFechamento) : new Date();
-                return Math.max(0, Math.floor((fechamento.getTime() - abertura.getTime()) / (1000 * 60 * 60 * 24)));
+            const calcularDiasAberto = (ab: string, fc?: string) => {
+                const a = new Date(ab);
+                const f = fc ? new Date(fc) : new Date();
+                return Math.max(0, Math.floor((f.getTime() - a.getTime()) / (1000 * 60 * 60 * 24)));
             };
 
-            // Calcular tempo médio de resolução para OS concluídas
-            let tempoMedioResolucao = 0;
-            if (osConcluidas.length > 0) {
-                const totalDias = osConcluidas.reduce((sum, o) => {
-                    return sum + calcularDiasEmAberto(o.data_abertura, o.data_fechamento);
-                }, 0);
-                tempoMedioResolucao = totalDias / osConcluidas.length;
-            }
+            let tmed = 0;
+            if (osConcluidas.length > 0) tmed = osConcluidas.reduce((s, o) => s + calcularDiasAberto(o.data_abertura, o.data_fechamento), 0) / osConcluidas.length;
 
-            // Calcular dias médio em aberto para OS abertas
-            let diasMedioEmAberto = 0;
-            if (osAbertas.length > 0) {
-                const totalDias = osAbertas.reduce((sum, o) => {
-                    return sum + calcularDiasEmAberto(o.data_abertura);
-                }, 0);
-                diasMedioEmAberto = totalDias / osAbertas.length;
-            }
+            let dmed = 0;
+            if (osAbertas.length > 0) dmed = osAbertas.reduce((s, o) => s + calcularDiasAberto(o.data_abertura), 0) / osAbertas.length;
 
             return {
                 totalOS: os.length,
                 osAbertas: osAbertas.length,
                 osConcluidas: osConcluidas.length,
                 osCanceladas: osCanceladas.length,
-
                 osNormal: osNormal.length,
                 osGarantia: osGarantia.length,
-
-                // Sem coluna nivel_urgencia, retornar zeros
-                osCriticas: 0,
-                osAltas: 0,
-                osMedias: 0,
-                osNormais: 0,
-
+                osCriticas: 0, osAltas: 0, osMedias: 0, osNormais: 0,
                 valorTotal: sumValor(os),
                 valorNormal: sumValor(osNormal),
                 valorGarantia: sumValor(osGarantia),
                 valorMedioOS: os.length > 0 ? sumValor(os) / os.length : 0,
-
-                tempoMedioResolucao: tempoMedioResolucao,
-                diasMedioEmAberto: diasMedioEmAberto,
-
+                tempoMedioResolucao: tmed,
+                diasMedioEmAberto: dmed,
                 totalPendencias: pendencias.length,
                 pendenciasAbertas: pendencias.filter((p: any) => p.status !== 'RESOLVIDO').length,
-
                 totalAlertas: alertas.length,
                 alertasNaoLidos: alertas.filter((a: any) => !a.lido).length,
             };
         };
 
-        try {
-            // Timeout de 30s para dar mais tempo (conexões lentas)
-            const timeoutPromise = new Promise<DashboardStats>((_, reject) => {
-                setTimeout(() => reject(new Error('Timeout ao buscar estatísticas. Verifique sua conexão ou se há dados cadastrados.')), 30000);
-            });
+        const timeoutPromise = new Promise<DashboardStats>((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout ao buscar estatísticas.')), 30000);
+        });
 
-            return await Promise.race([dataFetch(), timeoutPromise]);
-
-        } catch (error) {
-            console.error('Erro no statsService.getDashboardStats:', error);
-            throw error;
-        }
+        return await Promise.race([dataFetch(), timeoutPromise]);
     },
 
     /**
@@ -195,40 +169,28 @@ export const statsService = {
      */
     async getConsultorPerformance(): Promise<ConsultorPerformance[]> {
         try {
-            // Limitar a 1 ano para evitar timeout
+            const tipoOS = await this.getRoleFilter();
             const oneYearAgo = new Date();
             oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
-            const { data: osData, error } = await supabase
+            let query = supabase
                 .from('ordens_servico')
-                .select('consultor_id, status_atual, valor_liquido_total, consultor:consultor_id(first_name, last_name)')
+                .select('consultor_id, status_atual, valor_liquido_total, tipo_os, consultor:consultor_id(first_name, last_name)')
                 .gte('data_abertura', oneYearAgo.toISOString());
 
-            if (error || !osData) {
-                console.warn('Erro ao buscar OS para performance:', error);
-                return [];
-            }
+            if (tipoOS) query = query.eq('tipo_os', tipoOS);
 
-            // Agrupar por consultor
+            const { data: osData, error } = await query;
+            if (error || !osData) return [];
+
             const grouped = osData.reduce((acc: any, os: any) => {
                 const id = os.consultor_id || 'sem_consultor';
-
-                // Tentar obter nome do join
                 let nome = 'Sem Consultor';
                 if (os.consultor) {
-                    // Supabase retorna array se many-to-one ou objeto se one-to-one, 
-                    // mas aqui assumimos que consultor_id aponta para um profile
                     const c = Array.isArray(os.consultor) ? os.consultor[0] : os.consultor;
-                    if (c) nome = `${c.first_name || ''} ${c.last_name || ''}`.trim() || 'Consultor';
+                    if (c) nome = `${c.first_name || ''} ${c.last_name || ''}`.trim();
                 }
-
-                if (!acc[id]) {
-                    acc[id] = {
-                        consultor_id: id,
-                        consultor_nome: nome,
-                        os_list: []
-                    };
-                }
+                if (!acc[id]) acc[id] = { consultor_id: id, consultor_nome: nome, os_list: [] };
                 acc[id].os_list.push(os);
                 return acc;
             }, {});
@@ -246,10 +208,7 @@ export const statsService = {
                     taxa_conclusao: g.os_list.length > 0 ? Math.round((concluidas.length / g.os_list.length) * 100) : 0
                 };
             });
-        } catch (error) {
-            console.error('Erro em getConsultorPerformance:', error);
-            return [];
-        }
+        } catch (e) { return []; }
     },
 
     /**
@@ -257,34 +216,32 @@ export const statsService = {
      */
     async getTendenciaOS(dias: number = 30): Promise<TendenciaOS[]> {
         try {
+            const tipoOS = await this.getRoleFilter();
             const dataInicio = new Date();
             dataInicio.setDate(dataInicio.getDate() - dias);
 
-            const { data, error } = await supabase
+            let query = supabase
                 .from('ordens_servico')
                 .select('data_abertura, tipo_os, valor_liquido_total')
                 .gte('data_abertura', dataInicio.toISOString());
 
+            if (tipoOS) query = query.eq('tipo_os', tipoOS);
+
+            const { data, error } = await query;
             if (error) throw error;
 
-            // Agrupar por data
             const grouped = (data || []).reduce((acc: any, os: any) => {
-                const dataStr = new Date(os.data_abertura).toISOString().split('T')[0];
-                if (!acc[dataStr]) {
-                    acc[dataStr] = { data: dataStr, total: 0, normal: 0, garantia: 0, valor: 0 };
-                }
-                acc[dataStr].total++;
-                if (os.tipo_os === 'NORMAL') acc[dataStr].normal++;
-                if (os.tipo_os === 'GARANTIA') acc[dataStr].garantia++;
-                acc[dataStr].valor += os.valor_liquido_total || 0;
+                const ds = new Date(os.data_abertura).toISOString().split('T')[0];
+                if (!acc[ds]) acc[ds] = { data: ds, total: 0, normal: 0, garantia: 0, valor: 0 };
+                acc[ds].total++;
+                if (os.tipo_os === 'NORMAL') acc[ds].normal++;
+                if (os.tipo_os === 'GARANTIA') acc[ds].garantia++;
+                acc[ds].valor += os.valor_liquido_total || 0;
                 return acc;
             }, {});
 
             return Object.values(grouped).sort((a: any, b: any) => a.data.localeCompare(b.data)) as TendenciaOS[];
-        } catch (error) {
-            console.error('Erro em getTendenciaOS:', error);
-            return [];
-        }
+        } catch (e) { return []; }
     },
 
     /**
@@ -292,49 +249,43 @@ export const statsService = {
      */
     async getDistribuicaoStatus() {
         try {
-            const { data, error } = await supabase
-                .from('ordens_servico')
-                .select('status_atual');
+            const tipoOS = await this.getRoleFilter();
+            let query = supabase.from('ordens_servico').select('status_atual, tipo_os');
+            if (tipoOS) query = query.eq('tipo_os', tipoOS);
 
+            const { data, error } = await query;
             if (error) throw error;
 
-            const distribuicao = (data || []).reduce((acc: any, os: any) => {
+            const dist = (data || []).reduce((acc: any, os: any) => {
                 acc[os.status_atual] = (acc[os.status_atual] || 0) + 1;
                 return acc;
             }, {});
 
-            return Object.entries(distribuicao).map(([status, count]) => ({
-                status,
-                count: count as number,
-            }));
-        } catch (error) {
-            console.error('Erro em getDistribuicaoStatus:', error);
-            return [];
-        }
+            return Object.entries(dist).map(([status, count]) => ({ status, count: count as number }));
+        } catch (e) { return []; }
     },
 
     /**
      * Top 10 clientes por valor
      */
     async getTopClientes(limit: number = 10) {
-        const { data, error } = await supabase
-            .from('ordens_servico')
-            .select('nome_cliente_digitavel, valor_liquido_total');
+        try {
+            const tipoOS = await this.getRoleFilter();
+            let query = supabase.from('ordens_servico').select('nome_cliente_digitavel, valor_liquido_total, tipo_os');
+            if (tipoOS) query = query.eq('tipo_os', tipoOS);
 
-        if (error) throw error;
+            const { data, error } = await query;
+            if (error) throw error;
 
-        const grouped = (data || []).reduce((acc: any, os: any) => {
-            const cliente = os.nome_cliente_digitavel || 'Sem Nome';
-            if (!acc[cliente]) {
-                acc[cliente] = { cliente, valor: 0, quantidade: 0 };
-            }
-            acc[cliente].valor += os.valor_liquido_total || 0;
-            acc[cliente].quantidade++;
-            return acc;
-        }, {});
+            const grouped = (data || []).reduce((acc: any, os: any) => {
+                const c = os.nome_cliente_digitavel || 'Sem Nome';
+                if (!acc[c]) acc[c] = { cliente: c, valor: 0, quantidade: 0 };
+                acc[c].valor += os.valor_liquido_total || 0;
+                acc[c].quantidade++;
+                return acc;
+            }, {});
 
-        return Object.values(grouped)
-            .sort((a: any, b: any) => b.valor - a.valor)
-            .slice(0, limit);
+            return Object.values(grouped).sort((a: any, b: any) => b.valor - a.valor).slice(0, limit);
+        } catch (e) { return []; }
     },
 };
