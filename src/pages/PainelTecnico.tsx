@@ -32,7 +32,7 @@ export default function PainelTecnico() {
     const navigate = useNavigate();
     const { user, profile } = useAuth();
     const queryClient = useQueryClient();
-    const gerenteRoles = ['GERENTE', 'CHEFE_OFICINA'];
+    const gerenteRoles = ['GERENTE', 'CHEFE_OFICINA', 'DIRETORIA'];
     const isGerente = gerenteRoles.includes(profile?.role?.toUpperCase() || '');
 
     const [selectedOS, setSelectedOS] = useState<string | null>(null);
@@ -52,13 +52,16 @@ export default function PainelTecnico() {
 
     // 2. Buscar OS do Técnico
     const { data: osAtribuidas = [], isLoading: isLoadingOS } = useQuery({
-        queryKey: ['os-tecnico', tecnico?.id],
+        queryKey: ['os-tecnico', tecnico?.id, isGerente],
         queryFn: async () => {
-            if (!tecnico?.id) return [];
-            const result = await ordemServicoService.list({
-                tecnicoId: tecnico.id,
-                status: undefined
-            }, 1, 100);
+            // Se for gerente, traz todas as ativas. Se for técnico, traz apenas as dele.
+            const filters: any = {};
+            if (!isGerente) {
+                if (!tecnico?.id) return [];
+                filters.tecnicoId = tecnico.id;
+            }
+
+            const result = await ordemServicoService.list(filters, 1, 100);
 
             return result.data
                 .filter(os => !['FATURADA', 'CANCELADA'].includes(os.status_atual))
@@ -70,10 +73,11 @@ export default function PainelTecnico() {
                     status: os.status_atual,
                     data_abertura: os.data_abertura,
                     descricao_problema: os.descricao_problema || '',
-                    pecas_lancadas: os.itens?.length || 0
+                    pecas_lancadas: os.itens?.length || 0,
+                    nome_tecnico: os.tecnico?.nome_completo // Pegar nome do técnico responsável
                 }));
         },
-        enabled: !!tecnico?.id
+        enabled: isGerente || !!tecnico?.id
     });
 
     // Mutation para atualização de status
@@ -137,7 +141,9 @@ export default function PainelTecnico() {
                             Painel do Técnico
                         </h1>
                         <p className="text-[var(--text-muted)] font-medium mt-1 ml-1">
-                            Gerenciamento de suas ordens de serviço ativas
+                            {isGerente
+                                ? 'Monitoramento global de ordens de serviço ativas'
+                                : 'Gerenciamento de suas ordens de serviço ativas'}
                         </p>
                     </div>
                     <Button
@@ -162,7 +168,7 @@ export default function PainelTecnico() {
                 <div className="space-y-6">
                     <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-[0.2em] px-2 flex items-center gap-2">
                         <LayoutDashboard className="w-4 h-4" />
-                        Minhas Ordens de Serviço ({osAtribuidas.length})
+                        {isGerente ? 'Fila de Trabalho / OS Ativas' : 'Minhas Ordens de Serviço'} ({osAtribuidas.length})
                     </h3>
 
                     {loading ? (
@@ -207,6 +213,12 @@ export default function PainelTecnico() {
                                                     {os.pecas_lancadas > 0 && (
                                                         <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/5 px-2 py-1 rounded border border-emerald-500/10 uppercase tracking-tighter">
                                                             {os.pecas_lancadas} Peças Lançadas
+                                                        </span>
+                                                    )}
+                                                    {isGerente && os.nome_tecnico && (
+                                                        <span className="text-[10px] font-black text-blue-400 bg-blue-500/5 px-2 py-1 rounded border border-blue-500/10 uppercase tracking-tighter flex items-center gap-1.5">
+                                                            <div className="w-1 h-1 rounded-full bg-blue-500" />
+                                                            Técnico: {os.nome_tecnico}
                                                         </span>
                                                     )}
                                                 </div>
