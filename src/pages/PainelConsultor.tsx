@@ -11,6 +11,7 @@ import {
     FileText,
     ArrowUpRight
 } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { StatusOS, TipoOS } from '@/types/database.types';
@@ -202,46 +203,71 @@ export default function PainelConsultor() {
                 )}
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-                    {[
-                        { label: 'Total OS', value: estatisticas.totalOS, icon: FileText, color: 'text-slate-400', bg: 'bg-slate-500/10' },
-                        { label: 'Em Aberto', value: estatisticas.osAbertas, icon: Clock, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-                        { label: 'Concluídas', value: estatisticas.osConcluidas, icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-                        { label: 'Críticas', value: estatisticas.osCriticas, icon: AlertTriangle, color: estatisticas.osCriticas > 0 ? 'text-rose-400' : 'text-slate-400', bg: estatisticas.osCriticas > 0 ? 'bg-rose-500/10' : 'bg-slate-500/10' },
-                        { label: 'Vlr. Aberto', value: formatCurrency(estatisticas.valorAberto), icon: DollarSign, color: 'text-amber-400', bg: 'bg-amber-500/10', highlight: true },
-                        { label: 'Faturado', value: formatCurrency(estatisticas.valorFaturado), icon: TrendingUp, color: 'text-indigo-400', bg: 'bg-indigo-500/10', highlight: true },
-                    ].map((stat, i) => (
-                        <div key={i} className={`glass-card-enterprise p-5 rounded-2xl flex flex-col justify-between min-h-[110px] ${stat.highlight ? 'border-indigo-500/20' : ''}`}>
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">{stat.label}</span>
-                                <div className={`p-1.5 rounded-lg ${stat.bg}`}>
-                                    <stat.icon className={`w-4 h-4 ${stat.color}`} />
-                                </div>
-                            </div>
-                            <p className={`text-xl font-bold text-[var(--text-primary)] ${stat.highlight ? 'text-indigo-100' : ''}`}>{stat.value}</p>
-                        </div>
-                    ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+                    <Card
+                        title="Total OS"
+                        value={estatisticas.totalOS}
+                        icon={FileText}
+                        color="blue"
+                        priority={1}
+                        className="bg-[var(--surface-light)]"
+                    />
+                    <Card
+                        title="Em Aberto"
+                        value={estatisticas.osAbertas}
+                        icon={Clock}
+                        color="blue"
+                        priority={2}
+                    />
+                    <Card
+                        title="Concluídas"
+                        value={estatisticas.osConcluidas}
+                        icon={CheckCircle}
+                        color="emerald"
+                        priority={3}
+                    />
+                    <Card
+                        title="Críticas"
+                        value={estatisticas.osCriticas}
+                        icon={AlertTriangle}
+                        color={estatisticas.osCriticas > 0 ? "rose" : "blue"}
+                        priority={4}
+                    />
+                    <Card
+                        title="Vlr. Aberto"
+                        value={formatCurrency(estatisticas.valorAberto)}
+                        icon={DollarSign}
+                        color="amber"
+                        priority={5}
+                    />
+                    <Card
+                        title="Faturado"
+                        value={formatCurrency(estatisticas.valorFaturado)}
+                        icon={TrendingUp}
+                        color="violet"
+                        priority={6}
+                    />
                 </div>
 
                 {/* Main Content Area */}
                 <div className="space-y-4">
                     {/* Filters */}
-                    <div className="flex items-center justify-between">
-                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                    <div className="flex items-center justify-between bg-[var(--surface)] p-2 rounded-2xl border border-[var(--border-subtle)] overflow-x-auto">
+                        <div className="flex gap-2 min-w-max">
                             <button
                                 onClick={() => setFiltroStatus('')}
-                                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${filtroStatus === ''
-                                    ? 'bg-blue-500/10 border-blue-500/50 text-blue-400 shadow-lg shadow-blue-500/10'
-                                    : 'bg-[var(--surface-light)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]'
+                                className={`px-5 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${filtroStatus === ''
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)]'
                                     }`}
                             >
                                 Todas
                             </button>
                             <button
                                 onClick={() => setFiltroStatus('ABERTAS')}
-                                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${filtroStatus === 'ABERTAS'
-                                    ? 'bg-blue-500/10 border-blue-500/50 text-blue-400 shadow-lg shadow-blue-500/10'
-                                    : 'bg-[var(--surface-light)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]'
+                                className={`px-5 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all ${filtroStatus === 'ABERTAS'
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)]'
                                     }`}
                             >
                                 Em Aberto
@@ -250,9 +276,9 @@ export default function PainelConsultor() {
                                 <button
                                     key={value}
                                     onClick={() => setFiltroStatus(value as StatusOS)}
-                                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border whitespace-nowrap ${filtroStatus === value
-                                        ? 'bg-blue-500/10 border-blue-500/50 text-blue-400 shadow-lg shadow-blue-500/10'
-                                        : 'bg-[var(--surface-light)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]'
+                                    className={`px-5 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all whitespace-nowrap ${filtroStatus === value
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                                        : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)]'
                                         }`}
                                 >
                                     {label}
@@ -262,22 +288,22 @@ export default function PainelConsultor() {
                     </div>
 
                     {/* Table Card */}
-                    <div className="glass-card-enterprise rounded-2xl overflow-hidden shadow-2xl border-white/[0.03]">
+                    <div className="glass-card-enterprise rounded-2xl overflow-hidden shadow-2xl border-[var(--border-subtle)] bg-[var(--surface)]">
                         <div className="overflow-x-auto">
                             <table className="w-full border-collapse">
                                 <thead>
-                                    <tr className="border-b border-white/[0.05] bg-white/[0.01]">
-                                        <th className="px-6 py-4 text-left text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Registro</th>
-                                        <th className="px-6 py-4 text-left text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Modalidade</th>
-                                        <th className="px-6 py-4 text-left text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Proprietário</th>
-                                        <th className="px-6 py-4 text-left text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Equipamento</th>
-                                        <th className="px-6 py-4 text-left text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Status</th>
-                                        <th className="px-6 py-4 text-left text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">SLA</th>
-                                        <th className="px-6 py-4 text-left text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Faturamento</th>
-                                        <th className="px-6 py-4 text-center text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Ações</th>
+                                    <tr className="border-b border-[var(--border-subtle)] bg-[var(--surface-light)]/50">
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Registro</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Modalidade</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Proprietário</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Equipamento</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Status</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">SLA</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Faturamento</th>
+                                        <th className="px-6 py-5 text-center text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-white/[0.03]">
+                                <tbody className="divide-y divide-[var(--border-subtle)]">
                                     {loading ? (
                                         Array.from({ length: 5 }).map((_, i) => (
                                             <tr key={i}>
