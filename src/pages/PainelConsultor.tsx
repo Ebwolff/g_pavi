@@ -98,7 +98,7 @@ export default function PainelConsultor() {
         try {
             let query = supabase
                 .from('ordens_servico')
-                .select('*, tecnico:tecnicos(nome, veiculos(placa))')
+                .select('*, tecnico:tecnicos(*)')
                 .order('data_abertura', { ascending: false });
 
             // 1. Filtro por Cargo (Segregação de Dados)
@@ -134,10 +134,10 @@ export default function PainelConsultor() {
                 totalOS: todasOS.length,
                 osAbertas: abertas.length,
                 osConcluidas: concluidas.length,
-                valorAberto: abertas.reduce((sum: number, o: any) => sum + (o.valor_liquido_total || 0), 0),
+                valorAberto: abertas.reduce((sum: number, o: any) => sum + (Number(o.valor_liquido_total) || 0), 0),
                 valorFaturado: todasOS
                     .filter((o: any) => o.status_atual === 'FATURADA')
-                    .reduce((sum: number, o: any) => sum + (o.valor_liquido_total || 0), 0),
+                    .reduce((sum: number, o: any) => sum + (Number(o.valor_liquido_total) || 0), 0),
                 osCriticas: criticas.length,
             });
 
