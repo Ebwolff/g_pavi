@@ -274,52 +274,54 @@ export default function PainelTecnico() {
                                             )}
                                         </div>
 
-                                        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto pt-4 lg:pt-0 border-t lg:border-t-0 lg:border-l border-[var(--border-subtle)] lg:pl-6">
-                                            <Button
-                                                variant={os.status === 'EM_EXECUCAO' ? 'secondary' : 'primary'}
-                                                size="sm"
-                                                onClick={() => handleUpdateStatus(os.id, os.status === 'EM_EXECUCAO' ? 'PAUSADA' : 'EM_EXECUCAO')}
-                                                leftIcon={os.status === 'EM_EXECUCAO' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                                                className={os.status === 'EM_EXECUCAO' ? 'border-[var(--border-subtle)] flex-1 lg:flex-none' : 'bg-blue-600 hover:bg-blue-700 text-white flex-1 lg:flex-none'}
-                                            >
-                                                {os.status === 'EM_EXECUCAO' ? 'Pausar' : 'Iniciar'}
-                                            </Button>
+                                        {!isGerente && (
+                                            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto pt-4 lg:pt-0 border-t lg:border-t-0 lg:border-l border-[var(--border-subtle)] lg:pl-6">
+                                                <Button
+                                                    variant={os.status === 'EM_EXECUCAO' ? 'secondary' : 'primary'}
+                                                    size="sm"
+                                                    onClick={() => handleUpdateStatus(os.id, os.status === 'EM_EXECUCAO' ? 'PAUSADA' : 'EM_EXECUCAO')}
+                                                    leftIcon={os.status === 'EM_EXECUCAO' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                                                    className={os.status === 'EM_EXECUCAO' ? 'border-[var(--border-subtle)] flex-1 lg:flex-none' : 'bg-blue-600 hover:bg-blue-700 text-white flex-1 lg:flex-none'}
+                                                >
+                                                    {os.status === 'EM_EXECUCAO' ? 'Pausar' : 'Iniciar'}
+                                                </Button>
 
-                                            <Button
-                                                variant="secondary"
-                                                size="sm"
-                                                onClick={() => {
-                                                    setSelectedOS(os.id);
-                                                    setModalPecaOpen(true);
-                                                }}
-                                                leftIcon={<Box className="w-4 h-4" />}
-                                                className="border-[var(--border-subtle)] opacity-80 hover:opacity-100 flex-1 lg:flex-none"
-                                            >
-                                                Peças
-                                            </Button>
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setSelectedOS(os.id);
+                                                        setModalPecaOpen(true);
+                                                    }}
+                                                    leftIcon={<Box className="w-4 h-4" />}
+                                                    className="border-[var(--border-subtle)] opacity-80 hover:opacity-100 flex-1 lg:flex-none"
+                                                >
+                                                    Peças
+                                                </Button>
 
-                                            <Button
-                                                variant="secondary"
-                                                size="sm"
-                                                onClick={() => {
-                                                    setSelectedOS(os.id);
-                                                    setSelectedNumeroOS(os.numero_os);
-                                                    setModalDespesaOpen(true);
-                                                }}
-                                                leftIcon={<CreditCard className="w-4 h-4" />}
-                                                className="border-[var(--border-subtle)] opacity-80 hover:opacity-100 flex-1 lg:flex-none"
-                                            >
-                                                Custos
-                                            </Button>
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setSelectedOS(os.id);
+                                                        setSelectedNumeroOS(os.numero_os);
+                                                        setModalDespesaOpen(true);
+                                                    }}
+                                                    leftIcon={<CreditCard className="w-4 h-4" />}
+                                                    className="border-[var(--border-subtle)] opacity-80 hover:opacity-100 flex-1 lg:flex-none"
+                                                >
+                                                    Custos
+                                                </Button>
 
-                                            <Button
-                                                variant="secondary"
-                                                size="sm"
-                                                onClick={() => navigate(`/os/editar/${os.id}`)}
-                                                leftIcon={<ChevronRight className="w-4 h-4" />}
-                                                className="border-[var(--border-subtle)] p-2 hover:bg-blue-500 hover:text-white transition-colors"
-                                            />
-                                        </div>
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    onClick={() => navigate(`/os/editar/${os.id}`)}
+                                                    leftIcon={<ChevronRight className="w-4 h-4" />}
+                                                    className="border-[var(--border-subtle)] p-2 hover:bg-blue-500 hover:text-white transition-colors"
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}
