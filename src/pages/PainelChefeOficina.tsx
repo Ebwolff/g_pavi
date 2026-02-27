@@ -12,6 +12,7 @@ import {
     Package
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { tecnicoService } from '@/services/tecnico.service';
 import { ordemServicoService } from '@/services/ordemServico.service';
@@ -44,6 +45,8 @@ const PainelChefeOficina: React.FC = () => {
     const [modalDetalhesOpen, setModalDetalhesOpen] = useState(false);
     const [selectedTecnico, setSelectedTecnico] = useState<any | null>(null);
     const [expandedOS, setExpandedOS] = useState<string | null>(null);
+    const { profile } = useAuth();
+    const isGerente = profile?.role === 'GERENTE';
 
     // Refs para scroll suave
     const tecnicosRef = React.useRef<HTMLDivElement>(null);
@@ -173,14 +176,16 @@ const PainelChefeOficina: React.FC = () => {
                         >
                             Sincronizar
                         </Button>
-                        <Button
-                            variant="primary"
-                            onClick={() => setModalCadastroOpen(true)}
-                            leftIcon={<UserPlus className="w-4 h-4" />}
-                            className="bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-500/20"
-                        >
-                            Novo Técnico
-                        </Button>
+                        {!isGerente && (
+                            <Button
+                                variant="primary"
+                                onClick={() => setModalCadastroOpen(true)}
+                                leftIcon={<UserPlus className="w-4 h-4" />}
+                                className="bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-500/20"
+                            >
+                                Novo Técnico
+                            </Button>
+                        )}
                     </div>
                 </div>
 
@@ -347,20 +352,22 @@ const PainelChefeOficina: React.FC = () => {
                                             <span>{os.dias_em_aberto} dias em espera</span>
                                         </div>
                                     </div>
-                                    <div className="mt-6 pt-5 border-t border-[var(--border-subtle)] relative z-10">
-                                        <Button
-                                            variant="secondary"
-                                            size="sm"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                openAssignModal(os);
-                                            }}
-                                            leftIcon={<UserPlus className="w-4 h-4" />}
-                                            className="w-full text-[10px] font-black tracking-widest uppercase hover:bg-orange-500 hover:text-white transition-all"
-                                        >
-                                            Atribuir Técnico
-                                        </Button>
-                                    </div>
+                                    {!isGerente && (
+                                        <div className="mt-6 pt-5 border-t border-[var(--border-subtle)] relative z-10">
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openAssignModal(os);
+                                                }}
+                                                leftIcon={<UserPlus className="w-4 h-4" />}
+                                                className="w-full text-[10px] font-black tracking-widest uppercase hover:bg-orange-500 hover:text-white transition-all"
+                                            >
+                                                Atribuir Técnico
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
