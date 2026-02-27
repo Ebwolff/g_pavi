@@ -21,6 +21,7 @@ export interface DashboardStats {
     valorNormal: number;
     valorGarantia: number;
     valorMedioOS: number;
+    valorEmAberto: number;
 
     // Tempo
     tempoMedioResolucao: number;
@@ -153,6 +154,7 @@ export const statsService = {
                 valorNormal: sumValor(osNormal),
                 valorGarantia: sumValor(osGarantia),
                 valorMedioOS: os.length > 0 ? sumValor(os) / os.length : 0,
+                valorEmAberto: sumValor(osAbertas),
                 tempoMedioResolucao: tmed,
                 diasMedioEmAberto: dmed,
                 totalPendencias: pendencias.length,

@@ -224,10 +224,10 @@ export function DashboardNovo() {
                         priority={1}
                     />
                     <Card
-                        title="Ticket Médio"
-                        value={formatarValor(stats?.valorMedioOS || 0)}
-                        icon={TrendingUp}
-                        color="blue"
+                        title="Valores em Aberto"
+                        value={formatarValor(stats?.valorEmAberto || 0)}
+                        icon={DollarSign}
+                        color="orange"
                         priority={2}
                     />
                     <Card
