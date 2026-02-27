@@ -309,12 +309,6 @@ export function DashboardNovo() {
                                     color="green"
                                     icon={CheckCircle}
                                 />
-                                <MiniCard
-                                    label="Canceladas"
-                                    value={stats?.osCanceladas || 0}
-                                    color="red"
-                                    icon={AlertCircle}
-                                />
                             </div>
                         </div>
                     </div>
