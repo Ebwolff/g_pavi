@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { anexosService, Anexo } from '@/services/anexosService';
-import { Loader2, Download, ChevronLeft, ChevronRight, X, ImageIcon, AlertTriangle } from 'lucide-react';
+import { Loader2, Download, ChevronLeft, ChevronRight, X, ImageIcon } from 'lucide-react';
 
 interface ModalGaleriaImagensProps {
     isOpen: boolean;
@@ -40,7 +41,7 @@ export function ModalGaleriaImagens({ isOpen, onClose, osId, osNumero }: ModalGa
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 backdrop-blur-xl bg-black/80 animate-fadeIn">
             <div className="glass-card-enterprise w-full max-w-5xl h-[80vh] rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col animate-slideUp">
                 {/* Header */}
@@ -134,6 +135,7 @@ export function ModalGaleriaImagens({ isOpen, onClose, osId, osNumero }: ModalGa
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
