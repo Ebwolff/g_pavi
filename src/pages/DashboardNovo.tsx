@@ -22,8 +22,7 @@ import {
     RefreshCw,
     Search,
     Wrench,
-    CheckCircle,
-    ArrowRight
+    CheckCircle
 } from 'lucide-react';
 import { formatarValor } from '../utils/osHelpers';
 
@@ -316,48 +315,6 @@ export function DashboardNovo() {
                                     color="red"
                                     icon={AlertCircle}
                                 />
-                            </div>
-                        </div>
-
-                        {/* Recent Activity / Pipeline summary */}
-                        <div className="glass-card-enterprise p-6 rounded-2xl">
-                            <h3 className="text-lg font-semibold text-white mb-4">Eficiência Operacional</h3>
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
-                                    <span className="text-sm text-gray-400">Taxa de Conversão</span>
-                                    <span className="text-lg font-bold text-green-400">
-                                        {stats?.taxaConversao ? Math.round(stats.taxaConversao) : 0}%
-                                    </span>
-                                </div>
-                                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
-                                    <span className="text-sm text-gray-400">Taxa de Retrabalho</span>
-                                    <span className={`text-sm font-bold ${stats?.taxaRetrabalho && stats.taxaRetrabalho > 5 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                                        {stats?.taxaRetrabalho.toFixed(1)}%
-                                    </span>
-                                </div>
-                                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
-                                    <span className="text-sm text-gray-400">Produtividade Líquida</span>
-                                    <span className="text-sm font-bold text-blue-400">{stats?.produtividadeLiquida.toFixed(1)}%</span>
-                                </div>
-                                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
-                                    <span className="text-sm text-gray-400">Satisfação (NPS)</span>
-                                    <span className="text-sm font-bold text-emerald-400">{stats?.nps}</span>
-                                </div>
-                                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
-                                    <span className="text-sm text-gray-400">Retorno em Garantia</span>
-                                    <span className="text-lg font-bold text-green-400">
-                                        {stats?.retornoGarantia ? stats.retornoGarantia.toFixed(1) : 0}%
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="mt-6 pt-4 border-t border-white/10">
-                                <Button
-                                    variant="ghost"
-                                    className="w-full text-sm text-blue-400 hover:text-blue-300"
-                                    onClick={() => navigate('/relatorios')}
-                                >
-                                    Ver Relatório Completo <ArrowRight className="w-4 h-4 ml-2" />
-                                </Button>
                             </div>
                         </div>
                     </div>
