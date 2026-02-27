@@ -38,6 +38,8 @@ export function ModalGaleriaImagens({ isOpen, onClose, osId, osNumero }: ModalGa
         setCurrentIndex((prev) => (prev - 1 + anexos.length) % anexos.length);
     };
 
+    if (!isOpen) return null;
+
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 backdrop-blur-xl bg-black/80 animate-fadeIn">
             <div className="glass-card-enterprise w-full max-w-5xl h-[80vh] rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col animate-slideUp">

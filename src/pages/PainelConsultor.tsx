@@ -509,13 +509,12 @@ export default function PainelConsultor() {
                 )}
 
                 {/* Modais */}
-                {selectedOSForGallery && (
-                    <ModalGaleriaImagens
-                        osId={selectedOSForGallery.id}
-                        osNumero={selectedOSForGallery.numero}
-                        onClose={() => setSelectedOSForGallery(null)}
-                    />
-                )}
+                <ModalGaleriaImagens
+                    isOpen={!!selectedOSForGallery}
+                    osId={selectedOSForGallery?.id || ''}
+                    osNumero={selectedOSForGallery?.numero || ''}
+                    onClose={() => setSelectedOSForGallery(null)}
+                />
             </div>
         </AppLayout>
     );
