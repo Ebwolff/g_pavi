@@ -265,7 +265,7 @@ export function DashboardNovo() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 gap-6">
                             <div className="glass-card-enterprise p-6 rounded-2xl">
                                 <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
                                     <AlertCircle className="w-5 h-5 text-amber-500" />
@@ -278,12 +278,6 @@ export function DashboardNovo() {
                                         medias={stats?.osMedias || 0}
                                         normais={stats?.osNormais || 0}
                                     />
-                                </div>
-                            </div>
-                            <div className="glass-card-enterprise p-6 rounded-2xl">
-                                <h3 className="text-lg font-semibold text-white mb-6">Status das OS</h3>
-                                <div className="h-[250px]">
-                                    <DistribuicaoStatusChart data={distribuicao || []} />
                                 </div>
                             </div>
                         </div>
