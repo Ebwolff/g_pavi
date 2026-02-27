@@ -232,16 +232,13 @@ export function DashboardNovo() {
                         value={formatarValor(stats?.valorTotal || 0)}
                         icon={DollarSign}
                         color="green"
-                        trend={{ value: 12.5, isPositive: true, label: "vs. mês anterior" }}
                         priority={1}
-                        anchor={{ label: "Meta Mensal", value: formatarValor(200000) }}
                     />
                     <Card
                         title="Ticket Médio"
                         value={formatarValor(stats?.valorMedioOS || 0)}
                         icon={TrendingUp}
                         color="blue"
-                        trend={{ value: 5.2, isPositive: true, label: "vs. mês anterior" }}
                         priority={2}
                     />
                     <Card
@@ -258,7 +255,6 @@ export function DashboardNovo() {
                         value={`${stats?.tempoMedioResolucao ? Math.round(stats.tempoMedioResolucao) : 0} dias`}
                         icon={Clock}
                         color="violet"
-                        trend={{ value: -10, isPositive: true, label: "Melhora de 10%" }}
                         priority={4}
                     />
                 </div>

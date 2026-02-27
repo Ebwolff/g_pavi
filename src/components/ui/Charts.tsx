@@ -220,6 +220,58 @@ export const DistribuicaoStatusChart: React.FC<DistribuicaoStatusChartProps> = (
     );
 };
 
+interface DistribuicaoOperacionalChartProps {
+    data: Array<{
+        name: string;
+        value: number;
+        color: string;
+    }>;
+}
+
+export const DistribuicaoOperacionalChart: React.FC<DistribuicaoOperacionalChartProps> = ({ data }) => {
+    return (
+        <div className="w-full h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                    <Pie
+                        data={data}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={80}
+                        outerRadius={100}
+                        paddingAngle={8}
+                        dataKey="value"
+                        nameKey="name"
+                        stroke="none"
+                        cornerRadius={8}
+                    >
+                        {data.map((entry, index) => (
+                            <Cell
+                                key={`cell-${index}`}
+                                fill={entry.color}
+                                style={{ filter: `drop-shadow(0px 0px 8px ${entry.color}44)` }}
+                            />
+                        ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend
+                        iconType="circle"
+                        wrapperStyle={{ fontSize: '11px', color: THEME.text, paddingTop: '10px' }}
+                    />
+                    <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
+                        <tspan x="50%" dy="-1em" fontSize="28" fontWeight="bold" fill="white">
+                            {data.reduce((acc, curr) => acc + curr.value, 0)}
+                        </tspan>
+                        <tspan x="50%" dy="1.5em" fontSize="12" fill={THEME.text} fontWeight="black" letterSpacing="0.1em" className="uppercase">
+                            Operações
+                        </tspan>
+                    </text>
+                </PieChart>
+            </ResponsiveContainer>
+        </div>
+    );
+};
+
 interface ConsultorPerformanceChartProps {
     data: Array<{
         consultor_nome: string;

@@ -131,6 +131,9 @@ export interface Database {
                     previsao_retorno: string | null;
                     localizacao_atual: string | null;
                     roteiro: string | null;
+                    aol: string | null;
+                    data_faturamento_fabrica: string | null;
+                    link_pdf_os: string | null;
                 };
                 Insert: {
                     id?: string;
@@ -528,6 +531,8 @@ export interface Database {
                     data_solicitacao: string;
                     data_entrega_real: string | null;
                     numero_pedido_fornecedor: string | null;
+                    aol: string | null;
+                    data_faturamento_fabrica: string | null;
                     solicitante_id: string | null;
                     comprador_id: string | null;
                     observacoes: string | null;
@@ -552,6 +557,8 @@ export interface Database {
                     data_solicitacao?: string;
                     data_entrega_real?: string | null;
                     numero_pedido_fornecedor?: string | null;
+                    aol?: string | null;
+                    data_faturamento_fabrica?: string | null;
                     solicitante_id?: string | null;
                     comprador_id?: string | null;
                     observacoes?: string | null;
@@ -575,10 +582,41 @@ export interface Database {
                     data_solicitacao?: string;
                     data_entrega_real?: string | null;
                     numero_pedido_fornecedor?: string | null;
+                    aol?: string | null;
+                    data_faturamento_fabrica?: string | null;
                     solicitante_id?: string | null;
                     comprador_id?: string | null;
                     observacoes?: string | null;
                     motivo_cancelamento?: string | null;
+                    created_at?: string;
+                };
+            };
+            anexos_os: {
+                Row: {
+                    id: string;
+                    ordem_servico_id: string;
+                    url_anexo: string;
+                    tipo_anexo: string;
+                    descricao: string | null;
+                    usuario_id: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    ordem_servico_id: string;
+                    url_anexo: string;
+                    tipo_anexo?: string;
+                    descricao?: string | null;
+                    usuario_id?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    ordem_servico_id?: string;
+                    url_anexo?: string;
+                    tipo_anexo?: string;
+                    descricao?: string | null;
+                    usuario_id?: string | null;
                     created_at?: string;
                 };
             };

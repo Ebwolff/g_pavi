@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import {
     ArrowLeft, Save, X, Wrench, User,
     DollarSign, Activity, Hash, Tag,
-    FileText, UserCheck, Settings, Info
+    FileText, UserCheck, Settings, Info, Clock
 } from 'lucide-react';
 
 import { ordemServicoService } from '@/services/ordemServico.service';
@@ -27,6 +27,9 @@ export function NovaOS() {
         valor_mao_de_obra: '0',
         valor_pecas: '0',
         valor_deslocamento: '0',
+        data_abertura: new Date().toISOString().substring(0, 16), // datetime-local format
+        status_atual: 'EM_EXECUCAO' as const,
+        aol: '',
     });
 
     const createOSMutation = useMutation({
@@ -61,7 +64,9 @@ export function NovaOS() {
             valor_mao_de_obra: parseFloat(formData.valor_mao_de_obra) || 0,
             valor_pecas: parseFloat(formData.valor_pecas) || 0,
             valor_deslocamento: parseFloat(formData.valor_deslocamento) || 0,
-            status_atual: 'EM_EXECUCAO' as const,
+            status_atual: formData.status_atual,
+            data_abertura: new Date(formData.data_abertura).toISOString(),
+            aol: formData.aol || null,
         });
     };
 
@@ -153,7 +158,7 @@ export function NovaOS() {
                                 </div>
 
                                 <div className="md:col-span-2 space-y-2 relative">
-                                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Tipo de Serviço</label>
+                                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Tipo de Serviço (NBS)</label>
                                     <div className="relative group/select">
                                         <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] group-focus-within/select:text-blue-400 transition-colors z-10" />
                                         <select
@@ -163,6 +168,33 @@ export function NovaOS() {
                                         >
                                             <option value="NORMAL" className="bg-[#0b0f14]">Atendimento Normal (N)</option>
                                             <option value="GARANTIA" className="bg-[#0b0f14]">Garantia de Fábrica (W)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <Input
+                                    type="datetime-local"
+                                    label="Data/Hora de Abertura"
+                                    value={formData.data_abertura}
+                                    onChange={(e) => handleInputChange('data_abertura', e.target.value)}
+                                    icon={Clock}
+                                    required
+                                />
+                                <div className="space-y-2 relative">
+                                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Status Inicial</label>
+                                    <div className="relative group/select">
+                                        <Activity className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] group-focus-within/select:text-blue-400 transition-colors z-10" />
+                                        <select
+                                            value={formData.status_atual}
+                                            onChange={(e) => handleInputChange('status_atual', e.target.value)}
+                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl pl-12 pr-4 py-3.5 text-[var(--text-primary)] font-medium focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none appearance-none cursor-pointer"
+                                        >
+                                            <option value="EM_EXECUCAO" className="bg-[#0b0f14]">Em Execução</option>
+                                            <option value="EM_DIAGNOSTICO" className="bg-[#0b0f14]">Em Diagnóstico</option>
+                                            <option value="AGUARDANDO_PECAS" className="bg-[#0b0f14]">Aguardando Peças</option>
+                                            <option value="EM_TRANSITO" className="bg-[#0b0f14]">Em Trânsito</option>
                                         </select>
                                     </div>
                                 </div>
@@ -182,13 +214,26 @@ export function NovaOS() {
                             </h2>
 
                             <div className="space-y-6">
-                                <Input
-                                    label="Razão Social / Nome Completo"
-                                    placeholder="Digite o nome do cliente..."
-                                    value={formData.nome_cliente_digitavel}
-                                    onChange={(e) => handleInputChange('nome_cliente_digitavel', e.target.value)}
-                                    icon={User}
-                                />
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                    <div className="md:col-span-3">
+                                        <Input
+                                            label="Razão Social / Nome Completo"
+                                            placeholder="Digite o nome do cliente..."
+                                            value={formData.nome_cliente_digitavel}
+                                            onChange={(e) => handleInputChange('nome_cliente_digitavel', e.target.value)}
+                                            icon={User}
+                                        />
+                                    </div>
+                                    <div className="md:col-span-1">
+                                        <Input
+                                            label="ID AOL"
+                                            placeholder="AOL #"
+                                            value={formData.aol}
+                                            onChange={(e) => handleInputChange('aol', e.target.value)}
+                                            icon={Info}
+                                        />
+                                    </div>
+                                </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <Input

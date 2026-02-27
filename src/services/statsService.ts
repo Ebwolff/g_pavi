@@ -160,10 +160,10 @@ export const statsService = {
                 totalAlertas: alertas.length,
                 alertasNaoLidos: alertas.filter((a: any) => !a.lido).length,
                 taxaConversao: os.length > 0 ? (osConcluidas.length / os.length) * 100 : 0,
-                nps: 92,
+                nps: 0,
                 retornoGarantia: (osGarantia.length / Math.max(1, os.length)) * 100,
-                taxaRetrabalho: 4.2, // Heurística: Baseado em recorrência de chassi/série
-                produtividadeLiquida: 87.5, // Heurística: Tempo produtivo vs total
+                taxaRetrabalho: 0,
+                produtividadeLiquida: 0,
             };
         };
 
