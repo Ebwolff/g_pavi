@@ -33,10 +33,9 @@ export type AppRoute =
 
 // Mapeamento de permissões: quais roles podem acessar quais rotas
 const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
-    // Gerente: acesso total
+    // Gerente: acesso total (exceto criação de OS conforme solicitado)
     GERENTE: [
         '/dashboard',
-        '/os/nova',
         '/os/lista',
         '/os/editar',
         '/consultor',
