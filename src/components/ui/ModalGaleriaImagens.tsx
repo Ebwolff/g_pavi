@@ -1,22 +1,15 @@
 import { useState, useEffect } from 'react';
-import { X, ImageIcon, Download, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/Button';
-
-interface Anexo {
-    id: string;
-    url_anexo: string;
-    tipo_anexo: string;
-    descricao: string | null;
-}
+import { anexosService, Anexo } from '@/services/anexosService';
+import { Loader2, Download, ChevronLeft, ChevronRight, X, ImageIcon, AlertTriangle } from 'lucide-react';
 
 interface ModalGaleriaImagensProps {
+    isOpen: boolean;
+    onClose: () => void;
     osId: string;
     osNumero: string;
-    onClose: () => void;
 }
 
-export function ModalGaleriaImagens({ osId, osNumero, onClose }: ModalGaleriaImagensProps) {
+export function ModalGaleriaImagens({ isOpen, onClose, osId, osNumero }: ModalGaleriaImagensProps) {
     const [anexos, setAnexos] = useState<Anexo[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -25,13 +18,8 @@ export function ModalGaleriaImagens({ osId, osNumero, onClose }: ModalGaleriaIma
         const fetchAnexos = async () => {
             setLoading(true);
             try {
-                const { data, error } = await supabase
-                    .from('anexos_os')
-                    .select('*')
-                    .eq('ordem_servico_id', osId);
-
-                if (error) throw error;
-                setAnexos(data || []);
+                const data = await anexosService.getAnexosByOS(osId);
+                setAnexos(data);
             } catch (err) {
                 console.error('Erro ao buscar anexos:', err);
             } finally {
@@ -39,8 +27,8 @@ export function ModalGaleriaImagens({ osId, osNumero, onClose }: ModalGaleriaIma
             }
         };
 
-        if (osId) fetchAnexos();
-    }, [osId]);
+        if (osId && isOpen) fetchAnexos();
+    }, [osId, isOpen]);
 
     const handleNext = () => {
         setCurrentIndex((prev) => (prev + 1) % anexos.length);

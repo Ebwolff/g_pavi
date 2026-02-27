@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ordemServicoService } from '@/services/ordemServico.service';
 import { despesasService, DespesaOS, TipoDespesa } from '@/services/despesasService';
+import { anexosService, Anexo } from '@/services/anexosService';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -31,7 +32,12 @@ import {
     ClipboardList,
     Hash,
     Settings,
-    Briefcase
+    Briefcase,
+    Image as ImageIcon,
+    Upload,
+    Loader2,
+    Download,
+    FileText
 } from 'lucide-react';
 
 export function EditarOS() {
@@ -53,8 +59,11 @@ export function EditarOS() {
     });
 
     const [despesas, setDespesas] = useState<DespesaOS[]>([]);
+    const [anexos, setAnexos] = useState<Anexo[]>([]);
     const [modalDespesaOpen, setModalDespesaOpen] = useState(false);
     const [loadingDespesas, setLoadingDespesas] = useState(false);
+    const [loadingAnexos, setLoadingAnexos] = useState(false);
+    const [uploadingAnexo, setUploadingAnexo] = useState(false);
 
     const { data: os, isLoading } = useQuery({
         queryKey: ['ordem-servico', id],
@@ -78,8 +87,48 @@ export function EditarOS() {
                 valorDeslocamento: String(os.valor_deslocamento),
             });
             carregarDespesas();
+            carregarAnexos();
         }
     }, [os]);
+
+    const carregarAnexos = async () => {
+        if (!id) return;
+        setLoadingAnexos(true);
+        try {
+            const data = await anexosService.getAnexosByOS(id);
+            setAnexos(data);
+        } catch (error) {
+            console.error('Erro ao carregar anexos:', error);
+        } finally {
+            setLoadingAnexos(false);
+        }
+    };
+
+    const handleUploadAnexo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !id) return;
+
+        setUploadingAnexo(true);
+        try {
+            await anexosService.uploadAnexo(id, file);
+            await carregarAnexos();
+        } catch (error) {
+            console.error('Erro ao fazer upload:', error);
+            alert('Falha ao enviar arquivo. Verifique o tamanho ou tente novamente.');
+        } finally {
+            setUploadingAnexo(false);
+        }
+    };
+
+    const handleExcluirAnexo = async (anexo: Anexo) => {
+        if (!confirm('Deseja excluir este anexo permanentemente?')) return;
+        try {
+            await anexosService.excluirAnexo(anexo);
+            await carregarAnexos();
+        } catch (error) {
+            console.error('Erro ao excluir anexo:', error);
+        }
+    };
 
     const carregarDespesas = async () => {
         if (!id) return;
@@ -434,6 +483,93 @@ export function EditarOS() {
                                             <span className="text-2xl font-black text-white">{formatCurrency(totalDespesas)}</span>
                                         </div>
                                     </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Galeria de Evidências */}
+                        <div className="bg-[var(--surface)] p-8 rounded-3xl border border-[var(--border-subtle)] shadow-2xl">
+                            <div className="flex items-center justify-between mb-8">
+                                <h2 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                                    <ImageIcon className="w-4 h-4" />
+                                    Evidências e Fotos do Atendimento
+                                </h2>
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        id="upload-anexo"
+                                        className="hidden"
+                                        accept="image/*,application/pdf"
+                                        onChange={handleUploadAnexo}
+                                        disabled={uploadingAnexo}
+                                    />
+                                    <label
+                                        htmlFor="upload-anexo"
+                                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${uploadingAnexo ? 'bg-white/5 text-[var(--text-muted)]' : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-500/20'}`}
+                                    >
+                                        {uploadingAnexo ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Enviando...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload className="w-4 h-4" />
+                                                Anexar Foto
+                                            </>
+                                        )}
+                                    </label>
+                                </div>
+                            </div>
+
+                            {loadingAnexos ? (
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 w-full rounded-2xl" />)}
+                                </div>
+                            ) : anexos.length === 0 ? (
+                                <div className="text-center py-12 bg-white/[0.01] border border-dashed border-white/5 rounded-2xl">
+                                    <div className="w-16 h-16 bg-white/[0.03] rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <ImageIcon className="w-8 h-8 text-[var(--text-muted)] opacity-50" />
+                                    </div>
+                                    <p className="text-sm font-bold text-white uppercase tracking-widest">Nenhuma foto anexada</p>
+                                    <p className="text-xs text-[var(--text-muted)] mt-1">Anexe fotos da máquina, horímetro ou peças para enriquecer o laudo.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                    {anexos.map((anexo) => (
+                                        <div key={anexo.id} className="relative group rounded-2xl overflow-hidden aspect-square border border-white/5 bg-black/20 hover:border-blue-500/50 transition-all">
+                                            {anexo.tipo_anexo === 'IMAGEM' ? (
+                                                <img
+                                                    src={anexo.url_anexo}
+                                                    alt={anexo.descricao || 'Anexo'}
+                                                    className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <FileText className="w-10 h-10 text-[var(--text-muted)]" />
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                                                <button
+                                                    onClick={() => window.open(anexo.url_anexo, '_blank')}
+                                                    className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-all"
+                                                >
+                                                    <Download className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleExcluirAnexo(anexo)}
+                                                    className="p-2 bg-rose-500/20 hover:bg-rose-500/40 rounded-lg text-rose-400 transition-all"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            {anexo.descricao && (
+                                                <div className="absolute bottom-0 inset-x-0 p-2 bg-black/60 backdrop-blur-sm text-[8px] font-bold text-white truncate">
+                                                    {anexo.descricao}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
