@@ -440,20 +440,20 @@ export default function PainelConsultor() {
                                             </tr>
                                         ) : (
                                             osFiltrada.map((os) => (
-                                                <tr key={os.id} className="group hover:bg-white/[0.03] transition-all cursor-pointer">
-                                                    <td className="px-6 py-6" onClick={() => navigate(`/os/editar/${os.id}`)}>
+                                                <tr key={os.id} className={`group hover:bg-white/[0.03] transition-all ${!isGerente ? 'cursor-pointer' : ''}`}>
+                                                    <td className="px-6 py-6" onClick={() => !isGerente && navigate(`/os/editar/${os.id}`)}>
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
                                                             <span className="font-black text-white text-base">#{os.numero_os}</span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-6" onClick={() => navigate(`/os/editar/${os.id}`)}>
+                                                    <td className="px-6 py-6" onClick={() => !isGerente && navigate(`/os/editar/${os.id}`)}>
                                                         <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5 w-fit">
                                                             <div className={`w-1.5 h-1.5 rounded-full ${os.tipo_os === 'GARANTIA' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
                                                             <span className="text-[10px] font-black uppercase text-gray-300">{os.tipo_os}</span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-6" onClick={() => navigate(`/os/editar/${os.id}`)}>
+                                                    <td className="px-6 py-6" onClick={() => !isGerente && navigate(`/os/editar/${os.id}`)}>
                                                         <span className="text-sm font-bold text-gray-200 block truncate max-w-[150px]">{os.nome_cliente_digitavel || '-'}</span>
                                                     </td>
                                                     {activeTab === 'faturadas' && (
@@ -461,15 +461,15 @@ export default function PainelConsultor() {
                                                             <span className="text-xs font-medium text-gray-400">{os.tecnico?.nome || '-'}</span>
                                                         </td>
                                                     )}
-                                                    <td className="px-6 py-6 text-sm font-medium text-[var(--text-muted)] italic" onClick={() => navigate(`/os/editar/${os.id}`)}>{os.modelo_maquina || '-'}</td>
-                                                    <td className="px-6 py-6" onClick={() => navigate(`/os/editar/${os.id}`)}><StatusBadge status={os.status_atual as any} /></td>
+                                                    <td className="px-6 py-6 text-sm font-medium text-[var(--text-muted)] italic" onClick={() => !isGerente && navigate(`/os/editar/${os.id}`)}>{os.modelo_maquina || '-'}</td>
+                                                    <td className="px-6 py-6" onClick={() => !isGerente && navigate(`/os/editar/${os.id}`)}><StatusBadge status={os.status_atual as any} /></td>
                                                     {activeTab === 'servicos' && <td className="px-6 py-6 text-sm font-black text-gray-400">{os.dias_em_aberto}d</td>}
                                                     {activeTab === 'faturadas' && (
                                                         <td className="px-6 py-6 text-xs text-gray-400">
                                                             {os.data_faturamento ? new Date(os.data_faturamento).toLocaleDateString() : '-'}
                                                         </td>
                                                     )}
-                                                    <td className="px-6 py-6 font-black text-emerald-400 text-base" onClick={() => navigate(`/os/editar/${os.id}`)}>{formatCurrency(os.valor_liquido_total)}</td>
+                                                    <td className="px-6 py-6 font-black text-emerald-400 text-base" onClick={() => !isGerente && navigate(`/os/editar/${os.id}`)}>{formatCurrency(os.valor_liquido_total)}</td>
                                                     <td className="px-6 py-6">
                                                         <div className="flex items-center justify-center gap-2">
                                                             {activeTab === 'faturadas' && os.link_pdf_os && (
@@ -490,12 +490,14 @@ export default function PainelConsultor() {
                                                             >
                                                                 <ImageIcon className="w-4 h-4" />
                                                             </button>
-                                                            <button
-                                                                onClick={() => navigate(`/os/editar/${os.id}`)}
-                                                                className="p-2 rounded-xl bg-white/5 text-[var(--text-muted)] hover:bg-white/10 hover:text-white transition-all border border-white/5"
-                                                            >
-                                                                <ArrowRight className="w-4 h-4" />
-                                                            </button>
+                                                            {!isGerente && (
+                                                                <button
+                                                                    onClick={() => navigate(`/os/editar/${os.id}`)}
+                                                                    className="p-2 rounded-xl bg-white/5 text-[var(--text-muted)] hover:bg-white/10 hover:text-white transition-all border border-white/5"
+                                                                >
+                                                                    <ArrowRight className="w-4 h-4" />
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>
