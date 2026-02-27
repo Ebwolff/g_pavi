@@ -63,6 +63,7 @@ export function AppRoutes() {
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/os/nova" element={<ProtectedRoute><NovaOS /></ProtectedRoute>} />
                 <Route path="/os/lista" element={<ProtectedRoute><ListaOS /></ProtectedRoute>} />
+                <Route path="/os/faturadas" element={<ProtectedRoute><ListaOS onlyFaturadas={true} /></ProtectedRoute>} />
                 <Route path="/os/editar/:id" element={<ProtectedRoute><EditarOS /></ProtectedRoute>} />
                 <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
                 <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />

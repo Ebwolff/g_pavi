@@ -14,7 +14,11 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatarValor, formatarData } from '@/utils/osHelpers';
 
-export function ListaOS() {
+interface ListaOSProps {
+    onlyFaturadas?: boolean;
+}
+
+export function ListaOS({ onlyFaturadas = false }: ListaOSProps = {}) {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [page, setPage] = useState(1);
@@ -34,12 +38,15 @@ export function ListaOS() {
         return {
             search: uiFilters.busca || undefined,
             tipo: uiFilters.tipo === 'TODOS' ? undefined : uiFilters.tipo as 'NORMAL' | 'GARANTIA',
-            status: uiFilters.status === 'TODOS' ? undefined : uiFilters.status,
+            // Se for onlyFaturadas, fixa em FATURADA. Senão usa o status da UI (se existir).
+            status: onlyFaturadas ? 'FATURADA' : (uiFilters.status === 'TODOS' ? undefined : uiFilters.status),
+            // Se não for onlyFaturadas, oculta as faturadas da visão normal
+            excludeStatus: onlyFaturadas ? undefined : ['FATURADA'],
             dataInicio: uiFilters.dataInicio,
             dataFim: uiFilters.dataFim,
             consultorId: uiFilters.consultorId,
         };
-    }, [uiFilters]);
+    }, [uiFilters, onlyFaturadas]);
 
     const { data, isLoading, refetch } = useQuery({
         queryKey: ['ordens-servico', page, serviceFilters],
@@ -80,7 +87,9 @@ export function ListaOS() {
                             <FileText className="w-6 h-6 text-blue-400" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-[var(--text-primary)]">Gestão de Ordens de Serviço</h1>
+                            <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+                                {onlyFaturadas ? 'Ordens de Serviço Faturadas' : 'Gestão de Ordens de Serviço'}
+                            </h1>
                             <div className="flex items-center gap-3 mt-1">
                                 <span className="text-sm text-[var(--text-muted)] flex items-center gap-1">
                                     <LayoutDashboard className="w-3.5 h-3.5" />
@@ -115,6 +124,7 @@ export function ListaOS() {
                 <div className="glass-card-enterprise p-1 border-none shadow-none bg-transparent">
                     <FilterBar
                         onFilterChange={handleFilterChange}
+                        hideStatus={onlyFaturadas}
                         className="bg-[var(--surface-light)] border border-[var(--border-subtle)] !shadow-none rounded-2xl p-6"
                     />
                 </div>

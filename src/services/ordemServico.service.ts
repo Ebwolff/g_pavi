@@ -16,6 +16,7 @@ type OrdemServicoUpdate = Database['public']['Tables']['ordens_servico']['Update
 export interface OSFilters {
     tipo?: 'NORMAL' | 'GARANTIA';
     status?: string;
+    excludeStatus?: string[];
     search?: string;
     dataInicio?: string;
     dataFim?: string;
@@ -55,6 +56,11 @@ class OrdemServicoService {
 
         if (filters.status) {
             query = query.eq('status_atual', filters.status);
+        }
+
+        if (filters.excludeStatus && filters.excludeStatus.length > 0) {
+            // A sintaxe do in no pg é (val1,val2) e o supabase converte arrays
+            query = query.not('status_atual', 'in', `(${filters.excludeStatus.map(s => `"${s}"`).join(',')})`);
         }
 
         if (filters.tecnicoId) {

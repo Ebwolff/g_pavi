@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, X, Calendar, DollarSign, User, Tag, ChevronDown } from 'lucide-react';
+import { Search, Filter, X, Calendar, User, Tag, ChevronDown } from 'lucide-react';
 import { TipoOS, StatusOS } from '../../types/database.types';
 import { cn } from '@/lib/utils';
 import { Input } from './Input';
@@ -23,12 +23,14 @@ interface FilterBarProps {
     onFilterChange: (filters: OSFilters) => void;
     consultores?: Array<{ id: string; nome: string }>;
     className?: string;
+    hideStatus?: boolean;
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({
     onFilterChange,
     consultores = [],
     className = '',
+    hideStatus = false,
 }) => {
     const [showFilters, setShowFilters] = useState(false);
     const [filters, setFilters] = useState<OSFilters>({
@@ -157,27 +159,29 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 </div>
 
                 {/* Status */}
-                <div className="space-y-2">
-                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] ml-1 flex items-center gap-2">
-                        <Activity className="h-3 w-3" /> Status Operacional
-                    </label>
-                    <div className="relative">
-                        <select
-                            value={filters.status}
-                            onChange={(e) => handleFilterChange('status', e.target.value)}
-                            className={selectClassName}
-                        >
-                            <option value="TODOS">Todos os Status</option>
-                            <option value="EM_EXECUCAO">Em Execução</option>
-                            <option value="AGUARDANDO_PECAS">Aguardando Peças</option>
-                            <option value="PAUSADA">Pausada</option>
-                            <option value="CONCLUIDA">Concluída</option>
-                            <option value="FATURADA">Faturada</option>
-                            <option value="CANCELADA">Cancelada</option>
-                        </select>
-                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
+                {!hideStatus && (
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] ml-1 flex items-center gap-2">
+                            <Activity className="h-3 w-3" /> Status Operacional
+                        </label>
+                        <div className="relative">
+                            <select
+                                value={filters.status}
+                                onChange={(e) => handleFilterChange('status', e.target.value)}
+                                className={selectClassName}
+                            >
+                                <option value="TODOS">Todos os Status</option>
+                                <option value="EM_EXECUCAO">Em Execução</option>
+                                <option value="AGUARDANDO_PECAS">Aguardando Peças</option>
+                                <option value="PAUSADA">Pausada</option>
+                                <option value="CONCLUIDA">Concluída</option>
+                                <option value="FATURADA">Faturada</option>
+                                <option value="CANCELADA">Cancelada</option>
+                            </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Dias em Aberto */}
                 <div className="space-y-2">

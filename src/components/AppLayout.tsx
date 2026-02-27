@@ -19,7 +19,8 @@ import {
     Car,
     Package,
     Sun,
-    Moon
+    Moon,
+    CheckCircle
 } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
 
@@ -55,6 +56,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
         { icon: PlusCircle, label: 'Nova OS', path: '/os/nova' },
         { icon: List, label: 'Lista de OS', path: '/os/lista' },
+        { icon: CheckCircle, label: 'OS Faturadas', path: '/os/faturadas' },
         { icon: Users, label: 'Consultor', path: '/consultor' },
         { icon: Hammer, label: 'Chefe de Oficina', path: '/chefe-oficina' },
         { icon: Wrench, label: 'Técnico', path: '/tecnico' },
