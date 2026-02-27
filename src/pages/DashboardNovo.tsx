@@ -10,7 +10,6 @@ import { Button } from '../components/ui/Button';
 import {
     TendenciaChart,
     DistribuicaoStatusChart,
-    ConsultorPerformanceChart,
     UrgenciaDistributionChart,
 } from '../components/ui/Charts';
 import {
@@ -22,7 +21,6 @@ import {
     Download,
     RefreshCw,
     Search,
-    Users,
     Wrench,
     CheckCircle,
     ArrowRight
@@ -34,7 +32,6 @@ export function DashboardNovo() {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [tendencia, setTendencia] = useState<any[]>([]);
     const [distribuicao, setDistribuicao] = useState<any[]>([]);
-    const [consultores, setConsultores] = useState<any[]>([]);
     const [_topClientes, setTopClientes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [_atualizando, setAtualizando] = useState(false);
@@ -102,14 +99,7 @@ export function DashboardNovo() {
                 console.error('❌ Erro em getDistribuicaoStatus:', e);
             }
 
-            try {
-                console.log('👥 Buscando consultores...');
-                const consultoresData = await statsService.getConsultorPerformance();
-                console.log('✅ Consultores recebidos');
-                setConsultores(consultoresData);
-            } catch (e) {
-                console.error('❌ Erro em getConsultorPerformance:', e);
-            }
+
 
             try {
                 console.log('🏆 Buscando top clientes...');
@@ -278,15 +268,6 @@ export function DashboardNovo() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="glass-card-enterprise p-6 rounded-2xl">
                                 <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-                                    <Users className="w-5 h-5 text-purple-500" />
-                                    Top Consultores
-                                </h3>
-                                <div className="h-[250px]">
-                                    <ConsultorPerformanceChart data={consultores || []} />
-                                </div>
-                            </div>
-                            <div className="glass-card-enterprise p-6 rounded-2xl">
-                                <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
                                     <AlertCircle className="w-5 h-5 text-amber-500" />
                                     Distribuição de Urgência
                                 </h3>
@@ -297,6 +278,12 @@ export function DashboardNovo() {
                                         medias={stats?.osMedias || 0}
                                         normais={stats?.osNormais || 0}
                                     />
+                                </div>
+                            </div>
+                            <div className="glass-card-enterprise p-6 rounded-2xl">
+                                <h3 className="text-lg font-semibold text-white mb-6">Status das OS</h3>
+                                <div className="h-[250px]">
+                                    <DistribuicaoStatusChart data={distribuicao || []} />
                                 </div>
                             </div>
                         </div>
