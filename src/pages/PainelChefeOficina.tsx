@@ -144,17 +144,19 @@ const PainelChefeOficina: React.FC = () => {
 
     // Datas com OS ativas para o Calendário (usando a data de abertura como marco da tarefa)
     const calendarEvents = useMemo(() => {
-        return osAtivas.map((os: any) => {
-            if (!os.data_abertura) return null;
-            const date = new Date(os.data_abertura).toISOString().split('T')[0];
-            const tecnicoNome = tecnicos.find((t: any) => t.id === os.tecnico_id)?.nome || 'Sem técnico';
-            return {
-                id: os.id,
-                date,
-                title: `OS #${os.numero_os}`,
-                subtitle: `Téc: ${tecnicoNome}`
-            };
-        }).filter(Boolean);
+        return osAtivas
+            .filter((os: any) => os.tecnico_id != null) // Mostrar apenas OS atribuídas a técnicos
+            .map((os: any) => {
+                if (!os.data_abertura) return null;
+                const date = new Date(os.data_abertura).toISOString().split('T')[0];
+                const tecnicoNome = tecnicos.find((t: any) => t.id === os.tecnico_id)?.nome || 'Sem técnico';
+                return {
+                    id: os.id,
+                    date,
+                    title: `OS #${os.numero_os}`,
+                    subtitle: `Téc: ${tecnicoNome}`
+                };
+            }).filter(Boolean);
     }, [osAtivas, tecnicos]);
 
     // === Dashboard KPIs ===
