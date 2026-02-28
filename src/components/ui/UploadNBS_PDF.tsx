@@ -72,110 +72,71 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
                     normalizedText.substring(normalizedText.length - 500));
             }
 
+            // ============================================================
+            // REGEX CALIBRADA COM BASE NO TEXTO REAL DO PDFjs (debug alert)
+            // Texto real começa: "6837 Empresa: MARDISA AGRO..."
+            // ============================================================
+
             // 1. Número da OS
-            // PROBLEMA: O PDFjs lê colunas fora de ordem, então datas (2026), CEPs (65962000),
-            // e outros números podem aparecer ANTES do Nº real da OS.
-            // SOLUÇÃO: Varrer todos os candidatos e filtrar por eliminação.
-
-            // Estratégia: buscar todos os números de 3-6 dígitos que NÃO sejam:
-            //   - Anos (2020-2030)
-            //   - Parte de datas (dd/mm/aaaa ou dd/mm/aa)
-            //   - Parte de horários (hh:mm)
-            //   - CEPs (8 dígitos)
-            //   - Parte de CPF/CNPJ
-
-            // Primeiro, tentar a forma mais direta: "Nº 6855" com qualquer variante Unicode
-            const matchNrDireto = normalizedText.match(/N[°ºo⁰˚]\.?\s*(\d{3,6})(?!\d)/);
-
-            if (matchNrDireto && matchNrDireto[1] && !matchNrDireto[1].match(/^20[2-3]\d$/)) {
-                extraidos.numero_os = matchNrDireto[1];
-            } else {
-                // Fallback: pegar todos os números curtos do texto e filtrar
-                const todosNumeros = [...normalizedText.matchAll(/(?<!\d[\/.-])(\d{3,6})(?![\/.-]\d)(?!\d)/g)];
-
-                for (const match of todosNumeros) {
-                    const num = match[1];
-                    // Rejeitar anos (2020-2030)
-                    if (/^20[2-3]\d$/.test(num)) continue;
-                    // Rejeitar se está dentro de uma data (olhar contexto)
-                    const idx = match.index!;
-                    const contexto = normalizedText.substring(Math.max(0, idx - 5), idx + num.length + 5);
-                    if (/\d{2}\/\d{2}\//.test(contexto) || /\/\d{4}/.test(contexto)) continue;
-                    // Rejeitar se está dentro de horário
-                    if (/\d{2}:\d{2}/.test(contexto)) continue;
-
-                    // O primeiro número "limpo" é provavelmente o Nº da OS
-                    extraidos.numero_os = num;
-                    break;
-                }
+            // O PDFjs coloca o número da OS como PRIMEIRO TOKEN do texto!
+            // Ex: "6837 Empresa: MARDISA AGRO..."
+            const matchOsInicio = normalizedText.match(/^(\d{3,6})\s/);
+            if (matchOsInicio && matchOsInicio[1]) {
+                extraidos.numero_os = matchOsInicio[1];
             }
-
-            console.log('[NBS Extractor] Nº OS capturado:', extraidos.numero_os);
 
             // 2. Tipo (Normal ou Garantia)
-            const matchTipo = normalizedText.match(/Tipo:\s*(.*?)(?:Box|Prisma|Entrada)/i);
-            if (matchTipo && matchTipo[1]) {
-                const tipoStr = matchTipo[1].toUpperCase();
-                if (tipoStr.includes('GARANTIA')) {
-                    extraidos.tipo_os = 'GARANTIA';
-                } else {
-                    extraidos.tipo_os = 'NORMAL';
-                }
+            // Texto real: "IV - Interna Dpto Vendas Tipo: as" ou "W3 - Garantia Trator Tipo:"
+            // O texto descritivo vem ANTES de "Tipo:" — procurar "Garantia" antes de "Tipo:"
+            const matchTipoArea = normalizedText.match(/(?:Box\/Prisma:?\s*)?(.*?)\s*Tipo:/i);
+            if (matchTipoArea && matchTipoArea[1]) {
+                extraidos.tipo_os = matchTipoArea[1].toUpperCase().includes('GARANTIA') ? 'GARANTIA' : 'NORMAL';
             }
 
-            // 3. Data de Abertura (Entrada)
-            // Formato visual: "Entrada: 13/02/2026 as 11:48" ou "Entrada: 07/02/2026 as 09:50"
-            // O PDFjs pode adicionar espaços extras, então ser flexível
-            const matchEntrada = normalizedText.match(/Entrada:?\s*(\d{2})\/(\d{2})\/(\d{4})\s*(?:as|às)?\s*(\d{2}):?(\d{2})/i);
-            if (matchEntrada) {
-                const [_, d, m, y, h, min] = matchEntrada;
+            // 3. Data de Abertura
+            // Texto real: "07/02/2026 Entrada: 09:50" — data ANTES de "Entrada:", hora DEPOIS
+            const matchData = normalizedText.match(/(\d{2})\/(\d{2})\/(\d{4})\s*Entrada:?\s*(\d{2}):(\d{2})/i);
+            if (matchData) {
+                const [_, d, m, y, h, min] = matchData;
                 extraidos.data_abertura = `${y}-${m}-${d}T${h}:${min}`;
-                console.log('[NBS] Data capturada:', extraidos.data_abertura);
             }
 
             // 4. Cliente
-            // Devido a problemas de colunas, capturamos após Cliente até um Checkbox ou Dado conhecido.
-            const matchCliente = normalizedText.match(/Cliente\s+([\s\S]+?)\s+(?:Cadastro|RG:|CPF:|Bairro:|R\.|Rua:|CEP:|Fone:|Celular:|\u2611|✓)/i);
+            // Texto real: "Cliente Cadastro PAULO RAMOS PEREIRA NETO"
+            // O nome vem APÓS "Cadastro" (não entre "Cliente" e "Cadastro")
+            const matchCliente = normalizedText.match(/Cadastro\s+([A-Z][A-Z\s]+?)(?:\s+RG:|\s+CPF:|\s+Fone:|\s+Bairro:|\s+R\.|\s+Rua:|\s+CEP:|\s+Celular:|\s+Email:)/i);
             if (matchCliente && matchCliente[1]) {
-                // Remove quebras e limpa excesso de espaços no nome
                 extraidos.nome_cliente_digitavel = matchCliente[1].replace(/\s+/g, ' ').trim();
             }
 
             // 5. Chassi (Nr. Fab)
-            // Como o layout é colunar "Nr.Fab Cor Motor Motorista 9AGT... AMARELO", pegamos pelo padrão puramente alfanumérico!
-            // String de 13 a 20 caracteres que possua letras e números.
-            const canditadosChassi = normalizedText.match(/[A-Z0-9]{13,25}/g);
-            if (canditadosChassi) {
-                // O chassi geralmente é a primeira string longa alfanumérica que não seja tudo número
-                const chassiValido = canditadosChassi.find(c => /[A-Z]/.test(c) && /[0-9]/.test(c));
+            // Padrão alfanumérico de 13-25 chars com letras E números
+            const candidatosChassi = normalizedText.match(/[A-Z0-9]{13,25}/g);
+            if (candidatosChassi) {
+                const chassiValido = candidatosChassi.find(c => /[A-Z]/.test(c) && /[0-9]/.test(c));
                 if (chassiValido) {
                     extraidos.chassi = chassiValido;
                 }
             }
 
             // 6. Produto / Modelo
-            const matchModelo = normalizedText.match(/Produto\/Modelo:\s*(.*?)(?:\s+Blindado|\s+KM:|\s+Motor:|\s+Hr:|\s+Ano\/Modelo:)/i);
+            const matchModelo = normalizedText.match(/Produto\/Modelo:?\s*(.*?)(?:\s+Blindado|\s+KM:|\s+Motor:|\s+Hr:|\s+Ano\/Modelo:)/i);
             if (matchModelo && matchModelo[1]) {
                 extraidos.modelo_maquina = matchModelo[1].trim();
             }
 
             // 7. Descrição do Problema
-            // Formato 1: "CLIENTE ALEGA ROMPIMENTO DA ESTRUTURA DA CABINE"
-            // Formato 2: "VERIFICAR FALHA NO SISTEMA DE TRATAMENTO" (sem CLIENTE ALEGA)
-            // Formato 3: Qualquer texto entre a área de Concessionária e a tabela de Serviços
+            // Formato 1: "01 CLIENTE ALEGA ROMPIMENTO DA ESTRUTURA..."
+            // Formato 2: "01 VERIFICAR FALHA NO SISTEMA DE TRATAMENTO..."
+            // Buscar texto entre "01 " e um delimiter de tabela
+            const matchDesc1 = normalizedText.match(/\b01\s+(CLIENTE ALEGA\s+[\s\S]*?)(?:\s+It\s+Servi|\s+0\d\s+\d{5,}|\s+Descri|\s+Fechamento|\s+C.digo)/i);
+            const matchDesc2 = normalizedText.match(/\b01\s+([A-Z][A-Z\s]{5,200}?)(?:\s+It\s+Servi|\s+0\d\s+\d{5,}|\s+Descri|\s+Fechamento|\s+C.digo)/i);
 
-            const matchDescricao = normalizedText.match(/(?:\d{2}\s+)CLIENTE ALEGA\s+([\s\S]*?)\s+(?:It\s+Servi|0\d\s+Servi|Descri.{1,5}o do Servi|Fechamento)/i);
-            if (matchDescricao && matchDescricao[1]) {
-                extraidos.descricao_problema = `CLIENTE ALEGA ${matchDescricao[1].trim()}`;
-            } else {
-                // Formato genérico: buscar o texto entre o número "01" e a tabela de serviço
-                // No PDF: "01 VERIFICAR FALHA NO SISTEMA DE TRATAMENTO It Serviço..."
-                const fallbackDesc = normalizedText.match(/(?:^|\s)(\d{2})\s+([A-Z][A-Z\s]{8,200}?)\s+(?:It\s+Servi|0\d\s+Servi|Descri.{1,5}o do Servi|Fechamento|C.digo)/i);
-                if (fallbackDesc && fallbackDesc[2]) {
-                    extraidos.descricao_problema = fallbackDesc[2].trim();
-                }
+            if (matchDesc1 && matchDesc1[1]) {
+                extraidos.descricao_problema = matchDesc1[1].trim();
+            } else if (matchDesc2 && matchDesc2[1]) {
+                extraidos.descricao_problema = matchDesc2[1].trim();
             }
-            console.log('[NBS] Descrição capturada:', extraidos.descricao_problema);
 
             // 8. Composição Estimada (Fechamento)
             // CUIDADO: A tabela de serviços tem colunas "T P" (quantidade=1,00) e "Valor Final" (350,00).
