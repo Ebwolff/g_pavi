@@ -89,8 +89,6 @@ const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
     // Almoxarifado: gestão de peças e estoque
     ALMOXARIFADO: [
         '/almoxarifado',
-        '/os/lista',
-        '/compras',
         '/configuracoes',
     ],
 
