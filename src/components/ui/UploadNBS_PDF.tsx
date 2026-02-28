@@ -53,24 +53,7 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
 
             const extraidos: ExtractedNBS = {};
 
-            // DEBUG TEMPORÁRIO: 3 popups para ver o texto em seções
-            alert('[DEBUG 1/3] INÍCIO do texto (500 chars):\n\n' + normalizedText.substring(0, 500));
 
-            const idxFech = normalizedText.indexOf('echamento');
-            const idxServi = normalizedText.indexOf('ervi');
-            alert('[DEBUG 2/3] BUSCA por palavras-chave:\n' +
-                'Posição de "echamento": ' + idxFech + '\n' +
-                'Posição de "ervi": ' + idxServi + '\n' +
-                'Tamanho total: ' + normalizedText.length + '\n\n' +
-                'MEIO do texto (chars 500-1000):\n' + normalizedText.substring(500, 1000));
-
-            if (idxFech > 0) {
-                alert('[DEBUG 3/3] ZONA do Fechamento (200 chars ao redor):\n\n' +
-                    normalizedText.substring(Math.max(0, idxFech - 50), idxFech + 200));
-            } else {
-                alert('[DEBUG 3/3] "Fechamento" NAO encontrado!\n\nÚltimos 500 chars:\n' +
-                    normalizedText.substring(normalizedText.length - 500));
-            }
 
             // ============================================================
             // REGEX CALIBRADA COM BASE NO TEXTO REAL DO PDFjs (debug alert)
@@ -139,59 +122,55 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             }
 
             // 8. Composição Estimada (Fechamento)
-            // CUIDADO: A tabela de serviços tem colunas "T P" (quantidade=1,00) e "Valor Final" (350,00).
-            // O PDFjs achata tudo e "MAO DE OBRA MECANICA 1,00 350,00" faz a regex pegar 1,00 errado.
-            // SOLUÇÃO: Focar na seção "Fechamento" no rodapé, onde os totais estão isolados.
-            // Usar "." no lugar de "ç" porque o PDFjs pode renderizar com encoding diferente.
+            // DESCOBERTA via debug: O PDFjs separa LABELS e VALORES em blocos distintos!
+            // Texto real: "...Serviços: Fechamento Serviços+Itens: Descontos: Total: 31.657,78 0,00 31.307,78 0,00 31.307,78 350,00 0,00 350,00..."
+            // ESTRATÉGIA: Pegar TODOS os valores monetários após "Fechamento" e usar matemática.
 
-            console.log('[NBS Extractor] TEXTO COMPLETO (últimos 800 chars):', normalizedText.substring(normalizedText.length - 800));
-
-            const parseBR = (str: string): number | null => {
-                const clean = str.replace(/\./g, '').replace(',', '.');
-                const val = parseFloat(clean);
-                return isNaN(val) ? null : val;
+            const parseBR = (str: string): number => {
+                return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
             };
 
-            // Mão de Obra: buscar "Serviços: 350,00" na zona de Fechamento
-            // IMPORTANTE: "Serviços" NÃO deve casar com "Serviços+Itens" (que é o total combinado)
-            // Usar negative lookahead (?!\+) para rejeitar "Serviços+"
-            const regexServicos = [
-                /Fechamento\s+Servi.os(?!\+):?\s*([\d.,]+)/i,
-                /Servi.os(?!\+):?\s*([\d.,]+(?:,\d{2}))/i,
-            ];
+            const idxFechamento = normalizedText.indexOf('echamento');
+            if (idxFechamento > 0) {
+                // Pegar o texto após Fechamento e extrair todos os valores monetários
+                const textoAposFechamento = normalizedText.substring(idxFechamento);
+                const todosValores = textoAposFechamento.match(/\d[\d.]*,\d{2}/g);
 
-            for (const rx of regexServicos) {
-                const m = normalizedText.match(rx);
-                if (m && m[1]) {
-                    const val = parseBR(m[1]);
-                    if (val !== null && val > 0) {
-                        extraidos.valor_mao_de_obra = val.toString();
-                        console.log('[NBS] Mão de Obra capturado:', val, 'via regex:', rx.source);
-                        break;
+                if (todosValores && todosValores.length > 0) {
+                    // Converter para números e pegar valores únicos não-zero
+                    const parsed = todosValores.map(v => parseBR(v));
+                    const unicos = [...new Set(parsed)].filter(v => v > 0).sort((a, b) => a - b);
+
+                    console.log('[NBS] Valores após Fechamento:', parsed);
+                    console.log('[NBS] Valores únicos não-zero:', unicos);
+
+                    if (unicos.length >= 2) {
+                        // Se há 3 valores: menor=mão de obra, médio=peças, maior=total
+                        // Se há 2 valores: o menor pode ser mão de obra ou peças
+                        // Verificar se A + B = C (total)
+                        const maior = unicos[unicos.length - 1];
+                        const menores = unicos.slice(0, -1);
+                        const soma = menores.reduce((a, b) => a + b, 0);
+
+                        if (Math.abs(soma - maior) < 0.01) {
+                            // A + B = Total! O menor é mão de obra, o segundo é peças
+                            extraidos.valor_mao_de_obra = menores[0].toString();
+                            if (menores.length > 1) {
+                                extraidos.valor_pecas = menores[1].toString();
+                            }
+                        } else {
+                            // Não é soma, pegar os dois menores como MdO e Peças
+                            extraidos.valor_mao_de_obra = unicos[0].toString();
+                            extraidos.valor_pecas = unicos.length > 1 ? unicos[1].toString() : '0';
+                        }
+                    } else if (unicos.length === 1) {
+                        // Só 1 valor não-zero: provavelmente só mão de obra
+                        extraidos.valor_mao_de_obra = unicos[0].toString();
                     }
                 }
             }
 
-            // Peças (Itens): buscar "Itens: 0,00"
-            const regexItens = [
-                /Itens:?\s*([\d.,]+(?:,\d{2}))/i,
-                /Servi.os\+?Itens:?\s*([\d.,]+(?:,\d{2}))/i,
-                /Pe.as:?\s*([\d.,]+(?:,\d{2}))/i,
-            ];
-
-            for (const rx of regexItens) {
-                const m = normalizedText.match(rx);
-                if (m && m[1]) {
-                    const val = parseBR(m[1]);
-                    if (val !== null) {
-                        extraidos.valor_pecas = val.toString();
-                        console.log('[NBS] Peças capturado:', val, 'via regex:', rx.source);
-                        break;
-                    }
-                }
-            }
-
-            console.log('[NBS Extractor] Valores finais:', { maoDeObra: extraidos.valor_mao_de_obra, pecas: extraidos.valor_pecas });
+            console.log('[NBS] Valores finais:', { maoDeObra: extraidos.valor_mao_de_obra, pecas: extraidos.valor_pecas });
 
             if (Object.keys(extraidos).length === 0) {
                 setError("Não foi possível extrair dados estruturados deste PDF (formato NBS não detectado).");
