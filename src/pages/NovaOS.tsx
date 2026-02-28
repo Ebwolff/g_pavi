@@ -60,6 +60,10 @@ export function NovaOS() {
             ...(dados.modelo_maquina && { modelo_maquina: dados.modelo_maquina }),
             ...(dados.chassi && { chassi: dados.chassi }),
             ...(dados.descricao_problema && { descricao_problema: dados.descricao_problema }),
+            ...(dados.data_abertura && { data_abertura: dados.data_abertura }),
+            ...(dados.tipo_os && { tipo_os: dados.tipo_os }),
+            ...(dados.valor_mao_de_obra && { valor_mao_de_obra: dados.valor_mao_de_obra }),
+            ...(dados.valor_pecas && { valor_pecas: dados.valor_pecas }),
         }));
     };
 

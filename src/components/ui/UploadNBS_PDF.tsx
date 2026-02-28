@@ -14,6 +14,8 @@ export interface ExtractedNBS {
     descricao_problema?: string;
     data_abertura?: string;
     tipo_os?: 'NORMAL' | 'GARANTIA';
+    valor_mao_de_obra?: string;
+    valor_pecas?: string;
 }
 
 interface UploadNBS_PDFProps {
@@ -157,6 +159,33 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
                     extraidos.descricao_problema = fallbackDesc[1].trim();
                 }
             }
+
+            // 8. Composição Estimada (Fechamento)
+            // O PDF tem: "Fechamento Serviços: 350,00 ... Itens: 0,00"
+            // Formato brasileiro: 350,00 ou 1.350,00
+            const matchServicos = normalizedText.match(/Servi[çc]os:?\s*([\d.,]+)/i);
+            if (matchServicos && matchServicos[1]) {
+                // Converter formato BR (1.350,00) para formato JS (1350.00)
+                const valorBR = matchServicos[1];
+                const valorJS = valorBR.replace(/\./g, '').replace(',', '.');
+                const parsed = parseFloat(valorJS);
+                if (!isNaN(parsed)) {
+                    extraidos.valor_mao_de_obra = parsed.toString();
+                }
+            }
+
+            const matchItens = normalizedText.match(/Itens:?\s*([\d.,]+)/i);
+            if (matchItens && matchItens[1]) {
+                const valorBR = matchItens[1];
+                const valorJS = valorBR.replace(/\./g, '').replace(',', '.');
+                const parsed = parseFloat(valorJS);
+                if (!isNaN(parsed)) {
+                    extraidos.valor_pecas = parsed.toString();
+                }
+            }
+
+            console.log('[NBS Extractor] Valores:', { maoDeObra: extraidos.valor_mao_de_obra, pecas: extraidos.valor_pecas });
+
             if (Object.keys(extraidos).length === 0) {
                 setError("Não foi possível extrair dados estruturados deste PDF (formato NBS não detectado).");
             } else {
