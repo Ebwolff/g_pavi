@@ -12,6 +12,8 @@ export interface ExtractedNBS {
     modelo_maquina?: string;
     chassi?: string;
     descricao_problema?: string;
+    data_abertura?: string;
+    tipo_os?: 'NORMAL' | 'GARANTIA';
 }
 
 interface UploadNBS_PDFProps {
@@ -49,57 +51,80 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
 
             const extraidos: ExtractedNBS = {};
 
-            // 1. Extração do Nº da OS
-            // O texto contém a palavra "ORDEM DE SERVIÇO" seguida por "Nº 6855" (com espaço) ou "Nº6855"
-            // Capturamos a string numérica que vem depois.
-            const matchOS = normalizedText.match(/N[°ºo]?\s?(\d{3,10})/i);
+            // 1. Número da OS
+            // O PDF pode separar a label do valor. Vamos buscar a primeira ocorrência segura.
+            const matchOS = normalizedText.match(/ORDEM DE SERVIÇO[\s\S]{0,50}?N[°ºo]?\s*(\d{3,10})/i);
             if (matchOS && matchOS[1]) {
                 extraidos.numero_os = matchOS[1];
+            } else {
+                // Tenta encontrar um Nº seguido de 3 a 10 digitos que seja o primeiro grande numero
+                const fallbackOS = normalizedText.match(/N[°ºo]?\s*(\d{4,10})/i);
+                if (fallbackOS && fallbackOS[1]) {
+                    extraidos.numero_os = fallbackOS[1];
+                }
             }
 
-            // 2. Extração do Cliente
-            // Texto do NBS no PDF costuma ter "Cliente FRANCISCO CRUZ DE ASSIS Cadastro RG:" 
-            // Uma Regex segura pega tudo APÓS a palavra "Cliente " (sem dois pontos) até a palavra "Cadastro" ou "RG:" ou "CPF:"
-            const matchCliente = normalizedText.match(/Cliente\s+([\s\S]+?)\s+(?:Cadastro|RG:|CPF:|Bairro:|R\.|Rua:|CEP:)/i);
+            // 2. Tipo (Normal ou Garantia)
+            const matchTipo = normalizedText.match(/Tipo:\s*(.*?)(?:Box|Prisma|Entrada)/i);
+            if (matchTipo && matchTipo[1]) {
+                const tipoStr = matchTipo[1].toUpperCase();
+                if (tipoStr.includes('GARANTIA')) {
+                    extraidos.tipo_os = 'GARANTIA';
+                } else {
+                    extraidos.tipo_os = 'NORMAL';
+                }
+            }
+
+            // 3. Data de Abertura (Entrada)
+            // Formato visual: "Entrada: 13/02/2026 as 11:48"
+            const matchEntrada = normalizedText.match(/Entrada:\s*(\d{2})\/(\d{2})\/(\d{4})\s*as\s*(\d{2}):(\d{2})/i);
+            if (matchEntrada) {
+                const [_, d, m, y, h, min] = matchEntrada;
+                extraidos.data_abertura = `${y}-${m}-${d}T${h}:${min}`;
+            } else {
+                const matchEntrada2 = normalizedText.match(/Entrada:\s*(\d{2})\/(\d{2})\/(\d{4})\s*(\d{2}):(\d{2})/i);
+                if (matchEntrada2) {
+                    const [_, d, m, y, h, min] = matchEntrada2;
+                    extraidos.data_abertura = `${y}-${m}-${d}T${h}:${min}`;
+                }
+            }
+
+            // 4. Cliente
+            // Devido a problemas de colunas, capturamos após Cliente até um Checkbox ou Dado conhecido.
+            const matchCliente = normalizedText.match(/Cliente\s+([\s\S]+?)\s+(?:Cadastro|RG:|CPF:|Bairro:|R\.|Rua:|CEP:|Fone:|Celular:|\u2611|✓)/i);
             if (matchCliente && matchCliente[1]) {
                 // Remove quebras e limpa excesso de espaços no nome
                 extraidos.nome_cliente_digitavel = matchCliente[1].replace(/\s+/g, ' ').trim();
             }
 
-            // 3. Extração do Produto/Modelo
-            // Texto no PDF da imagem: "Produto/Modelo: VALTRA / TRATOR / TRATOR AGRICOLA A800R 4X4 Blindado"
-            // A palavra "Blindado" ou "KM:" marca o fim do nome do modelo
-            const matchModelo = normalizedText.match(/Produto\/Modelo:\s*(.*?)(?:\s+Blindado|\s+KM:|\s+Motor:|\s+Hr:)/i);
+            // 5. Chassi (Nr. Fab)
+            // Como o layout é colunar "Nr.Fab Cor Motor Motorista 9AGT... AMARELO", pegamos pelo padrão puramente alfanumérico!
+            // String de 13 a 20 caracteres que possua letras e números.
+            const canditadosChassi = normalizedText.match(/[A-Z0-9]{13,25}/g);
+            if (canditadosChassi) {
+                // O chassi geralmente é a primeira string longa alfanumérica que não seja tudo número
+                const chassiValido = canditadosChassi.find(c => /[A-Z]/.test(c) && /[0-9]/.test(c));
+                if (chassiValido) {
+                    extraidos.chassi = chassiValido;
+                }
+            }
+
+            // 6. Produto / Modelo
+            const matchModelo = normalizedText.match(/Produto\/Modelo:\s*(.*?)(?:\s+Blindado|\s+KM:|\s+Motor:|\s+Hr:|\s+Ano\/Modelo:)/i);
             if (matchModelo && matchModelo[1]) {
                 extraidos.modelo_maquina = matchModelo[1].trim();
             }
 
-            // 4. Extração do Chassi (Nr. Fab)
-            // Texto no PDF da imagem: "Nr.Fab 9AGT2006HRC022026 Motor: RMD482039"
-            const matchChassi = normalizedText.match(/Nr\.?\s*Fab:?\s*([A-Z0-9]+)/i);
-            if (matchChassi && matchChassi[1]) {
-                extraidos.chassi = matchChassi[1].trim();
-            }
-
-            // 5. Tratamento Especial de OS: às vezes o PDF quebra os dois IDs:
-            // "ORDEM DE SERVIÇO Nº 6855" ... vamos olhar pela palavra chave exata
-            if (!extraidos.numero_os) {
-                const fallbackOS = normalizedText.match(/ORDEM DE SERVIÇO\s*.*?(\d{3,10})/i);
-                if (fallbackOS && fallbackOS[1]) extraidos.numero_os = fallbackOS[1];
-            }
-
-            // 6. Extração da Descrição do Problema
-            // Na imagem, aparece algo como: "01 CLIENTE ALEGA ROMPIMENTO DA ESTRUTURA DA CABINE 01 Serviço ..." 
-            // Cuidado: capturar até encontrar a tabela de Serviços ("It Serviço Descrição do Serviço")
-            const matchDescricao = normalizedText.match(/CLIENTE ALEGA\s+(.*?)\s+(?:01\s+Serviço|Serviço\s+Descrição|It\s+Serviço|Fechamento)/i);
-
+            // 7. Descrição do Problema
+            // "CLIENTE ALEGA ..."
+            const matchDescricao = normalizedText.match(/(?:(?:[0-9]{2}\s+)|^)CLIENTE ALEGA\s+([\s\S]*?)\s+(?:It\s+Serviço|0\d\s+Serviço|Descrição do Serviço|Fechamento)/i);
             if (matchDescricao && matchDescricao[1]) {
-                extraidos.descricao_problema = matchDescricao[1].trim();
+                extraidos.descricao_problema = `CLIENTE ALEGA ${matchDescricao[1].trim()}`;
             } else {
-                // Tenta capturar qualquer frase no meio que pareça um relato antes da tabela de Serviços
-                const fallbackDesc = normalizedText.match(/(?:Bairro:[\sA-Z-]+|\d{2}\/\d{2}\/\d{4})\s*(\d{2}\s+[A-Z\s]+?)\s+(?:It\s+Serviço|Fechamento)/i);
+                // Caso falhe com CLIENTE ALEGA, tenta varrer algo antes de "It Serviço" e após Concessionária
+                const fallbackDesc = normalizedText.match(/Concessionária Vendedora[\s\S]*?(?:Bairro:|CEP:[\sA-Z-]+)?\s+([A-Z0-9\s.,;-]{10,200}?)\s+(?:It\s+Serviço|0\d\s+Serviço|Descrição do Serviço)/i);
                 if (fallbackDesc && fallbackDesc[1]) {
-                    extraidos.descricao_problema = fallbackDesc[1].replace(/^\d{2}\s+/, '').trim();
+                    extraidos.descricao_problema = fallbackDesc[1].trim();
                 }
             }
             if (Object.keys(extraidos).length === 0) {
