@@ -48,13 +48,15 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
                 extractedTextStr += pageText + ' ';
             }
 
-            // Normaliza espaços extras
-            const normalizedText = extractedTextStr.replace(/\s+/g, ' ').trim();
+            // Normaliza espaços extras E normaliza Unicode (NFC) para resolver encoding de ç, ã, etc.
+            const normalizedText = extractedTextStr.replace(/\s+/g, ' ').trim().normalize('NFC');
 
             const extraidos: ExtractedNBS = {};
 
-            // DEBUG: logar o texto cru extraído para calibrar regex
-            console.log('[NBS Extractor] Texto extraído:', normalizedText.substring(0, 500));
+            // DEBUG: logar o texto COMPLETO para calibrar regex definitivamente
+            console.log('[NBS Extractor] ===== TEXTO COMPLETO =====');
+            console.log(normalizedText);
+            console.log('[NBS Extractor] ===== FIM DO TEXTO =====');
 
             // 1. Número da OS
             // PROBLEMA: O PDFjs lê colunas fora de ordem, então datas (2026), CEPs (65962000),
