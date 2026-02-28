@@ -55,21 +55,44 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             console.log('[NBS Extractor] Texto extraído:', normalizedText.substring(0, 500));
 
             // 1. Número da OS
-            // O PDF tem "ORDEM DE SERVIÇO" e separadamente "Nº 6855".
-            // CUIDADO: O CEP (65962000) também começa com dígitos e pode estar perto de um "N".
-            // Solução: buscar especificamente "Nº" (com caractere º) seguido de 3-6 dígitos (OS nunca tem 8+).
+            // PROBLEMA: O PDFjs lê colunas fora de ordem, então datas (2026), CEPs (65962000),
+            // e outros números podem aparecer ANTES do Nº real da OS.
+            // SOLUÇÃO: Varrer todos os candidatos e filtrar por eliminação.
 
-            // Estratégia A: Buscar "Nº" com o caractere especial seguido de número curto (a OS)
-            const matchOS_A = normalizedText.match(/N[°º]\s*(\d{3,6})/);
+            // Estratégia: buscar todos os números de 3-6 dígitos que NÃO sejam:
+            //   - Anos (2020-2030)
+            //   - Parte de datas (dd/mm/aaaa ou dd/mm/aa)
+            //   - Parte de horários (hh:mm)
+            //   - CEPs (8 dígitos)
+            //   - Parte de CPF/CNPJ
 
-            // Estratégia B: Buscar perto de "ORDEM DE SERVIÇO"
-            const matchOS_B = normalizedText.match(/ORDEM DE SERVI[CÇ]O[\s\S]{0,80}?(\d{3,6})\b/i);
+            // Primeiro, tentar a forma mais direta: "Nº 6855" com qualquer variante Unicode
+            const matchNrDireto = normalizedText.match(/N[°ºo⁰˚]\.?\s*(\d{3,6})(?!\d)/);
 
-            if (matchOS_A && matchOS_A[1]) {
-                extraidos.numero_os = matchOS_A[1];
-            } else if (matchOS_B && matchOS_B[1]) {
-                extraidos.numero_os = matchOS_B[1];
+            if (matchNrDireto && matchNrDireto[1] && !matchNrDireto[1].match(/^20[2-3]\d$/)) {
+                extraidos.numero_os = matchNrDireto[1];
+            } else {
+                // Fallback: pegar todos os números curtos do texto e filtrar
+                const todosNumeros = [...normalizedText.matchAll(/(?<!\d[\/.-])(\d{3,6})(?![\/.-]\d)(?!\d)/g)];
+
+                for (const match of todosNumeros) {
+                    const num = match[1];
+                    // Rejeitar anos (2020-2030)
+                    if (/^20[2-3]\d$/.test(num)) continue;
+                    // Rejeitar se está dentro de uma data (olhar contexto)
+                    const idx = match.index!;
+                    const contexto = normalizedText.substring(Math.max(0, idx - 5), idx + num.length + 5);
+                    if (/\d{2}\/\d{2}\//.test(contexto) || /\/\d{4}/.test(contexto)) continue;
+                    // Rejeitar se está dentro de horário
+                    if (/\d{2}:\d{2}/.test(contexto)) continue;
+
+                    // O primeiro número "limpo" é provavelmente o Nº da OS
+                    extraidos.numero_os = num;
+                    break;
+                }
             }
+
+            console.log('[NBS Extractor] Nº OS capturado:', extraidos.numero_os);
 
             // 2. Tipo (Normal ou Garantia)
             const matchTipo = normalizedText.match(/Tipo:\s*(.*?)(?:Box|Prisma|Entrada)/i);
