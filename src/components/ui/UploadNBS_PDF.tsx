@@ -51,17 +51,24 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
 
             const extraidos: ExtractedNBS = {};
 
+            // DEBUG: logar o texto cru extraído para calibrar regex
+            console.log('[NBS Extractor] Texto extraído:', normalizedText.substring(0, 500));
+
             // 1. Número da OS
-            // O PDF pode separar a label do valor. Vamos buscar a primeira ocorrência segura.
-            const matchOS = normalizedText.match(/ORDEM DE SERVIÇO[\s\S]{0,50}?N[°ºo]?\s*(\d{3,10})/i);
-            if (matchOS && matchOS[1]) {
-                extraidos.numero_os = matchOS[1];
-            } else {
-                // Tenta encontrar um Nº seguido de 3 a 10 digitos que seja o primeiro grande numero
-                const fallbackOS = normalizedText.match(/N[°ºo]?\s*(\d{4,10})/i);
-                if (fallbackOS && fallbackOS[1]) {
-                    extraidos.numero_os = fallbackOS[1];
-                }
+            // O PDF tem "ORDEM DE SERVIÇO" e separadamente "Nº 6855".
+            // CUIDADO: O CEP (65962000) também começa com dígitos e pode estar perto de um "N".
+            // Solução: buscar especificamente "Nº" (com caractere º) seguido de 3-6 dígitos (OS nunca tem 8+).
+
+            // Estratégia A: Buscar "Nº" com o caractere especial seguido de número curto (a OS)
+            const matchOS_A = normalizedText.match(/N[°º]\s*(\d{3,6})/);
+
+            // Estratégia B: Buscar perto de "ORDEM DE SERVIÇO"
+            const matchOS_B = normalizedText.match(/ORDEM DE SERVI[CÇ]O[\s\S]{0,80}?(\d{3,6})\b/i);
+
+            if (matchOS_A && matchOS_A[1]) {
+                extraidos.numero_os = matchOS_A[1];
+            } else if (matchOS_B && matchOS_B[1]) {
+                extraidos.numero_os = matchOS_B[1];
             }
 
             // 2. Tipo (Normal ou Garantia)
