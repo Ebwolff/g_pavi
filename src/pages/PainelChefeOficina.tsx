@@ -32,6 +32,7 @@ import { AssignTechnicianModal } from '@/components/ui/AssignTechnicianModal';
 import { ModalCadastrarTecnico } from '@/components/ui/ModalCadastrarTecnico';
 import { Card } from '@/components/ui/Card';
 import { ModalDetalhesTecnico } from '@/components/ui/ModalDetalhesTecnico';
+import { CalendarWidget } from '@/components/dashboard/CalendarWidget';
 
 interface OSNaoAtribuida {
     id: string;
@@ -140,6 +141,12 @@ const PainelChefeOficina: React.FC = () => {
         quantidade: Number(count),
         percentual: Math.round((Number(count) / (osAtivas.length || 1)) * 100)
     })).sort((a, b) => b.quantidade - a.quantidade);
+
+    // Datas com OS ativas para o Calendário (usando a data de abertura como marco da tarefa)
+    const datasComTarefas = Array.from(new Set(osAtivas.map((os: any) => {
+        if (!os.data_abertura) return '';
+        return new Date(os.data_abertura).toISOString().split('T')[0];
+    }).filter(d => d !== '')));
 
     // === Dashboard KPIs ===
     const osFaturadas = todasOS.filter((os: any) => os.status_atual === 'FATURADA');
@@ -370,8 +377,8 @@ const PainelChefeOficina: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Distribuição de Demanda (visão compacta no dashboard) */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Distribuição de Demanda e OS Críticas */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="glass-card-enterprise p-8 rounded-3xl shadow-2xl border border-[var(--border-subtle)] bg-[var(--surface)]">
                                 <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
                                     <PieChart className="w-5 h-5 text-amber-500" />
@@ -433,6 +440,9 @@ const PainelChefeOficina: React.FC = () => {
                                     )}
                                 </div>
                             </div>
+
+                            {/* Calendário de Operações */}
+                            <CalendarWidget datesWithTasks={datasComTarefas} />
                         </div>
                     </div>
                 )}
