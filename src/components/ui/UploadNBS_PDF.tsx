@@ -161,30 +161,62 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             }
 
             // 8. Composição Estimada (Fechamento)
-            // O PDF tem: "Fechamento Serviços: 350,00 ... Itens: 0,00"
-            // Formato brasileiro: 350,00 ou 1.350,00
-            const matchServicos = normalizedText.match(/Servi[çc]os:?\s*([\d.,]+)/i);
-            if (matchServicos && matchServicos[1]) {
-                // Converter formato BR (1.350,00) para formato JS (1350.00)
-                const valorBR = matchServicos[1];
-                const valorJS = valorBR.replace(/\./g, '').replace(',', '.');
-                const parsed = parseFloat(valorJS);
-                if (!isNaN(parsed)) {
-                    extraidos.valor_mao_de_obra = parsed.toString();
+            // O PDFjs pode achatar a tabela de "Fechamento" de várias formas.
+            // Log expandido para debug:
+            console.log('[NBS Extractor] TEXTO COMPLETO (últimos 600 chars):', normalizedText.substring(normalizedText.length - 600));
+
+            // Helper: converter "350,00" ou "1.350,00" para float
+            const parseBR = (str: string): number | null => {
+                const clean = str.replace(/\./g, '').replace(',', '.');
+                const val = parseFloat(clean);
+                return isNaN(val) ? null : val;
+            };
+
+            // Estratégia 1: "Fechamento Serviços: 350,00"
+            // Estratégia 2: "Serviços: 350,00" (sem Fechamento antes)
+            // Estratégia 3: "Valor Final" na tabela de serviços
+            // Estratégia 4: Buscar padrão "350,00" ou "350.00" perto de "Serviços" ou "MAO DE OBRA"
+
+            // Mão de Obra (Serviços)
+            const regexServicos = [
+                /Fechamento\s+Servi[çc]os:?\s*([\d.,]+)/i,
+                /Servi[çc]os:?\s*([\d.,]+)/i,
+                /M[AÃ]O DE OBRA[A-Z\s]*?\s*([\d.,]+)/i,
+                /Valor Final\s*([\d.,]+)/i,
+            ];
+
+            for (const rx of regexServicos) {
+                const m = normalizedText.match(rx);
+                if (m && m[1]) {
+                    const val = parseBR(m[1]);
+                    if (val !== null && val > 0) {
+                        extraidos.valor_mao_de_obra = val.toString();
+                        console.log('[NBS] Mão de Obra capturado:', val, 'via regex:', rx.source);
+                        break;
+                    }
                 }
             }
 
-            const matchItens = normalizedText.match(/Itens:?\s*([\d.,]+)/i);
-            if (matchItens && matchItens[1]) {
-                const valorBR = matchItens[1];
-                const valorJS = valorBR.replace(/\./g, '').replace(',', '.');
-                const parsed = parseFloat(valorJS);
-                if (!isNaN(parsed)) {
-                    extraidos.valor_pecas = parsed.toString();
+            // Peças (Itens)
+            const regexItens = [
+                /Itens:?\s*([\d.,]+)/i,
+                /Servi[çc]os\+?Itens:?\s*([\d.,]+)/i,
+                /Pe[cç]as:?\s*([\d.,]+)/i,
+            ];
+
+            for (const rx of regexItens) {
+                const m = normalizedText.match(rx);
+                if (m && m[1]) {
+                    const val = parseBR(m[1]);
+                    if (val !== null) {
+                        extraidos.valor_pecas = val.toString();
+                        console.log('[NBS] Peças capturado:', val, 'via regex:', rx.source);
+                        break;
+                    }
                 }
             }
 
-            console.log('[NBS Extractor] Valores:', { maoDeObra: extraidos.valor_mao_de_obra, pecas: extraidos.valor_pecas });
+            console.log('[NBS Extractor] Valores finais:', { maoDeObra: extraidos.valor_mao_de_obra, pecas: extraidos.valor_pecas });
 
             if (Object.keys(extraidos).length === 0) {
                 setError("Não foi possível extrair dados estruturados deste PDF (formato NBS não detectado).");
