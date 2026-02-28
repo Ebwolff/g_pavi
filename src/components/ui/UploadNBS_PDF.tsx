@@ -53,9 +53,24 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
 
             const extraidos: ExtractedNBS = {};
 
-            // DEBUG TEMPORÁRIO: popup com o texto para o usuário copiar e enviar
-            // Vai aparecer como uma janela popup no navegador
-            alert('[DEBUG NBS] Texto extraído (últimos 500 chars):\n\n' + normalizedText.substring(normalizedText.length - 500));
+            // DEBUG TEMPORÁRIO: 3 popups para ver o texto em seções
+            alert('[DEBUG 1/3] INÍCIO do texto (500 chars):\n\n' + normalizedText.substring(0, 500));
+
+            const idxFech = normalizedText.indexOf('echamento');
+            const idxServi = normalizedText.indexOf('ervi');
+            alert('[DEBUG 2/3] BUSCA por palavras-chave:\n' +
+                'Posição de "echamento": ' + idxFech + '\n' +
+                'Posição de "ervi": ' + idxServi + '\n' +
+                'Tamanho total: ' + normalizedText.length + '\n\n' +
+                'MEIO do texto (chars 500-1000):\n' + normalizedText.substring(500, 1000));
+
+            if (idxFech > 0) {
+                alert('[DEBUG 3/3] ZONA do Fechamento (200 chars ao redor):\n\n' +
+                    normalizedText.substring(Math.max(0, idxFech - 50), idxFech + 200));
+            } else {
+                alert('[DEBUG 3/3] "Fechamento" NAO encontrado!\n\nÚltimos 500 chars:\n' +
+                    normalizedText.substring(normalizedText.length - 500));
+            }
 
             // 1. Número da OS
             // PROBLEMA: O PDFjs lê colunas fora de ordem, então datas (2026), CEPs (65962000),
