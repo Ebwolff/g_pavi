@@ -161,28 +161,25 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             }
 
             // 8. Composição Estimada (Fechamento)
-            // O PDFjs pode achatar a tabela de "Fechamento" de várias formas.
-            // Log expandido para debug:
-            console.log('[NBS Extractor] TEXTO COMPLETO (últimos 600 chars):', normalizedText.substring(normalizedText.length - 600));
+            // CUIDADO: A tabela de serviços tem colunas "T P" (quantidade=1,00) e "Valor Final" (350,00).
+            // O PDFjs achata tudo e "MAO DE OBRA MECANICA 1,00 350,00" faz a regex pegar 1,00 errado.
+            // SOLUÇÃO: Focar na seção "Fechamento" no rodapé, onde os totais estão isolados.
+            // Usar "." no lugar de "ç" porque o PDFjs pode renderizar com encoding diferente.
 
-            // Helper: converter "350,00" ou "1.350,00" para float
+            console.log('[NBS Extractor] TEXTO COMPLETO (últimos 800 chars):', normalizedText.substring(normalizedText.length - 800));
+
             const parseBR = (str: string): number | null => {
                 const clean = str.replace(/\./g, '').replace(',', '.');
                 const val = parseFloat(clean);
                 return isNaN(val) ? null : val;
             };
 
-            // Estratégia 1: "Fechamento Serviços: 350,00"
-            // Estratégia 2: "Serviços: 350,00" (sem Fechamento antes)
-            // Estratégia 3: "Valor Final" na tabela de serviços
-            // Estratégia 4: Buscar padrão "350,00" ou "350.00" perto de "Serviços" ou "MAO DE OBRA"
-
-            // Mão de Obra (Serviços)
+            // Mão de Obra: buscar "Serviços: 350,00" na zona de Fechamento
+            // Usar "." como coringa para o "ç" que pode ter encoding diferente
             const regexServicos = [
-                /Fechamento\s+Servi[çc]os:?\s*([\d.,]+)/i,
-                /Servi[çc]os:?\s*([\d.,]+)/i,
-                /M[AÃ]O DE OBRA[A-Z\s]*?\s*([\d.,]+)/i,
-                /Valor Final\s*([\d.,]+)/i,
+                /Fechamento\s+Servi.os:?\s*([\d.,]+)/i,
+                /Servi.os:?\s*([\d.,]+(?:,\d{2}))/i,   // Exige formato x,xx para evitar pegar IDs
+                /Total:?\s*([\d.,]+(?:,\d{2}))/i,       // Último recurso: Total
             ];
 
             for (const rx of regexServicos) {
@@ -197,11 +194,11 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
                 }
             }
 
-            // Peças (Itens)
+            // Peças (Itens): buscar "Itens: 0,00"
             const regexItens = [
-                /Itens:?\s*([\d.,]+)/i,
-                /Servi[çc]os\+?Itens:?\s*([\d.,]+)/i,
-                /Pe[cç]as:?\s*([\d.,]+)/i,
+                /Itens:?\s*([\d.,]+(?:,\d{2}))/i,
+                /Servi.os\+?Itens:?\s*([\d.,]+(?:,\d{2}))/i,
+                /Pe.as:?\s*([\d.,]+(?:,\d{2}))/i,
             ];
 
             for (const rx of regexItens) {
