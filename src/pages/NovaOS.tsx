@@ -12,6 +12,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { formatarValor } from '@/utils/osHelpers';
+import { UploadNBS_PDF, ExtractedNBS } from '@/components/ui/UploadNBS_PDF';
 
 export function NovaOS() {
     const navigate = useNavigate();
@@ -49,6 +50,16 @@ export function NovaOS() {
         } catch (error) {
             console.error('Erro ao gerar número:', error);
         }
+    };
+
+    const handleNBSUploadSuccess = (dados: ExtractedNBS) => {
+        setFormData(prev => ({
+            ...prev,
+            ...(dados.numero_os && { numero_os: dados.numero_os }),
+            ...(dados.nome_cliente_digitavel && { nome_cliente_digitavel: dados.nome_cliente_digitavel }),
+            ...(dados.modelo_maquina && { modelo_maquina: dados.modelo_maquina }),
+            ...(dados.chassi && { chassi: dados.chassi }),
+        }));
     };
 
     const handleSubmit = (e: FormEvent) => {
@@ -124,6 +135,11 @@ export function NovaOS() {
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     {/* Left Column: Form Details */}
                     <div className="lg:col-span-8 space-y-8">
+                        {/* Seção 0: Importador Automático NBS */}
+                        <div className="glass-card-enterprise p-1 rounded-3xl border border-emerald-500/20 shadow-lg shadow-emerald-500/5 relative overflow-hidden group mb-6">
+                            <UploadNBS_PDF onUploadSuccess={handleNBSUploadSuccess} />
+                        </div>
+
                         {/* Seção 1: Identificação */}
                         <div className="glass-card-enterprise p-8 rounded-3xl border border-white/[0.03] shadow-2xl relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity pointer-events-none">
