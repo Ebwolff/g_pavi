@@ -143,10 +143,19 @@ const PainelChefeOficina: React.FC = () => {
     })).sort((a, b) => b.quantidade - a.quantidade);
 
     // Datas com OS ativas para o Calendário (usando a data de abertura como marco da tarefa)
-    const datasComTarefas = Array.from(new Set(osAtivas.map((os: any) => {
-        if (!os.data_abertura) return '';
-        return new Date(os.data_abertura).toISOString().split('T')[0];
-    }).filter(d => d !== '')));
+    const calendarEvents = useMemo(() => {
+        return osAtivas.map((os: any) => {
+            if (!os.data_abertura) return null;
+            const date = new Date(os.data_abertura).toISOString().split('T')[0];
+            const tecnicoNome = tecnicos.find((t: any) => t.id === os.tecnico_id)?.nome || 'Sem técnico';
+            return {
+                id: os.id,
+                date,
+                title: `OS #${os.numero_os}`,
+                subtitle: `Téc: ${tecnicoNome}`
+            };
+        }).filter(Boolean);
+    }, [osAtivas, tecnicos]);
 
     // === Dashboard KPIs ===
     const osFaturadas = todasOS.filter((os: any) => os.status_atual === 'FATURADA');
@@ -442,7 +451,7 @@ const PainelChefeOficina: React.FC = () => {
                             </div>
 
                             {/* Calendário de Operações */}
-                            <CalendarWidget datesWithTasks={datasComTarefas} />
+                            <CalendarWidget events={calendarEvents} />
                         </div>
                     </div>
                 )}
