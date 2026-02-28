@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Button } from './Button';
+import { UploadOrcamentoPDF, ExtractedPeca } from './UploadOrcamentoPDF';
 
 interface ModalAdicionarPecaProps {
     isOpen: boolean;
@@ -23,6 +24,17 @@ export function ModalAdicionarPeca({ isOpen, onClose, osId, onSuccess }: ModalAd
         descricao: '',
         quantidade: 1
     }]);
+
+    const handlePDFUploadSuccess = (pecasExtraidas: ExtractedPeca[]) => {
+        // Substituir as linhas vazias iniciais pelo que veio do PDF (ou mescler)
+        const novasPecas = pecasExtraidas.map(p => ({
+            codigo_peca: p.codigo,
+            descricao: p.nome,
+            quantidade: p.quantidade
+        }));
+
+        setPecas(novasPecas);
+    };
 
     if (!isOpen) return null;
 
@@ -101,6 +113,17 @@ export function ModalAdicionarPeca({ isOpen, onClose, osId, onSuccess }: ModalAd
                     >
                         <X className="w-5 h-5 text-[var(--text-muted)]" />
                     </button>
+                </div>
+
+                {/* Importador Inteligente */}
+                <div className="mb-6">
+                    <UploadOrcamentoPDF onUploadSuccess={handlePDFUploadSuccess} />
+
+                    <div className="flex items-center gap-4 my-6">
+                        <div className="flex-1 h-px bg-[var(--border-subtle)]"></div>
+                        <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-widest">OU PREENCHA MANUALMENTE</span>
+                        <div className="flex-1 h-px bg-[var(--border-subtle)]"></div>
+                    </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
