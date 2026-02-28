@@ -53,10 +53,9 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
 
             const extraidos: ExtractedNBS = {};
 
-            // DEBUG: logar o texto COMPLETO para calibrar regex definitivamente
-            console.log('[NBS Extractor] ===== TEXTO COMPLETO =====');
-            console.log(normalizedText);
-            console.log('[NBS Extractor] ===== FIM DO TEXTO =====');
+            // DEBUG TEMPORÁRIO: popup com o texto para o usuário copiar e enviar
+            // Vai aparecer como uma janela popup no navegador
+            alert('[DEBUG NBS] Texto extraído (últimos 500 chars):\n\n' + normalizedText.substring(normalizedText.length - 500));
 
             // 1. Número da OS
             // PROBLEMA: O PDFjs lê colunas fora de ordem, então datas (2026), CEPs (65962000),
