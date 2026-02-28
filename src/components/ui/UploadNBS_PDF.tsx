@@ -11,6 +11,7 @@ export interface ExtractedNBS {
     nome_cliente_digitavel?: string;
     modelo_maquina?: string;
     chassi?: string;
+    descricao_problema?: string;
 }
 
 interface UploadNBS_PDFProps {
@@ -49,36 +50,58 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             const extraidos: ExtractedNBS = {};
 
             // 1. Extração do Nº da OS
-            // O texto geralmente contém "ORDEM DE SERVIÇO Nº 12345" ou "ORDEM DE SERVIÇO N° 12345"
-            // Buscamos a palavra ORDEM DE SERVIÇO e pegamos a proxima string numéica
-            const matchOS = normalizedText.match(/ORDEM DE SERVIÇO\s*.*?N[°ºo]?\s*(\d{2,10})/i);
+            // O texto contém a palavra "ORDEM DE SERVIÇO" seguida por "Nº 6855" (com espaço) ou "Nº6855"
+            // Capturamos a string numérica que vem depois.
+            const matchOS = normalizedText.match(/N[°ºo]?\s?(\d{3,10})/i);
             if (matchOS && matchOS[1]) {
                 extraidos.numero_os = matchOS[1];
             }
 
             // 2. Extração do Cliente
-            // Texto do NBS costuma ter: "Cliente: FULANO DE TAL ... RG:" ou "Cliente FULANO DE TAL ... R. " 
-            // Uma Regex segura pega o que vem APÓS a palavra "Cliente" até um marcador forte como "Endereço", "Bairro", "RG", "CPF"
-            const matchCliente = normalizedText.match(/Cliente:?\s*([A-Z\s]+?)\s*(?:RG:|CPF:|Bairro:|R\.|Rua:|CEP:|Cadastro)/i);
+            // Texto do NBS no PDF costuma ter "Cliente FRANCISCO CRUZ DE ASSIS Cadastro RG:" 
+            // Uma Regex segura pega tudo APÓS a palavra "Cliente " (sem dois pontos) até a palavra "Cadastro" ou "RG:" ou "CPF:"
+            const matchCliente = normalizedText.match(/Cliente\s+([\s\S]+?)\s+(?:Cadastro|RG:|CPF:|Bairro:|R\.|Rua:|CEP:)/i);
             if (matchCliente && matchCliente[1]) {
-                extraidos.nome_cliente_digitavel = matchCliente[1].trim();
+                // Remove quebras e limpa excesso de espaços no nome
+                extraidos.nome_cliente_digitavel = matchCliente[1].replace(/\s+/g, ' ').trim();
             }
 
             // 3. Extração do Produto/Modelo
-            // Texto: "Veículo Produto/Modelo: VALTRA / TRATOR / ... " ou "Produto/Modelo: VALTRA..."
-            const matchModelo = normalizedText.match(/Produto\/Modelo:\s*(.*?)(?:\s+Motor:|\s+Blindado|\s+KM:)/i);
+            // Texto no PDF da imagem: "Produto/Modelo: VALTRA / TRATOR / TRATOR AGRICOLA A800R 4X4 Blindado"
+            // A palavra "Blindado" ou "KM:" marca o fim do nome do modelo
+            const matchModelo = normalizedText.match(/Produto\/Modelo:\s*(.*?)(?:\s+Blindado|\s+KM:|\s+Motor:|\s+Hr:)/i);
             if (matchModelo && matchModelo[1]) {
                 extraidos.modelo_maquina = matchModelo[1].trim();
             }
 
             // 4. Extração do Chassi (Nr. Fab)
-            // Texto: "Nr. Fab: 9AGT20... " 
+            // Texto no PDF da imagem: "Nr.Fab 9AGT2006HRC022026 Motor: RMD482039"
             const matchChassi = normalizedText.match(/Nr\.?\s*Fab:?\s*([A-Z0-9]+)/i);
             if (matchChassi && matchChassi[1]) {
                 extraidos.chassi = matchChassi[1].trim();
             }
 
-            // Se achou ao menos um dado, considera sucesso
+            // 5. Tratamento Especial de OS: às vezes o PDF quebra os dois IDs:
+            // "ORDEM DE SERVIÇO Nº 6855" ... vamos olhar pela palavra chave exata
+            if (!extraidos.numero_os) {
+                const fallbackOS = normalizedText.match(/ORDEM DE SERVIÇO\s*.*?(\d{3,10})/i);
+                if (fallbackOS && fallbackOS[1]) extraidos.numero_os = fallbackOS[1];
+            }
+
+            // 6. Extração da Descrição do Problema
+            // Na imagem, aparece algo como: "01 CLIENTE ALEGA ROMPIMENTO DA ESTRUTURA DA CABINE 01 Serviço ..." 
+            // Cuidado: capturar até encontrar a tabela de Serviços ("It Serviço Descrição do Serviço")
+            const matchDescricao = normalizedText.match(/CLIENTE ALEGA\s+(.*?)\s+(?:01\s+Serviço|Serviço\s+Descrição|It\s+Serviço|Fechamento)/i);
+
+            if (matchDescricao && matchDescricao[1]) {
+                extraidos.descricao_problema = matchDescricao[1].trim();
+            } else {
+                // Tenta capturar qualquer frase no meio que pareça um relato antes da tabela de Serviços
+                const fallbackDesc = normalizedText.match(/(?:Bairro:[\sA-Z-]+|\d{2}\/\d{2}\/\d{4})\s*(\d{2}\s+[A-Z\s]+?)\s+(?:It\s+Serviço|Fechamento)/i);
+                if (fallbackDesc && fallbackDesc[1]) {
+                    extraidos.descricao_problema = fallbackDesc[1].replace(/^\d{2}\s+/, '').trim();
+                }
+            }
             if (Object.keys(extraidos).length === 0) {
                 setError("Não foi possível extrair dados estruturados deste PDF (formato NBS não detectado).");
             } else {
@@ -134,8 +157,8 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 className={`w-full relative overflow-hidden rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center p-6 text-center cursor-pointer group ${isDragging
-                        ? 'border-emerald-500 bg-emerald-500/10'
-                        : 'border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 hover:border-emerald-500/50'
+                    ? 'border-emerald-500 bg-emerald-500/10'
+                    : 'border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 hover:border-emerald-500/50'
                     }`}
             >
                 <input

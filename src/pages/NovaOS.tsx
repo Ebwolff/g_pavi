@@ -59,6 +59,7 @@ export function NovaOS() {
             ...(dados.nome_cliente_digitavel && { nome_cliente_digitavel: dados.nome_cliente_digitavel }),
             ...(dados.modelo_maquina && { modelo_maquina: dados.modelo_maquina }),
             ...(dados.chassi && { chassi: dados.chassi }),
+            ...(dados.descricao_problema && { descricao_problema: dados.descricao_problema }),
         }));
     };
 
