@@ -108,17 +108,13 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             }
 
             // 3. Data de Abertura (Entrada)
-            // Formato visual: "Entrada: 13/02/2026 as 11:48"
-            const matchEntrada = normalizedText.match(/Entrada:\s*(\d{2})\/(\d{2})\/(\d{4})\s*as\s*(\d{2}):(\d{2})/i);
+            // Formato visual: "Entrada: 13/02/2026 as 11:48" ou "Entrada: 07/02/2026 as 09:50"
+            // O PDFjs pode adicionar espaços extras, então ser flexível
+            const matchEntrada = normalizedText.match(/Entrada:?\s*(\d{2})\/(\d{2})\/(\d{4})\s*(?:as|às)?\s*(\d{2}):?(\d{2})/i);
             if (matchEntrada) {
                 const [_, d, m, y, h, min] = matchEntrada;
                 extraidos.data_abertura = `${y}-${m}-${d}T${h}:${min}`;
-            } else {
-                const matchEntrada2 = normalizedText.match(/Entrada:\s*(\d{2})\/(\d{2})\/(\d{4})\s*(\d{2}):(\d{2})/i);
-                if (matchEntrada2) {
-                    const [_, d, m, y, h, min] = matchEntrada2;
-                    extraidos.data_abertura = `${y}-${m}-${d}T${h}:${min}`;
-                }
+                console.log('[NBS] Data capturada:', extraidos.data_abertura);
             }
 
             // 4. Cliente
@@ -148,17 +144,22 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             }
 
             // 7. Descrição do Problema
-            // "CLIENTE ALEGA ..."
-            const matchDescricao = normalizedText.match(/(?:(?:[0-9]{2}\s+)|^)CLIENTE ALEGA\s+([\s\S]*?)\s+(?:It\s+Serviço|0\d\s+Serviço|Descrição do Serviço|Fechamento)/i);
+            // Formato 1: "CLIENTE ALEGA ROMPIMENTO DA ESTRUTURA DA CABINE"
+            // Formato 2: "VERIFICAR FALHA NO SISTEMA DE TRATAMENTO" (sem CLIENTE ALEGA)
+            // Formato 3: Qualquer texto entre a área de Concessionária e a tabela de Serviços
+
+            const matchDescricao = normalizedText.match(/(?:\d{2}\s+)CLIENTE ALEGA\s+([\s\S]*?)\s+(?:It\s+Servi|0\d\s+Servi|Descri.{1,5}o do Servi|Fechamento)/i);
             if (matchDescricao && matchDescricao[1]) {
                 extraidos.descricao_problema = `CLIENTE ALEGA ${matchDescricao[1].trim()}`;
             } else {
-                // Caso falhe com CLIENTE ALEGA, tenta varrer algo antes de "It Serviço" e após Concessionária
-                const fallbackDesc = normalizedText.match(/Concessionária Vendedora[\s\S]*?(?:Bairro:|CEP:[\sA-Z-]+)?\s+([A-Z0-9\s.,;-]{10,200}?)\s+(?:It\s+Serviço|0\d\s+Serviço|Descrição do Serviço)/i);
-                if (fallbackDesc && fallbackDesc[1]) {
-                    extraidos.descricao_problema = fallbackDesc[1].trim();
+                // Formato genérico: buscar o texto entre o número "01" e a tabela de serviço
+                // No PDF: "01 VERIFICAR FALHA NO SISTEMA DE TRATAMENTO It Serviço..."
+                const fallbackDesc = normalizedText.match(/(?:^|\s)(\d{2})\s+([A-Z][A-Z\s]{8,200}?)\s+(?:It\s+Servi|0\d\s+Servi|Descri.{1,5}o do Servi|Fechamento|C.digo)/i);
+                if (fallbackDesc && fallbackDesc[2]) {
+                    extraidos.descricao_problema = fallbackDesc[2].trim();
                 }
             }
+            console.log('[NBS] Descrição capturada:', extraidos.descricao_problema);
 
             // 8. Composição Estimada (Fechamento)
             // CUIDADO: A tabela de serviços tem colunas "T P" (quantidade=1,00) e "Valor Final" (350,00).
@@ -175,11 +176,11 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             };
 
             // Mão de Obra: buscar "Serviços: 350,00" na zona de Fechamento
-            // Usar "." como coringa para o "ç" que pode ter encoding diferente
+            // IMPORTANTE: "Serviços" NÃO deve casar com "Serviços+Itens" (que é o total combinado)
+            // Usar negative lookahead (?!\+) para rejeitar "Serviços+"
             const regexServicos = [
-                /Fechamento\s+Servi.os:?\s*([\d.,]+)/i,
-                /Servi.os:?\s*([\d.,]+(?:,\d{2}))/i,   // Exige formato x,xx para evitar pegar IDs
-                /Total:?\s*([\d.,]+(?:,\d{2}))/i,       // Último recurso: Total
+                /Fechamento\s+Servi.os(?!\+):?\s*([\d.,]+)/i,
+                /Servi.os(?!\+):?\s*([\d.,]+(?:,\d{2}))/i,
             ];
 
             for (const rx of regexServicos) {
