@@ -14,6 +14,7 @@ import {
 } from '../components/ui/Charts';
 import {
     TrendingUp,
+    TrendingDown,
     DollarSign,
     Clock,
     AlertCircle,
@@ -31,6 +32,7 @@ export function DashboardNovo() {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [tendencia, setTendencia] = useState<any[]>([]);
     const [distribuicao, setDistribuicao] = useState<any[]>([]);
+    const [profitStats, setProfitStats] = useState<any>(null);
     const [_topClientes, setTopClientes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [_atualizando, setAtualizando] = useState(false);
@@ -109,6 +111,20 @@ export function DashboardNovo() {
                 console.error('❌ Erro em getTopClientes:', e);
             }
 
+            try {
+                console.log('💰 Buscando rentabilidade global...');
+                let dataInicio = new Date();
+                if (dateRange === 'hoje') dataInicio.setHours(0, 0, 0, 0);
+                else if (dateRange === 'semana') dataInicio.setDate(dataInicio.getDate() - 7);
+                else dataInicio.setDate(dataInicio.getDate() - 30);
+
+                const profitData = await statsService.getGlobalProfitabilityStats(dataInicio.toISOString());
+                setProfitStats(profitData);
+                console.log('✅ Rentabilidade recebida');
+            } catch (e) {
+                console.error('❌ Erro em getGlobalProfitabilityStats:', e);
+            }
+
             console.log('✅ Todos os dados processados!');
         } catch (error: any) {
             console.error('❌ Erro geral ao carregar dashboard:', error);
@@ -123,7 +139,7 @@ export function DashboardNovo() {
 
     useEffect(() => {
         carregarDados();
-    }, []);
+    }, [dateRange]);
 
     // const handleGerarRelatorio = ... (removed unused function)
 
@@ -247,6 +263,34 @@ export function DashboardNovo() {
                         priority={4}
                     />
                 </div>
+
+                {/* Profitability Row - Only for Managers/Directors */}
+                {(role === 'GERENTE' || role === 'DIRETOR' || role === 'ADMIN') && profitStats && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slideUp">
+                        <Card
+                            title="Lucro Real (Líquido)"
+                            value={formatarValor(profitStats.lucroBruto)}
+                            icon={TrendingUp}
+                            color="emerald"
+                            subtitle={`Margem Média: ${profitStats.margemMedia.toFixed(1)}%`}
+                            priority={1}
+                        />
+                        <Card
+                            title="Receita Consolidada"
+                            value={formatarValor(profitStats.receitaTotal)}
+                            icon={DollarSign}
+                            color="blue"
+                            priority={2}
+                        />
+                        <Card
+                            title="Custo Operacional"
+                            value={formatarValor(profitStats.custoTotal)}
+                            icon={TrendingDown}
+                            color="red"
+                            priority={3}
+                        />
+                    </div>
+                )}
 
                 {/* Second Row: Charts & Detailed Stats */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
