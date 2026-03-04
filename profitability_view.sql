@@ -4,6 +4,9 @@
 ALTER TYPE public.tipo_despesa_os ADD VALUE IF NOT EXISTS 'MAO_DE_OBRA';
 
 -- 2. Criar a View de Rentabilidade
+-- Nota: Usamos DROP VIEW porque o PostgreSQL não permite mudar nomes de colunas com CREATE OR REPLACE VIEW.
+DROP VIEW IF EXISTS public.vw_os_profitability CASCADE;
+
 -- Usamos 'tipo::text' para evitar o erro de transação do PostgreSQL com ENUMs novos.
 CREATE OR REPLACE VIEW public.vw_os_profitability AS
 WITH os_revenues AS (
