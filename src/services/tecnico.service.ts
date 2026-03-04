@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { StatusDisponibilidadeTecnico } from '@/types/database.types';
 
 
 export interface Tecnico {
@@ -6,6 +7,7 @@ export interface Tecnico {
     nome: string;
     userId?: string; // ID do usuário no Auth/Profiles
     isRegistered: boolean; // Se está na tabela tecnicos
+    status_disponibilidade: StatusDisponibilidadeTecnico;
     stats?: {
         osAtribuidas: number;
         osEmExecucao: number;
@@ -21,8 +23,8 @@ class TecnicoService {
     async getAll(includeStats = false): Promise<Tecnico[]> {
         // 1. Buscar técnicos da tabela dedicada
         const { data: tecnicosData, error: tecnicosError } = await supabase
-            .from('tecnicos' as any)
-            .select('id, nome_completo, user_id');
+            .from('tecnicos')
+            .select('id, nome_completo, user_id, status_disponibilidade');
 
         if (tecnicosError) throw tecnicosError;
 
@@ -42,6 +44,7 @@ class TecnicoService {
                 id: t.id,
                 nome: t.nome_completo || 'Técnico sem nome',
                 userId: t.user_id,
+                status_disponibilidade: t.status_disponibilidade || 'DISPONIVEL',
                 isRegistered: true
             });
         });
@@ -55,6 +58,7 @@ class TecnicoService {
                     id: p.id, // Usa profile.id como ID temporário
                     nome: `${p.first_name || ''} ${p.last_name || ''}`.trim() || 'Usuário Técnico',
                     userId: p.id,
+                    status_disponibilidade: 'DISPONIVEL', // Fallback
                     isRegistered: false
                 });
             }
@@ -73,9 +77,6 @@ class TecnicoService {
      * Carrega estatísticas para uma lista de técnicos
      */
     private async loadStats(tecnicos: Tecnico[]): Promise<Tecnico[]> {
-        // Buscar todas as OS ativas de uma vez para reduzir round-trips
-        // Idealmente faria uma query agregada, mas o Supabase JS não suporta count/groupby complexo facilmente sem RPC
-        // Vamos buscar apenas status e tecnico_id das OS relevantes
         const { data: osData } = await supabase
             .from('ordens_servico')
             .select('tecnico_id, status_atual')
@@ -102,7 +103,7 @@ class TecnicoService {
     async getByUserId(userId: string): Promise<Tecnico | null> {
         // 1. Tenta buscar na tabela tecnicos
         const { data: tecnico } = await supabase
-            .from('tecnicos' as any)
+            .from('tecnicos')
             .select('*')
             .eq('user_id', userId)
             .single();
@@ -112,6 +113,7 @@ class TecnicoService {
                 id: tecnico.id,
                 nome: tecnico.nome_completo,
                 userId: tecnico.user_id,
+                status_disponibilidade: tecnico.status_disponibilidade || 'DISPONIVEL',
                 isRegistered: true
             };
         }
@@ -129,11 +131,24 @@ class TecnicoService {
                 id: profile.id,
                 nome: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Técnico(a)',
                 userId: profile.id,
+                status_disponibilidade: 'DISPONIVEL',
                 isRegistered: false
             };
         }
 
         return null;
+    }
+
+    /**
+     * Atualiza a disponibilidade do técnico
+     */
+    async setAvailability(tecnicoId: string, status: StatusDisponibilidadeTecnico) {
+        const { error } = await supabase
+            .from('tecnicos')
+            .update({ status_disponibilidade: status })
+            .eq('id', tecnicoId);
+
+        if (error) throw error;
     }
 
     /**
@@ -149,10 +164,11 @@ class TecnicoService {
         if (!profile) throw new Error('Perfil não encontrado');
 
         const { data: novoTecnico, error } = await supabase
-            .from('tecnicos' as any)
+            .from('tecnicos')
             .insert({
                 user_id: profileId,
-                nome_completo: `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+                nome_completo: `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
+                status_disponibilidade: 'DISPONIVEL'
             })
             .select()
             .single();
@@ -163,6 +179,7 @@ class TecnicoService {
             id: novoTecnico.id,
             nome: novoTecnico.nome_completo,
             userId: novoTecnico.user_id,
+            status_disponibilidade: novoTecnico.status_disponibilidade,
             isRegistered: true
         };
     }

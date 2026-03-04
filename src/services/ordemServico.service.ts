@@ -138,6 +138,7 @@ class OrdemServicoService {
             .insert({
                 ...os,
                 consultor_id: user.user?.id,
+                status_atual: 'AGUARDANDO_ATRIBUICAO'
             } as any)
             .select(`
         *,

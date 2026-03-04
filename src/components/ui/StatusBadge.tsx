@@ -1,16 +1,21 @@
 import React from 'react';
-import { StatusOS, TipoOS, NivelUrgencia, StatusPendencia } from '../../types/database.types';
+import { StatusOS, TipoOS, NivelUrgencia, StatusPendencia, StatusDisponibilidadeTecnico } from '../../types/database.types';
 
 interface StatusBadgeProps {
-    status: StatusOS | StatusPendencia;
+    status: StatusOS | StatusPendencia | StatusDisponibilidadeTecnico;
     className?: string;
     size?: 'sm' | 'md' | 'lg';
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = '', size = 'md' }) => {
-    const getStatusConfig = (status: StatusOS | StatusPendencia) => {
+    const getStatusConfig = (status: StatusOS | StatusPendencia | StatusDisponibilidadeTecnico) => {
         const configs: Record<string, { label: string; style: React.CSSProperties; className: string }> = {
             // Status OS
+            AGUARDANDO_ATRIBUICAO: {
+                label: 'Aguardando Atribuição',
+                style: { background: 'var(--surface-light)', color: 'var(--accent-amber)', borderColor: 'var(--accent-amber-glow)' },
+                className: 'badge-enterprise'
+            },
             EM_EXECUCAO: {
                 label: 'Em Execução',
                 style: { background: 'var(--accent-blue-glow)', color: 'var(--accent-blue)', borderColor: 'rgba(59, 130, 246, 0.3)' },
@@ -39,6 +44,47 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = ''
             CANCELADA: {
                 label: 'Cancelada',
                 style: { background: 'var(--accent-rose-glow)', color: 'var(--accent-rose)', borderColor: 'rgba(244, 114, 114, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            EM_TRANSITO: {
+                label: 'Em Trânsito',
+                style: { background: 'var(--accent-blue-glow)', color: 'var(--accent-blue)', borderColor: 'rgba(59, 130, 246, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            AGUARDANDO_APROVACAO_ORCAMENTO: {
+                label: 'Aguar. Orçamento',
+                style: { background: 'var(--accent-amber-glow)', color: 'var(--accent-amber)', borderColor: 'rgba(245, 158, 11, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            AGUARDANDO_PAGAMENTO: {
+                label: 'Aguar. Pagamento',
+                style: { background: 'var(--accent-emerald-glow)', color: 'var(--accent-emerald)', borderColor: 'rgba(16, 185, 129, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            EM_DIAGNOSTICO: {
+                label: 'Em Diagnóstico',
+                style: { background: 'var(--accent-blue-glow)', color: 'var(--accent-blue)', borderColor: 'rgba(59, 130, 246, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            // Status Disponibilidade Técnico
+            DISPONIVEL: {
+                label: 'Disponível',
+                style: { background: 'var(--accent-emerald-glow)', color: 'var(--accent-emerald)', borderColor: 'rgba(16, 185, 129, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            EM_TREINAMENTO: {
+                label: 'Em Treinamento',
+                style: { background: 'var(--accent-blue-glow)', color: 'var(--accent-blue)', borderColor: 'rgba(59, 130, 246, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            AUSENTE: {
+                label: 'Ausente',
+                style: { background: 'var(--accent-rose-glow)', color: 'var(--accent-rose)', borderColor: 'rgba(244, 114, 114, 0.3)' },
+                className: 'badge-enterprise'
+            },
+            FERIAS: {
+                label: 'Férias',
+                style: { background: 'var(--surface-light)', color: 'var(--accent-violet)', borderColor: 'var(--accent-violet-glow)' },
                 className: 'badge-enterprise'
             },
             // Status Pendência

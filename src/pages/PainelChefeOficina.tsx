@@ -111,6 +111,8 @@ const PainelChefeOficina: React.FC = () => {
 
     const estatisticas = {
         totalTecnicos: tecnicos.length,
+        tecnicosDisponiveis: tecnicos.filter((t: any) => t.status_disponibilidade === 'DISPONIVEL').length,
+        tecnicosIndisponiveis: tecnicos.filter((t: any) => t.status_disponibilidade !== 'DISPONIVEL').length,
         osEmAndamento: osAtivas.filter((o: any) => o.status_atual === 'EM_EXECUCAO').length,
         osAguardandoPecas: osAtivas.filter((o: any) => o.status_atual === 'AGUARDANDO_PECAS').length,
         osSemTecnico: osSemTecnico.length,
@@ -144,19 +146,20 @@ const PainelChefeOficina: React.FC = () => {
 
     // Datas com OS ativas para o Calendário (usando a data de abertura como marco da tarefa)
     const calendarEvents = useMemo(() => {
-        return osAtivas
-            .filter((os: any) => os.tecnico_id != null) // Mostrar apenas OS atribuídas a técnicos
-            .map((os: any) => {
-                if (!os.data_abertura) return null;
+        const events: any[] = [];
+        osAtivas.forEach((os: any) => {
+            if (os.tecnico_id && os.data_abertura) {
                 const date = new Date(os.data_abertura).toISOString().split('T')[0];
                 const tecnicoNome = tecnicos.find((t: any) => t.id === os.tecnico_id)?.nome || 'Sem técnico';
-                return {
+                events.push({
                     id: os.id,
                     date,
                     title: `OS #${os.numero_os}`,
                     subtitle: `Téc: ${tecnicoNome}`
-                };
-            }).filter(Boolean);
+                });
+            }
+        });
+        return events;
     }, [osAtivas, tecnicos]);
 
     // === Dashboard KPIs ===
@@ -464,10 +467,10 @@ const PainelChefeOficina: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                             <Card
-                                title="Técnicos Ativos"
-                                value={estatisticas.totalTecnicos}
+                                title="Técnicos Disponíveis"
+                                value={`${estatisticas.tecnicosDisponiveis}/${estatisticas.totalTecnicos}`}
                                 icon={Users}
-                                color="blue"
+                                color="emerald"
                                 priority={1}
                                 onClick={() => scrollToRef(tecnicosRef)}
                             />
@@ -548,13 +551,17 @@ const PainelChefeOficina: React.FC = () => {
                                         (tecnicos || []).map((tecnico: any) => (
                                             <div
                                                 key={tecnico.id}
-                                                onClick={() => openTecnicoDetails(tecnico)}
                                                 className="p-5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-2xl flex items-center justify-between hover:bg-[var(--surface-hover)] transition-all group cursor-pointer"
                                             >
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2 mb-2.5">
-                                                        <span className={`w-2.5 h-2.5 rounded-full ${tecnico.isRegistered ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+                                                <div className="flex-1" onClick={() => openTecnicoDetails(tecnico)}>
+                                                    <div className="flex items-center gap-3 mb-2.5">
+                                                        <div className={`w-3 h-3 rounded-full ${tecnico.status_disponibilidade === 'DISPONIVEL' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' :
+                                                            tecnico.status_disponibilidade === 'AUSENTE' ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,114,114,0.5)]' :
+                                                                tecnico.status_disponibilidade === 'EM_TREINAMENTO' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' :
+                                                                    'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'
+                                                            }`}></div>
                                                         <p className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">{tecnico.nome}</p>
+                                                        <StatusBadge status={tecnico.status_disponibilidade} size="sm" />
                                                     </div>
                                                     <div className="flex flex-wrap gap-3">
                                                         <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-blue-500/5 border border-blue-500/10 text-blue-400">
@@ -565,9 +572,31 @@ const PainelChefeOficina: React.FC = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className={`flex flex-col items-center justify-center h-16 w-16 rounded-2xl border transition-all duration-300 ${(tecnico.stats?.osAtribuidas || 0) > 5 ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-[var(--surface)] border-[var(--border-subtle)] text-[var(--text-primary)]'}`}>
-                                                    <span className="text-2xl font-black leading-none">{tecnico.stats?.osAtribuidas || 0}</span>
-                                                    <span className="text-[8px] font-black uppercase opacity-40 tracking-widest mt-1">Carga</span>
+
+                                                <div className="flex items-center gap-4">
+                                                    <select
+                                                        value={tecnico.status_disponibilidade}
+                                                        onChange={async (e) => {
+                                                            try {
+                                                                await tecnicoService.setAvailability(tecnico.id, e.target.value as any);
+                                                                queryClient.invalidateQueries({ queryKey: ['tecnicos-stats'] });
+                                                            } catch (err) {
+                                                                console.error('Erro ao atualizar status:', err);
+                                                            }
+                                                        }}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="bg-[var(--surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[10px] font-bold rounded-lg px-2 py-1 outline-none hover:border-amber-500/50 transition-colors uppercase tracking-tight"
+                                                    >
+                                                        <option value="DISPONIVEL">Disponível</option>
+                                                        <option value="EM_TREINAMENTO">Treinamento</option>
+                                                        <option value="AUSENTE">Ausente</option>
+                                                        <option value="FERIAS">Férias</option>
+                                                    </select>
+
+                                                    <div className={`flex flex-col items-center justify-center h-16 w-16 rounded-2xl border transition-all duration-300 ${(tecnico.stats?.osAtribuidas || 0) > 5 ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-[var(--surface)] border-[var(--border-subtle)] text-[var(--text-primary)]'}`}>
+                                                        <span className="text-2xl font-black leading-none">{tecnico.stats?.osAtribuidas || 0}</span>
+                                                        <span className="text-[8px] font-black uppercase opacity-40 tracking-widest mt-1">Carga</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))

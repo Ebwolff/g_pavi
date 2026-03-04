@@ -8,7 +8,8 @@ export type Json =
 
 export type UserRole = 'GERENTE' | 'CONSULTOR_GARANTIA' | 'CONSULTOR_POS_VENDA' | 'TECNICO';
 export type TipoOS = 'NORMAL' | 'GARANTIA';
-export type StatusOS = 'EM_EXECUCAO' | 'AGUARDANDO_PECAS' | 'PAUSADA' | 'CONCLUIDA' | 'FATURADA' | 'CANCELADA' | 'AGUARDANDO_APROVACAO_ORCAMENTO' | 'AGUARDANDO_PAGAMENTO' | 'EM_DIAGNOSTICO' | 'EM_TRANSITO';
+export type StatusOS = 'AGUARDANDO_ATRIBUICAO' | 'EM_EXECUCAO' | 'AGUARDANDO_PECAS' | 'PAUSADA' | 'CONCLUIDA' | 'FATURADA' | 'CANCELADA' | 'AGUARDANDO_APROVACAO_ORCAMENTO' | 'AGUARDANDO_PAGAMENTO' | 'EM_DIAGNOSTICO' | 'EM_TRANSITO';
+export type StatusDisponibilidadeTecnico = 'DISPONIVEL' | 'EM_TREINAMENTO' | 'AUSENTE' | 'FERIAS';
 export type TipoDiagnostico = 'SIMPLES' | 'COMPLEXO' | 'ESPECIALIZADO';
 
 // Novos tipos para melhorias
@@ -620,6 +621,41 @@ export interface Database {
                     created_at?: string;
                 };
             };
+            tecnicos: {
+                Row: {
+                    id: string;
+                    nome_completo: string;
+                    user_id: string | null;
+                    sku_oficina: string | null;
+                    especialidade: string | null;
+                    is_active: boolean;
+                    status_disponibilidade: StatusDisponibilidadeTecnico;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    nome_completo: string;
+                    user_id?: string | null;
+                    sku_oficina?: string | null;
+                    especialidade?: string | null;
+                    is_active?: boolean;
+                    status_disponibilidade?: StatusDisponibilidadeTecnico;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    nome_completo?: string;
+                    user_id?: string | null;
+                    sku_oficina?: string | null;
+                    especialidade?: string | null;
+                    is_active?: boolean;
+                    status_disponibilidade?: StatusDisponibilidadeTecnico;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
         };
         Views: {
             vw_os_estatisticas: {
@@ -721,6 +757,7 @@ export interface Database {
             status_os: StatusOS;
             status_solicitacao_compra: StatusSolicitacaoCompra;
             urgencia_compra: UrgenciaCompra;
+            status_disponibilidade_tecnico: StatusDisponibilidadeTecnico;
         };
     };
 }
