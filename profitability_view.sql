@@ -1,9 +1,7 @@
 -- SQL para implementar a visão de rentabilidade por O.S.
 
--- 1. Garante que o tipo de despesa suporte 'MAO_DE_OBRA' se estiver usando ENUM
--- Nota: Como o sistema já está em uso, vamos apenas garantir que os dados aceitem.
--- Se for um ENUM no PostgreSQL, o comando seria:
--- ALTER TYPE public.tipo_despesa ADD VALUE IF NOT EXISTS 'MAO_DE_OBRA';
+-- 1. Garante que o tipo de despesa suporte 'MAO_DE_OBRA'
+ALTER TYPE public.tipo_despesa_os ADD VALUE IF NOT EXISTS 'MAO_DE_OBRA';
 
 -- 2. Criar a View de Rentabilidade
 CREATE OR REPLACE VIEW public.vw_os_profitability AS
