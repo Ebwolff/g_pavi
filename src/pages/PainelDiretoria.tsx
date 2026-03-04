@@ -14,6 +14,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { MetricCard } from '@/components/cognitive-bias';
 import { AppLayout } from '@/components/AppLayout';
+import { statsService } from '@/services/statsService';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -69,6 +70,12 @@ export default function PainelDiretoria() {
         taxaConclusao: 0,
         gargalos: [],
         performanceConsultores: [],
+    });
+    const [profitStats, setProfitStats] = useState<any>({
+        receitaTotal: 0,
+        custoTotal: 0,
+        lucroBruto: 0,
+        margemMedia: 0
     });
     const [loading, setLoading] = useState(true);
     const [periodo, setPeriodo] = useState<'7d' | '30d' | '90d' | 'ano'>('30d');
@@ -197,6 +204,12 @@ export default function PainelDiretoria() {
                 performanceConsultores,
             });
 
+            // Buscar Rentabilidade Global do Período
+            const profitData = await statsService.getGlobalProfitabilityStats(dataInicio.toISOString());
+            if (profitData) {
+                setProfitStats(profitData);
+            }
+
         } catch (error) {
             console.error('Erro ao carregar KPIs:', error);
         } finally {
@@ -264,29 +277,28 @@ export default function PainelDiretoria() {
                     {loading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} height={160} className="rounded-2xl" />) : (
                         <>
                             <MetricCard
-                                value={kpis.taxaConclusao}
-                                label="Taxa de Entrega"
-                                format="percentage"
-                                trend={kpis.taxaConclusao >= 80 ? 'up' : kpis.taxaConclusao >= 60 ? 'stable' : 'down'}
-                                comparison={{ value: 12, period: "mês anterior" }}
+                                value={profitStats.lucroBruto}
+                                label="Lucro Real"
+                                format="currency"
+                                trend={profitStats.lucroBruto > 0 ? 'up' : 'down'}
+                                comparison={{ value: Math.round(profitStats.margemMedia), period: "atual" }}
                                 className="border-indigo-500/10"
                             />
 
                             <MetricCard
-                                value={kpis.valorTotalFaturado}
+                                value={profitStats.receitaTotal}
                                 label="Receita Bruta"
                                 format="currency"
                                 trend="up"
-                                comparison={{ value: 15, period: "mês anterior" }}
                                 className="border-emerald-500/10"
                             />
 
                             <MetricCard
-                                value={kpis.osConcluidas}
-                                label="Volume de Produção"
-                                format="number"
-                                trend="up"
-                                className="border-blue-500/10"
+                                value={profitStats.custoTotal}
+                                label="Custo Operacional"
+                                format="currency"
+                                trend="down"
+                                className="border-rose-500/10"
                             />
                         </>
                     )}

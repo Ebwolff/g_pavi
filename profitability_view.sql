@@ -9,6 +9,8 @@ CREATE OR REPLACE VIEW public.vw_os_profitability AS
 WITH os_revenues AS (
     SELECT 
         id as os_id,
+        data_abertura,
+        status_atual,
         COALESCE(valor_mao_de_obra, 0) as receita_mao_de_obra,
         COALESCE(valor_pecas, 0) as receita_pecas,
         COALESCE(valor_deslocamento, 0) as receita_deslocamento,
@@ -40,6 +42,8 @@ os_parts_costs AS (
 )
 SELECT 
     r.os_id,
+    r.data_abertura,
+    r.status_atual,
     r.receita_mao_de_obra,
     r.receita_pecas,
     r.receita_deslocamento,

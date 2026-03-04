@@ -300,4 +300,45 @@ export const statsService = {
             return Object.values(grouped).sort((a: any, b: any) => b.valor - a.valor).slice(0, limit);
         } catch (e) { return []; }
     },
+
+    async getOSProfitability(osId: string): Promise<any> {
+        try {
+            const { data, error } = await (supabase as any)
+                .from('vw_os_profitability')
+                .select('*')
+                .eq('os_id', osId)
+                .maybeSingle();
+
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('Erro ao buscar rentabilidade da OS:', error);
+            return null;
+        }
+    },
+
+    async getGlobalProfitabilityStats(dataInicio: string): Promise<any> {
+        try {
+            const { data, error } = await (supabase as any)
+                .from('vw_os_profitability')
+                .select('*')
+                .gte('data_abertura', dataInicio);
+
+            if (error) throw error;
+
+            const stats = (data || []).reduce((acc: any, row: any) => ({
+                receitaTotal: acc.receitaTotal + (row.receita_total || 0),
+                custoTotal: acc.custoTotal + (row.custo_total || 0),
+                lucroBruto: acc.lucroBruto + (row.lucro_bruto || 0),
+            }), { receitaTotal: 0, custoTotal: 0, lucroBruto: 0 });
+
+            return {
+                ...stats,
+                margemMedia: stats.receitaTotal > 0 ? (stats.lucroBruto / stats.receitaTotal) * 100 : 0
+            };
+        } catch (error) {
+            console.error('Erro ao buscar rentabilidade global:', error);
+            return null;
+        }
+    },
 };
