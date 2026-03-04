@@ -20,6 +20,7 @@ export interface CardProps {
     className?: string;
     onClick?: () => void;
     priority?: number;
+    children?: React.ReactNode;
 }
 
 export function Card({
@@ -33,6 +34,7 @@ export function Card({
     className = '',
     onClick,
     priority = 0,
+    children,
 }: CardProps) {
 
     // Map colors to design system CSS variables
@@ -185,6 +187,7 @@ export function Card({
                         )}
                     </div>
                     {subtitle && <p className="text-xs text-[var(--text-muted)] mt-1">{subtitle}</p>}
+                    {children}
 
                     {/* Ancoragem */}
                     {anchor && (
