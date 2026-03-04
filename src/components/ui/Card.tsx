@@ -2,9 +2,9 @@ import { LucideIcon, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 // import { cn } from '@/lib/utils'; // Unused
 
 export interface CardProps {
-    title: string;
-    value: string | number;
-    icon: LucideIcon;
+    title?: string;
+    value?: string | number;
+    icon?: LucideIcon;
     subtitle?: string;
     trend?: {
         value: number;
@@ -134,14 +134,16 @@ export function Card({
             <div className="p-6 relative z-10">
                 <div className="flex justify-between items-start mb-4">
                     {/* Icon Container */}
-                    <div
-                        className="p-3 rounded-xl transition-all duration-300 bg-[var(--surface-light)] border border-[var(--border-subtle)] group-hover:bg-[var(--surface-hover)]"
-                    >
-                        <Icon
-                            className="w-6 h-6 transition-colors duration-300"
-                            style={{ color: theme.text }}
-                        />
-                    </div>
+                    {Icon && (
+                        <div
+                            className="p-3 rounded-xl transition-all duration-300 bg-[var(--surface-light)] border border-[var(--border-subtle)] group-hover:bg-[var(--surface-hover)]"
+                        >
+                            <Icon
+                                className="w-6 h-6 transition-colors duration-300"
+                                style={{ color: theme.text }}
+                            />
+                        </div>
+                    )}
 
                     {/* Trend Badge */}
                     {trend && (
@@ -173,13 +175,17 @@ export function Card({
 
                 {/* Content */}
                 <div>
-                    <h3 className="text-sm font-medium text-[var(--text-muted)] mb-1 tracking-wide group-hover:text-[var(--text-secondary)] transition-colors">
-                        {title}
-                    </h3>
+                    {title && (
+                        <h3 className="text-sm font-medium text-[var(--text-muted)] mb-1 tracking-wide group-hover:text-[var(--text-secondary)] transition-colors">
+                            {title}
+                        </h3>
+                    )}
                     <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold tracking-tight text-[var(--text-primary)] group-hover:scale-105 transition-transform duration-300 origin-left">
-                            {value}
-                        </span>
+                        {value !== undefined && (
+                            <span className="text-3xl font-bold tracking-tight text-[var(--text-primary)] group-hover:scale-105 transition-transform duration-300 origin-left">
+                                {value}
+                            </span>
+                        )}
                         {trend && (
                             <span className="text-xs text-[var(--text-muted)]">
                                 {trend.label}
