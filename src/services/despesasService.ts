@@ -4,7 +4,7 @@
 
 import { supabase } from '@/lib/supabase';
 
-export type TipoDespesa = 'KM' | 'ABASTECIMENTO' | 'ALIMENTACAO' | 'HOSPEDAGEM' | 'PEDAGIO' | 'OUTROS';
+export type TipoDespesa = 'KM' | 'ABASTECIMENTO' | 'ALIMENTACAO' | 'HOSPEDAGEM' | 'PEDAGIO' | 'OUTROS' | 'MAO_DE_OBRA';
 
 export interface DespesaOS {
     id: string;
@@ -61,6 +61,7 @@ export interface ResumosDespesas {
     totalHospedagem: number;
     totalPedagio: number;
     totalOutros: number;
+    totalMaoDeObra: number;
     totalGeral: number;
 }
 
@@ -90,8 +91,8 @@ class DespesasService {
      * Cria uma nova despesa
      */
     async criarDespesa(dados: CreateDespesaInput): Promise<DespesaOS> {
-        const { data, error } = await supabase
-            .from('despesas_os' as any)
+        const { data, error } = await (supabase as any)
+            .from('despesas_os')
             .insert({
                 ordem_servico_id: dados.ordem_servico_id,
                 tipo: dados.tipo,
@@ -120,8 +121,8 @@ class DespesasService {
      * Atualiza uma despesa existente
      */
     async atualizarDespesa(id: string, dados: UpdateDespesaInput): Promise<DespesaOS> {
-        const { data, error } = await supabase
-            .from('despesas_os' as any)
+        const { data, error } = await (supabase as any)
+            .from('despesas_os')
             .update(dados)
             .eq('id', id)
             .select()
@@ -163,6 +164,7 @@ class DespesasService {
             totalHospedagem: 0,
             totalPedagio: 0,
             totalOutros: 0,
+            totalMaoDeObra: 0,
             totalGeral: 0,
         };
 
@@ -185,6 +187,9 @@ class DespesasService {
                     break;
                 case 'PEDAGIO':
                     resumo.totalPedagio += valor;
+                    break;
+                case 'MAO_DE_OBRA':
+                    resumo.totalMaoDeObra += valor;
                     break;
                 case 'OUTROS':
                     resumo.totalOutros += valor;

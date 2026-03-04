@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { X, Car, Fuel, Utensils, Hotel, CircleDollarSign, MoreHorizontal, Save } from 'lucide-react';
+import { X, Car, Fuel, Utensils, Hotel, CircleDollarSign, MoreHorizontal, Save, Wrench } from 'lucide-react';
 import { Button } from './Button';
 import { Input } from './Input';
 import { despesasService, TipoDespesa, CreateDespesaInput } from '@/services/despesasService';
@@ -25,7 +25,8 @@ const tiposDespesa: { value: TipoDespesa; label: string; icon: any; color: strin
     { value: 'ALIMENTACAO', label: 'Alimentação', icon: Utensils, color: 'text-emerald-400 bg-emerald-500/10' },
     { value: 'HOSPEDAGEM', label: 'Hospedagem', icon: Hotel, color: 'text-purple-400 bg-purple-500/10' },
     { value: 'PEDAGIO', label: 'Pedágio', icon: CircleDollarSign, color: 'text-rose-400 bg-rose-500/10' },
-    { value: 'OUTROS', label: 'Outros', icon: MoreHorizontal, color: 'text-slate-400 bg-slate-500/10' },
+    { value: 'MAO_DE_OBRA', label: 'Mão de Obra', icon: Wrench, color: 'text-indigo-400 bg-indigo-500/10' },
+    { value: 'OUTROS', label: 'Outros Custos', icon: MoreHorizontal, color: 'text-slate-400 bg-slate-500/10' },
 ];
 
 export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess }: ModalLancarDespesaProps) {
@@ -134,7 +135,7 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
                     <label className="block text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4 ml-1">
                         Selecione a Categoria
                     </label>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {tiposDespesa.map((tipo) => {
                             const Icon = tipo.icon;
                             const isSelected = tipoSelecionado === tipo.value;
