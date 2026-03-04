@@ -88,7 +88,7 @@ serve(async (req) => {
 
         console.log('Requester Role:', profile.role);
 
-        if (profile.role !== 'CHEFE_OFICINA' && profile.role !== 'GERENTE') {
+        if (profile.role !== 'CHEFE_OFICINA' && profile.role !== 'GERENTE' && profile.role !== 'CONSULTOR_POS_VENDA') {
             return new Response(
                 JSON.stringify({
                     error: 'Permission Denied',
@@ -154,6 +154,22 @@ serve(async (req) => {
                 JSON.stringify({ error: `Erro ao criar perfil: ${profileInsertError.message}` }),
                 { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             )
+        }
+
+        // 3. Sincronizar com a tabela de técnicos (para o Painel do Chefe de Oficina)
+        const { error: tecnicoInsertError } = await supabaseAdmin
+            .from('tecnicos')
+            .upsert({
+                user_id: newUser.user.id,
+                nome_completo: `${nome} ${sobrenome}`.trim(),
+                is_active: true,
+                status_disponibilidade: 'DISPONIVEL'
+            }, { onConflict: 'user_id' })
+
+        if (tecnicoInsertError) {
+            console.error('⚠️ [Edge Function] Falha ao sincronizar com tabela tecnicos:', tecnicoInsertError);
+            // Não deletamos o usuário aqui pois o perfil principal (auth + profiles) já foi criado.
+            // O ideal é apenas logar o erro e talvez tentar novamente depois ou via script.
         }
 
         // Retornar sucesso
