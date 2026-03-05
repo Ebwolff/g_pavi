@@ -109,7 +109,7 @@ export default function PainelConsultor() {
             // 1. Filtro por Cargo e Autoria (Segregação de Dados)
             if (!isGerente && profile?.id) {
                 const tipo = isGarantia ? 'GARANTIA' : 'NORMAL';
-                query = query.or(`consultor_id.eq.${profile.id},tipo_os.eq.${tipo}`);
+                query = query.or(`consultor_id.eq."${profile.id}",tipo_os.eq."${tipo}"`);
             }
 
             const { data, error } = await query;
