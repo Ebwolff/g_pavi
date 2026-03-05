@@ -115,6 +115,7 @@ export interface Database {
                     valor_liquido_total: number;
                     created_at: string;
                     updated_at: string;
+                    data_agendamento: string | null;
                     // Campos para motivos de abertura
                     numero_orcamento: string | null;
                     data_envio_orcamento: string | null;
@@ -160,6 +161,7 @@ export interface Database {
                     valor_liquido_total?: number;
                     created_at?: string;
                     updated_at?: string;
+                    data_agendamento?: string | null;
                     // Campos para motivos de abertura (Insert)
                     numero_orcamento?: string | null;
                     data_envio_orcamento?: string | null;
@@ -202,6 +204,7 @@ export interface Database {
                     valor_liquido_total?: number;
                     created_at?: string;
                     updated_at?: string;
+                    data_agendamento?: string | null;
                     // Campos para motivos de abertura (Update)
                     numero_orcamento?: string | null;
                     data_envio_orcamento?: string | null;

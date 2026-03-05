@@ -17,7 +17,7 @@ interface Tecnico {
 interface AssignTechnicianModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onAssign: (tecnicoId: string) => Promise<void>;
+    onAssign: (tecnicoId: string, dataAgendamento: string) => Promise<void>;
     tecnicos: Tecnico[];
     osNumero: string;
     osCliente?: string;
@@ -32,18 +32,21 @@ export function AssignTechnicianModal({
     osCliente
 }: AssignTechnicianModalProps) {
     const [selectedTecnico, setSelectedTecnico] = useState<string>('');
+    const [dataAgendamento, setDataAgendamento] = useState<string>(new Date().toISOString().split('T')[0]);
     const [loading, setLoading] = useState(false);
 
     if (!isOpen) return null;
 
     const handleAssign = async () => {
-        if (!selectedTecnico) return;
+        if (!selectedTecnico || !dataAgendamento) return;
 
         setLoading(true);
         try {
-            await onAssign(selectedTecnico);
+            await onAssign(selectedTecnico, dataAgendamento);
             onClose();
             setSelectedTecnico('');
+            // Manter a data padrão ou resetar se preferir
+            // setDataAgendamento(new Date().toISOString().split('T')[0]);
         } catch (error) {
             console.error('Erro ao atribuir técnico:', error);
             alert('Erro ao atribuir técnico. Tente novamente.');
@@ -112,8 +115,8 @@ export function AssignTechnicianModal({
                                     key={tecnico.id}
                                     onClick={() => setSelectedTecnico(tecnico.id)}
                                     className={`w-full p-4 rounded-xl border transition-all text-left ${selectedTecnico === tecnico.id
-                                            ? 'border-amber-500 bg-amber-500/10'
-                                            : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10'
+                                        ? 'border-amber-500 bg-amber-500/10'
+                                        : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10'
                                         }`}
                                     disabled={loading}
                                 >
@@ -141,8 +144,8 @@ export function AssignTechnicianModal({
                                         {/* Indicador de carga */}
                                         <div className="ml-4">
                                             <div className={`w-2 h-8 rounded-full ${tecnico.osAtribuidas >= 5 ? 'bg-rose-500' :
-                                                    tecnico.osAtribuidas >= 3 ? 'bg-amber-500' :
-                                                        'bg-emerald-500'
+                                                tecnico.osAtribuidas >= 3 ? 'bg-amber-500' :
+                                                    'bg-emerald-500'
                                                 }`} />
                                         </div>
                                     </div>
@@ -150,6 +153,20 @@ export function AssignTechnicianModal({
                             ))}
                         </div>
                     )}
+                </div>
+
+                {/* Data do Agendamento */}
+                <div className="space-y-3 mb-6">
+                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                        Data do Agendamento
+                    </label>
+                    <input
+                        type="date"
+                        value={dataAgendamento}
+                        onChange={(e) => setDataAgendamento(e.target.value)}
+                        className="w-full p-4 rounded-xl border border-white/5 bg-white/[0.02] text-[var(--text-primary)] focus:border-amber-500/50 outline-none transition-all"
+                        disabled={loading}
+                    />
                 </div>
 
                 {/* Actions */}
@@ -166,7 +183,7 @@ export function AssignTechnicianModal({
                         variant="primary"
                         onClick={handleAssign}
                         className="flex-1"
-                        disabled={!selectedTecnico || loading}
+                        disabled={!selectedTecnico || !dataAgendamento || loading}
                         isLoading={loading}
                         leftIcon={<UserPlus className="w-4 h-4" />}
                     >

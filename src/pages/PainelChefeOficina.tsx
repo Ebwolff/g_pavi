@@ -203,18 +203,25 @@ const PainelChefeOficina: React.FC = () => {
         percentual: Math.round((Number(count) / (osAtivas.length || 1)) * 100)
     })).sort((a, b) => b.quantidade - a.quantidade);
 
-    // Datas com OS ativas para o Calendário (usando a data de abertura como marco da tarefa)
     const calendarEvents = useMemo(() => {
         const events: any[] = [];
         osAtivas.forEach((os: any) => {
-            if (os.tecnico_id && os.data_abertura) {
-                const date = new Date(os.data_abertura).toISOString().split('T')[0];
+            if (os.tecnico_id && (os.data_agendamento || os.data_abertura)) {
+                // Se tiver data_agendamento a gente usa, senão fallback pra data_abertura
+                const dateRaw = os.data_agendamento || os.data_abertura;
+
+                // Extrai o YYYY-MM-DD direto do começo da string ISO, evitando shift de fuso horário
+                const date = dateRaw.split('T')[0];
+
                 const tecnicoNome = tecnicos.find((t: any) => t.id === os.tecnico_id)?.nome || 'Sem técnico';
+
+                const isAgendamento = !!os.data_agendamento;
+
                 events.push({
                     id: os.id,
                     date,
                     title: `OS #${os.numero_os}`,
-                    subtitle: `Téc: ${tecnicoNome}`
+                    subtitle: isAgendamento ? `Agendado - Téc: ${tecnicoNome}` : `Téc: ${tecnicoNome}`
                 });
             }
         });
@@ -255,10 +262,13 @@ const PainelChefeOficina: React.FC = () => {
         };
     }).sort((a: any, b: any) => b.concluidas - a.concluidas);
 
-    const handleAtribuir = async (tecnicoId: string) => {
+    const handleAtribuir = async (tecnicoId: string, dataAgendamento: string) => {
         if (selectedOS) {
             try {
-                await ordemServicoService.update(selectedOS.id, { tecnico_id: tecnicoId } as any);
+                await ordemServicoService.update(selectedOS.id, {
+                    tecnico_id: tecnicoId,
+                    data_agendamento: dataAgendamento
+                } as any);
                 queryClient.invalidateQueries({ queryKey: ['os-ativas'] });
                 queryClient.invalidateQueries({ queryKey: ['tecnicos-stats'] });
                 queryClient.invalidateQueries({ queryKey: ['os-pecas-prontas'] });
