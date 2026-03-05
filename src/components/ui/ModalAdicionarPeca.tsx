@@ -91,9 +91,9 @@ export function ModalAdicionarPeca({ isOpen, onClose, osId, onSuccess }: ModalAd
 
             onSuccess();
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Erro ao adicionar peças:', error);
-            alert('Erro ao adicionar peças. Tente novamente.');
+            alert(`Erro ao adicionar peças: ${error.message || 'Erro desconhecido.'}`);
         } finally {
             setLoading(false);
         }

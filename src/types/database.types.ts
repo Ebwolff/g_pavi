@@ -491,6 +491,7 @@ export interface Database {
                     valor_unitario: number;
                     status_separacao: string;
                     solicitacao_compra_id: string | null;
+                    codigo_peca: string | null;
                     created_at: string;
                 };
                 Insert: {
@@ -501,6 +502,7 @@ export interface Database {
                     valor_unitario: number;
                     status_separacao?: string;
                     solicitacao_compra_id?: string | null;
+                    codigo_peca?: string | null;
                     created_at?: string;
                 };
                 Update: {
@@ -511,6 +513,7 @@ export interface Database {
                     valor_unitario?: number;
                     status_separacao?: string;
                     solicitacao_compra_id?: string | null;
+                    codigo_peca?: string | null;
                     created_at?: string;
                 };
             };
