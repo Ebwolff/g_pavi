@@ -337,15 +337,21 @@ export function DashboardNovo() {
                             <div className="grid grid-cols-2 gap-3">
                                 <MiniCard
                                     label="Em Execução"
-                                    value={stats?.osAbertas || 0}
+                                    value={stats?.osEmExecucao || 0}
                                     color="blue"
                                     icon={Wrench}
                                 />
                                 <MiniCard
-                                    label="Pendências"
-                                    value={stats?.pendenciasAbertas || 0}
+                                    label="Aguard. Peças"
+                                    value={stats?.osAguardandoPecas || 0}
                                     color="orange"
                                     icon={AlertCircle}
+                                />
+                                <MiniCard
+                                    label="Prontas p/ Faturar"
+                                    value={stats?.osAguardandoPagamento || 0}
+                                    color="green"
+                                    icon={CheckCircle}
                                 />
                                 <MiniCard
                                     label="Concluídas"

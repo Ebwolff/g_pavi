@@ -128,8 +128,8 @@ export default function PainelConsultor() {
             setOsList(osComDias);
 
             const todasOS = data || [];
-            const abertas = todasOS.filter((o: any) => !['CONCLUIDA', 'FATURADA', 'CANCELADA'].includes(o.status_atual));
-            const concluidas = todasOS.filter((o: any) => ['CONCLUIDA', 'FATURADA'].includes(o.status_atual));
+            const abertas = todasOS.filter((o: any) => !['CONCLUIDA', 'FATURADA', 'CANCELADA', 'AGUARDANDO_PAGAMENTO'].includes(o.status_atual));
+            const concluidas = todasOS.filter((o: any) => ['CONCLUIDA', 'FATURADA', 'AGUARDANDO_PAGAMENTO'].includes(o.status_atual));
 
             const limite60Dias = new Date();
             limite60Dias.setDate(limite60Dias.getDate() - 60);

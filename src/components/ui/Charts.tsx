@@ -164,6 +164,8 @@ export const DistribuicaoStatusChart: React.FC<DistribuicaoStatusChartProps> = (
     const statusLabels: Record<string, string> = {
         EM_EXECUCAO: 'Execução',
         AGUARDANDO_PECAS: 'Peças',
+        AGUARDANDO_ATRIBUICAO: 'Atribuição',
+        AGUARDANDO_PAGAMENTO: 'Faturamento',
         PAUSADA: 'Pausada',
         CONCLUIDA: 'Concluída',
         FATURADA: 'Faturada',

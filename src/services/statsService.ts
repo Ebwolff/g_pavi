@@ -6,6 +6,13 @@ export interface DashboardStats {
     osConcluidas: number;
     osCanceladas: number;
 
+    // Granularidade das Abertas
+    osAguardandoAtribuicao: number;
+    osEmExecucao: number;
+    osAguardandoPecas: number;
+    osAguardandoPagamento: number;
+    osAguardandoOrcamento: number;
+
     // Por tipo
     osNormal: number;
     osGarantia: number;
@@ -142,11 +149,21 @@ export const statsService = {
             let dmed = 0;
             if (osAbertas.length > 0) dmed = osAbertas.reduce((s, o) => s + calcularDiasAberto(o.data_abertura), 0) / osAbertas.length;
 
+            const countStatus = (status: string) => os.filter(o => o.status_atual === status).length;
+
             return {
                 totalOS: os.length,
                 osAbertas: osAbertas.length,
                 osConcluidas: osConcluidas.length,
                 osCanceladas: osCanceladas.length,
+
+                // Status granulares
+                osAguardandoAtribuicao: countStatus('AGUARDANDO_ATRIBUICAO'),
+                osEmExecucao: countStatus('EM_EXECUCAO'),
+                osAguardandoPecas: countStatus('AGUARDANDO_PECAS'),
+                osAguardandoPagamento: countStatus('AGUARDANDO_PAGAMENTO'),
+                osAguardandoOrcamento: countStatus('AGUARDANDO_APROVACAO_ORCAMENTO'),
+
                 osNormal: osNormal.length,
                 osGarantia: osGarantia.length,
                 osCriticas: 0, osAltas: 0, osMedias: 0, osNormais: 0,
