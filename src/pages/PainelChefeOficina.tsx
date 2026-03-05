@@ -41,7 +41,7 @@ function OsPecasProntas({ onAssignClick }: { onAssignClick?: (os: any) => void }
         queryFn: async () => {
             const { data, error } = await supabase
                 .from('itens_os')
-                .select('*, ordens_servico:ordem_servico_id(id, numero_os, nome_cliente_digitavel, modelo_maquina, tecnico_id)')
+                .select('*, ordens_servico:ordem_servico_id(id, numero_os, nome_cliente_digitavel, modelo_maquina, tecnico_id, status_atual)')
                 .eq('status_separacao', 'AGUARDANDO_RETIRADA');
 
             if (error || !data) return [];
@@ -49,8 +49,8 @@ function OsPecasProntas({ onAssignClick }: { onAssignClick?: (os: any) => void }
             const osMap = new Map<string, any>();
             data.forEach((item: any) => {
                 const os = item.ordens_servico;
-                // Só mostrar se NÃO tiver técnico atribuído
-                if (!os || os.tecnico_id) return;
+                // Mostrar se NÃO tiver técnico atribuído OU se o status for AGUARDANDO_ATRIBUICAO (peças chegaram/separadas)
+                if (!os || (os.tecnico_id && os.status_atual !== 'AGUARDANDO_ATRIBUICAO')) return;
 
                 if (!osMap.has(os.id)) {
                     osMap.set(os.id, { id: os.id, numero_os: os.numero_os, nome_cliente_digitavel: os.nome_cliente_digitavel, modelo_maquina: os.modelo_maquina, pecas: 0 });
@@ -162,7 +162,7 @@ const PainelChefeOficina: React.FC = () => {
     const limite60Dias = new Date();
     limite60Dias.setDate(limite60Dias.getDate() - 60);
 
-    const osSemTecnico = osAtivas.filter((o: any) => !o.tecnico_id);
+    const osSemTecnico = osAtivas.filter((o: any) => !o.tecnico_id || o.status_atual === 'AGUARDANDO_ATRIBUICAO');
     const totalHorasSemTecnico = osSemTecnico.reduce((acc: number, o: any) => {
         const horas = (Date.now() - new Date(o.data_abertura).getTime()) / (1000 * 60 * 60);
         return acc + horas;
@@ -180,7 +180,7 @@ const PainelChefeOficina: React.FC = () => {
     };
 
     const osNaoAtribuidas: OSNaoAtribuida[] = osAtivas
-        .filter((o: any) => !o.tecnico_id)
+        .filter((o: any) => !o.tecnico_id || o.status_atual === 'AGUARDANDO_ATRIBUICAO')
         .map((o: any) => ({
             id: o.id,
             numero_os: o.numero_os,
