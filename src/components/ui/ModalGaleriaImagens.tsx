@@ -1,35 +1,59 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { anexosService, Anexo } from '@/services/anexosService';
-import { Loader2, Download, ChevronLeft, ChevronRight, X, ImageIcon } from 'lucide-react';
+import { Loader2, Download, ChevronLeft, ChevronRight, X, ImageIcon, Upload } from 'lucide-react';
 
 interface ModalGaleriaImagensProps {
     isOpen: boolean;
     onClose: () => void;
     osId: string;
     osNumero: string;
+    canUpload?: boolean;
 }
 
-export function ModalGaleriaImagens({ isOpen, onClose, osId, osNumero }: ModalGaleriaImagensProps) {
+export function ModalGaleriaImagens({ isOpen, onClose, osId, osNumero, canUpload = false }: ModalGaleriaImagensProps) {
     const [anexos, setAnexos] = useState<Anexo[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isUploading, setIsUploading] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const fetchAnexos = async () => {
+        setLoading(true);
+        try {
+            const data = await anexosService.getAnexosByOS(osId);
+            setAnexos(data);
+            if (currentIndex >= data.length) setCurrentIndex(Math.max(0, data.length - 1));
+        } catch (err) {
+            console.error('Erro ao buscar anexos:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchAnexos = async () => {
-            setLoading(true);
-            try {
-                const data = await anexosService.getAnexosByOS(osId);
-                setAnexos(data);
-            } catch (err) {
-                console.error('Erro ao buscar anexos:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         if (osId && isOpen) fetchAnexos();
     }, [osId, isOpen]);
+
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+
+        setIsUploading(true);
+        try {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                await anexosService.uploadAnexo(osId, file, `Foto anexada pelo Técnico`, 'IMAGEM');
+            }
+            await fetchAnexos();
+        } catch (error) {
+            console.error('Erro ao fazer upload das imagens:', error);
+            alert('Erro ao enviar imagens. Tente novamente.');
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
 
     const handleNext = () => {
         setCurrentIndex((prev) => (prev + 1) % anexos.length);
@@ -57,25 +81,58 @@ export function ModalGaleriaImagens({ isOpen, onClose, osId, osNumero }: ModalGa
                             </p>
                         </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-white/10 rounded-xl transition-all text-[var(--text-muted)] hover:text-white"
-                    >
-                        <X className="w-6 h-6" />
-                    </button>
+                    <div className="flex items-center gap-4">
+                        {canUpload && (
+                            <>
+                                <input
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    className="hidden"
+                                    ref={fileInputRef}
+                                    onChange={handleFileUpload}
+                                />
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={isUploading || loading}
+                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                                >
+                                    {isUploading ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Upload className="w-4 h-4" />
+                                    )}
+                                    {isUploading ? 'Enviando...' : 'Adicionar Foto'}
+                                </button>
+                            </>
+                        )}
+                        <button
+                            onClick={onClose}
+                            className="p-2 hover:bg-white/10 rounded-xl transition-all text-[var(--text-muted)] hover:text-white"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 overflow-hidden relative flex flex-col bg-black/40">
-                    {loading ? (
-                        <div className="absolute inset-0 flex flex-center flex-col gap-4">
+                    {loading || isUploading ? (
+                        <div className="absolute inset-0 flex flex-center flex-col gap-4 items-center justify-center">
                             <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
-                            <p className="text-xs font-bold text-blue-400 uppercase tracking-widest">Carregando Galeria...</p>
+                            <p className="text-xs font-bold text-blue-400 uppercase tracking-widest">
+                                {isUploading ? 'Fazendo Upload...' : 'Carregando Galeria...'}
+                            </p>
                         </div>
                     ) : anexos.length === 0 ? (
-                        <div className="absolute inset-0 flex flex-center flex-col opacity-30">
+                        <div className="absolute inset-0 flex flex-center flex-col items-center justify-center opacity-30">
                             <ImageIcon className="w-16 h-16 mb-4" />
                             <p className="text-sm font-bold uppercase tracking-widest">Nenhum anexo encontrado</p>
+                            {canUpload && (
+                                <p className="text-xs text-[var(--text-muted)] mt-2">
+                                    Clique em "Adicionar Foto" para anexar imagens a esta OS.
+                                </p>
+                            )}
                         </div>
                     ) : (
                         <>

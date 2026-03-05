@@ -19,7 +19,8 @@ import {
     Fuel,
     Utensils,
     Hotel,
-    Car
+    Car,
+    ImageIcon
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,6 +36,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Card } from '@/components/ui/Card';
 import { ModalAdicionarPeca } from '@/components/ui/ModalAdicionarPeca';
 import { ModalLancarDespesa } from '@/components/ui/ModalLancarDespesa';
+import { ModalGaleriaImagens } from '@/components/ui/ModalGaleriaImagens';
 import { AgendaTecnicos } from '@/components/dashboard/AgendaTecnicos';
 
 export default function PainelTecnico() {
@@ -46,6 +48,7 @@ export default function PainelTecnico() {
 
     const [selectedOS, setSelectedOS] = useState<string | null>(null);
     const [selectedNumeroOS, setSelectedNumeroOS] = useState<string>('');
+    const [selectedOSForGallery, setSelectedOSForGallery] = useState<{ id: string, numero: string } | null>(null);
     const [modalPecaOpen, setModalPecaOpen] = useState(false);
     const [modalDespesaOpen, setModalDespesaOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'dashboard' | 'os'>('dashboard');
@@ -550,6 +553,18 @@ export default function PainelTecnico() {
                                                         <Button
                                                             variant="secondary"
                                                             size="sm"
+                                                            onClick={() => {
+                                                                setSelectedOSForGallery({ id: os.id, numero: os.numero_os });
+                                                            }}
+                                                            leftIcon={<ImageIcon className="w-4 h-4" />}
+                                                            className="border-[var(--border-subtle)] opacity-80 hover:opacity-100 flex-1 lg:flex-none"
+                                                        >
+                                                            Fotos
+                                                        </Button>
+
+                                                        <Button
+                                                            variant="secondary"
+                                                            size="sm"
                                                             onClick={() => navigate(`/os/editar/${os.id}`)}
                                                             leftIcon={<ChevronRight className="w-4 h-4" />}
                                                             className="border-[var(--border-subtle)] p-2 hover:bg-blue-500 hover:text-white transition-colors"
@@ -592,6 +607,14 @@ export default function PainelTecnico() {
                     osId={selectedOS || ''}
                     osNumero={selectedNumeroOS}
                     onSuccess={refreshData}
+                />
+
+                <ModalGaleriaImagens
+                    isOpen={!!selectedOSForGallery}
+                    osId={selectedOSForGallery?.id || ''}
+                    osNumero={selectedOSForGallery?.numero || ''}
+                    onClose={() => setSelectedOSForGallery(null)}
+                    canUpload={true}
                 />
             </div>
         </AppLayout>
