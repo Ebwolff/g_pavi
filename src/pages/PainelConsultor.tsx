@@ -106,13 +106,10 @@ export default function PainelConsultor() {
                 .select('*, tecnico:tecnicos(*)')
                 .order('data_abertura', { ascending: false });
 
-            // 1. Filtro por Cargo (Segregação de Dados)
-            if (!isGerente) {
-                if (isGarantia) {
-                    query = query.eq('tipo_os', 'GARANTIA');
-                } else if (isPosVenda) {
-                    query = query.eq('tipo_os', 'NORMAL');
-                }
+            // 1. Filtro por Cargo e Autoria (Segregação de Dados)
+            if (!isGerente && profile?.id) {
+                const tipo = isGarantia ? 'GARANTIA' : 'NORMAL';
+                query = query.or(`consultor_id.eq.${profile.id},tipo_os.eq.${tipo}`);
             }
 
             const { data, error } = await query;
@@ -155,7 +152,7 @@ export default function PainelConsultor() {
 
     useEffect(() => {
         if (profile) carregarDados();
-    }, [profile?.role]);
+    }, [profile?.role, profile?.id]);
 
     // Carregar peças pendentes de triagem
     const carregarPecasPendentes = async () => {
