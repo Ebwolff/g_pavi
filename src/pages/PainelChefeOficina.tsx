@@ -267,7 +267,8 @@ const PainelChefeOficina: React.FC = () => {
             try {
                 await ordemServicoService.update(selectedOS.id, {
                     tecnico_id: tecnicoId,
-                    data_agendamento: dataAgendamento
+                    data_agendamento: dataAgendamento,
+                    status_atual: 'EM_EXECUCAO'
                 } as any);
                 queryClient.invalidateQueries({ queryKey: ['os-ativas'] });
                 queryClient.invalidateQueries({ queryKey: ['tecnicos-stats'] });
