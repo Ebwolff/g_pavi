@@ -1,6 +1,6 @@
 import { useState, FormEvent, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     ArrowLeft, Save, X, Wrench, User,
     DollarSign, Activity, Hash, Tag,
@@ -33,10 +33,19 @@ export function NovaOS() {
         aol: '',
     });
 
+    const queryClient = useQueryClient();
+
     const createOSMutation = useMutation({
         mutationFn: (data: any) => ordemServicoService.create(data),
-        onSuccess: () => navigate('/os/lista'),
-        onError: (error: any) => console.error('Erro ao criar OS:', error),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['ordens-servico'] });
+            alert('OS criada com sucesso!');
+            navigate('/os/lista');
+        },
+        onError: (error: any) => {
+            console.error('Erro ao criar OS:', error);
+            alert(`Erro ao criar OS: ${error.message || 'Ocorreu um erro inesperado'}`);
+        },
     });
 
     const handleInputChange = (field: string, value: string) => {

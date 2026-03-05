@@ -58,6 +58,7 @@ interface OSDoConsultor {
 }
 
 const statusLabels: Record<StatusOS, string> = {
+    'AGUARDANDO_ATRIBUICAO': 'Aguard. Atribuição',
     'EM_EXECUCAO': 'Em Execução',
     'AGUARDANDO_PECAS': 'Aguardando Peças',
     'AGUARDANDO_APROVACAO_ORCAMENTO': 'Aguardando Orçamento',

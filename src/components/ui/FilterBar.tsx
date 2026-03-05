@@ -171,8 +171,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                 className={selectClassName}
                             >
                                 <option value="TODOS">Todos os Status</option>
+                                <option value="AGUARDANDO_ATRIBUICAO">Aguardando Atribuição</option>
                                 <option value="EM_EXECUCAO">Em Execução</option>
+                                <option value="EM_DIAGNOSTICO">Em Diagnóstico</option>
                                 <option value="AGUARDANDO_PECAS">Aguardando Peças</option>
+                                <option value="AGUARDANDO_APROVACAO_ORCAMENTO">Aguard. Orçamento</option>
+                                <option value="AGUARDANDO_PAGAMENTO">Aguard. Pagamento</option>
+                                <option value="EM_TRANSITO">Em Trânsito</option>
                                 <option value="PAUSADA">Pausada</option>
                                 <option value="CONCLUIDA">Concluída</option>
                                 <option value="FATURADA">Faturada</option>
