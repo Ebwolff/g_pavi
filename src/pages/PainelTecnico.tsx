@@ -491,7 +491,7 @@ export default function PainelTecnico() {
 
                                                 {!isGerente && (
                                                     <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto pt-4 lg:pt-0 border-t lg:border-t-0 lg:border-l border-[var(--border-subtle)] lg:pl-6">
-                                                        {['EM_EXECUCAO', 'PAUSADA'].includes(os.status) && (
+                                                        {['EM_EXECUCAO', 'PAUSADA', 'AGUARDANDO_PECAS'].includes(os.status) && (
                                                             <>
                                                                 <Button
                                                                     variant={os.status === 'EM_EXECUCAO' ? 'secondary' : 'primary'}

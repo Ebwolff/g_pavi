@@ -16,6 +16,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Card } from '@/components/ui/Card';
+import { ordemServicoService } from '@/services/ordemServico.service';
 
 interface ItemPeca {
     id: string;
@@ -194,8 +195,14 @@ export default function PainelAlmoxarifado() {
 
     const liberarParaRetirada = async () => {
         if (!selectedOS) return;
-        setSelectedOS(null);
-        carregarDados();
+        try {
+            const { error } = await ordemServicoService.update(selectedOS.id, { status_atual: 'AGUARDANDO_ATRIBUICAO' } as any);
+            if (error) throw error;
+            setSelectedOS(null);
+            carregarDados();
+        } catch (error: any) {
+            alert(`Erro ao liberar OS: ${error.message}`);
+        }
     };
 
     const totalChegando = osChegando.reduce((s, os) => s + os.totalPecas, 0);

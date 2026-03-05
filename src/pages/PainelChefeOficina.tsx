@@ -36,31 +36,32 @@ import { CalendarWidget } from '@/components/dashboard/CalendarWidget';
 
 // Sub-componente: OS com pepas prontas para retirada
 function OsPecasProntas({ onAssignClick }: { onAssignClick?: (os: any) => void }) {
-    const [osProntas, setOsProntas] = React.useState<any[]>([]);
-
-    React.useEffect(() => {
-        const carregar = async () => {
+    const { data: osProntas = [], isLoading } = useQuery({
+        queryKey: ['os-pecas-prontas'],
+        queryFn: async () => {
             const { data, error } = await supabase
                 .from('itens_os')
-                .select('*, ordens_servico:ordem_servico_id(id, numero_os, nome_cliente_digitavel, modelo_maquina)')
+                .select('*, ordens_servico:ordem_servico_id(id, numero_os, nome_cliente_digitavel, modelo_maquina, tecnico_id)')
                 .eq('status_separacao', 'AGUARDANDO_RETIRADA');
 
-            if (error || !data) return;
+            if (error || !data) return [];
 
             const osMap = new Map<string, any>();
             data.forEach((item: any) => {
                 const os = item.ordens_servico;
-                if (!os) return;
+                // Só mostrar se NÃO tiver técnico atribuído
+                if (!os || os.tecnico_id) return;
+
                 if (!osMap.has(os.id)) {
                     osMap.set(os.id, { id: os.id, numero_os: os.numero_os, nome_cliente_digitavel: os.nome_cliente_digitavel, modelo_maquina: os.modelo_maquina, pecas: 0 });
                 }
                 osMap.get(os.id).pecas++;
             });
-            setOsProntas(Array.from(osMap.values()));
-        };
-        carregar();
-    }, []);
+            return Array.from(osMap.values());
+        }
+    });
 
+    if (isLoading) return <Skeleton className="h-48 w-full rounded-3xl" />;
     if (osProntas.length === 0) return null;
 
     return (
@@ -260,6 +261,7 @@ const PainelChefeOficina: React.FC = () => {
                 await ordemServicoService.update(selectedOS.id, { tecnico_id: tecnicoId } as any);
                 queryClient.invalidateQueries({ queryKey: ['os-ativas'] });
                 queryClient.invalidateQueries({ queryKey: ['tecnicos-stats'] });
+                queryClient.invalidateQueries({ queryKey: ['os-pecas-prontas'] });
                 setModalOpen(false);
                 setSelectedOS(null);
             } catch (error) {
