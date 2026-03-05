@@ -17,7 +17,8 @@ import {
     Wrench,
     ArrowRight,
     FileDown,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Package
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -29,6 +30,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { DistribuicaoOperacionalChart } from '@/components/ui/Charts';
 import { PedidoPeca } from '@/components/consultor/PedidoPeca';
 import { ModalGaleriaImagens } from '@/components/ui/ModalGaleriaImagens';
+import { ModalTriagemPecas } from '@/components/ui/ModalTriagemPecas';
 import { Card } from '@/components/ui/Card';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -88,6 +90,8 @@ export default function PainelConsultor() {
     const [activeTab, setActiveTab] = useState<'dashboard' | 'servicos' | 'faturadas' | 'pedidos'>('dashboard');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOSForGallery, setSelectedOSForGallery] = useState<{ id: string, numero: string } | null>(null);
+    const [osComPecasPendentes, setOsComPecasPendentes] = useState<any[]>([]);
+    const [selectedOSTriagem, setSelectedOSTriagem] = useState<any | null>(null);
 
     const isGerente = ['GERENTE', 'CHEFE_OFICINA'].includes(profile?.role?.toUpperCase() || '');
     const isGarantia = profile?.role?.toUpperCase() === 'CONSULTOR_GARANTIA';
@@ -152,6 +156,51 @@ export default function PainelConsultor() {
     useEffect(() => {
         if (profile) carregarDados();
     }, [profile?.role]);
+
+    // Carregar peças pendentes de triagem
+    const carregarPecasPendentes = async () => {
+        try {
+            const { data: itens, error } = await supabase
+                .from('itens_os')
+                .select('*, ordens_servico:ordem_servico_id(id, numero_os, nome_cliente_digitavel, modelo_maquina)')
+                .eq('status_separacao', 'PENDENTE');
+
+            if (error) throw error;
+
+            // Agrupar por OS
+            const osMap = new Map<string, any>();
+            (itens || []).forEach((item: any) => {
+                const os = item.ordens_servico;
+                if (!os) return;
+                if (!osMap.has(os.id)) {
+                    osMap.set(os.id, {
+                        id: os.id,
+                        numero_os: os.numero_os,
+                        nome_cliente_digitavel: os.nome_cliente_digitavel,
+                        modelo_maquina: os.modelo_maquina,
+                        itens: []
+                    });
+                }
+                osMap.get(os.id).itens.push({
+                    id: item.id,
+                    ordem_servico_id: item.ordem_servico_id,
+                    codigo_peca: item.codigo_peca,
+                    descricao: item.descricao,
+                    quantidade: item.quantidade,
+                    status_separacao: item.status_separacao,
+                    valor_unitario: item.valor_unitario
+                });
+            });
+
+            setOsComPecasPendentes(Array.from(osMap.values()));
+        } catch (error) {
+            console.error('Erro ao carregar peças pendentes:', error);
+        }
+    };
+
+    useEffect(() => {
+        carregarPecasPendentes();
+    }, []);
 
     // Filtragem baseada na aba ativa
     const osFiltrada = osList.filter(os => {
@@ -252,7 +301,7 @@ export default function PainelConsultor() {
                             <ShoppingBag className="w-4 h-4" />
                             Pedidos
                             <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-[8px] font-black rounded-full flex items-center justify-center border-2 border-[var(--surface)]">
-                                {osList.filter(o => o.status_atual === 'AGUARDANDO_PECAS').length}
+                                {osComPecasPendentes.reduce((sum, os) => sum + os.itens.length, 0) || osList.filter(o => o.status_atual === 'AGUARDANDO_PECAS').length}
                             </span>
                         </button>
                     </div>
@@ -385,7 +434,61 @@ export default function PainelConsultor() {
                         </div>
                     </div>
                 ) : activeTab === 'pedidos' ? (
-                    <PedidoPeca />
+                    <div className="space-y-8 animate-slideUp">
+                        {/* Seção: Peças Pendentes de Triagem */}
+                        {osComPecasPendentes.length > 0 && (
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-amber-500/10 rounded-xl">
+                                        <Package className="w-6 h-6 text-amber-500" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold text-white">Peças Aguardando Triagem</h2>
+                                        <p className="text-xs text-[var(--text-muted)]">Decida se cada peça será retirada do estoque ou solicitada para compra</p>
+                                    </div>
+                                    <span className="ml-auto px-3 py-1 bg-amber-500/10 text-amber-400 rounded-full text-xs font-bold border border-amber-500/20">
+                                        {osComPecasPendentes.reduce((sum: number, os: any) => sum + os.itens.length, 0)} peças
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {osComPecasPendentes.map((os: any) => (
+                                        <div
+                                            key={os.id}
+                                            onClick={() => setSelectedOSTriagem(os)}
+                                            className="glass-card-enterprise p-5 rounded-2xl border border-amber-500/15 hover:border-amber-500/30 cursor-pointer transition-all group"
+                                        >
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">
+                                                    OS #{os.numero_os}
+                                                </span>
+                                                <span className="px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded-md text-[10px] font-bold border border-amber-500/20">
+                                                    {os.itens.length} peça{os.itens.length > 1 ? 's' : ''}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm font-bold text-white mb-1 truncate">{os.nome_cliente_digitavel || 'Cliente'}</p>
+                                            <p className="text-xs text-[var(--text-muted)] truncate">{os.modelo_maquina || ''}</p>
+                                            <div className="mt-3 pt-3 border-t border-white/5">
+                                                <p className="text-[10px] text-[var(--text-muted)] group-hover:text-amber-400 transition-colors">Clique para fazer a triagem →</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Separador */}
+                        {osComPecasPendentes.length > 0 && (
+                            <div className="flex items-center gap-4">
+                                <div className="flex-1 h-px bg-white/5"></div>
+                                <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Solicitações de Compra</span>
+                                <div className="flex-1 h-px bg-white/5"></div>
+                            </div>
+                        )}
+
+                        {/* PedidoPeca original */}
+                        <PedidoPeca />
+                    </div>
                 ) : (
                     <div className="space-y-6 animate-slideUp">
                         {/* List Header & Filters */}
@@ -518,6 +621,19 @@ export default function PainelConsultor() {
                     osNumero={selectedOSForGallery?.numero || ''}
                     onClose={() => setSelectedOSForGallery(null)}
                 />
+
+                {/* Modal Triagem de Peças */}
+                {selectedOSTriagem && (
+                    <ModalTriagemPecas
+                        isOpen={!!selectedOSTriagem}
+                        onClose={() => setSelectedOSTriagem(null)}
+                        os={selectedOSTriagem}
+                        onSuccess={() => {
+                            carregarPecasPendentes();
+                            carregarDados();
+                        }}
+                    />
+                )}
             </div>
         </AppLayout>
     );

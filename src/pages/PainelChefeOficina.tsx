@@ -34,6 +34,60 @@ import { Card } from '@/components/ui/Card';
 import { ModalDetalhesTecnico } from '@/components/ui/ModalDetalhesTecnico';
 import { CalendarWidget } from '@/components/dashboard/CalendarWidget';
 
+// Sub-componente: OS com pepas prontas para retirada
+function OsPecasProntas() {
+    const [osProntas, setOsProntas] = React.useState<any[]>([]);
+
+    React.useEffect(() => {
+        const carregar = async () => {
+            const { data, error } = await supabase
+                .from('itens_os')
+                .select('*, ordens_servico:ordem_servico_id(id, numero_os, nome_cliente_digitavel, modelo_maquina)')
+                .eq('status_separacao', 'AGUARDANDO_RETIRADA');
+
+            if (error || !data) return;
+
+            const osMap = new Map<string, any>();
+            data.forEach((item: any) => {
+                const os = item.ordens_servico;
+                if (!os) return;
+                if (!osMap.has(os.id)) {
+                    osMap.set(os.id, { id: os.id, numero_os: os.numero_os, cliente: os.nome_cliente_digitavel, modelo: os.modelo_maquina, pecas: 0 });
+                }
+                osMap.get(os.id).pecas++;
+            });
+            setOsProntas(Array.from(osMap.values()));
+        };
+        carregar();
+    }, []);
+
+    if (osProntas.length === 0) return null;
+
+    return (
+        <div className="glass-card-enterprise p-8 rounded-3xl shadow-2xl border border-emerald-500/20 bg-emerald-500/[0.02]">
+            <h3 className="text-xs font-black text-emerald-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                <Package className="w-5 h-5" />
+                OS com Peças Prontas para Retirada ({osProntas.length})
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {osProntas.map((os: any) => (
+                    <div key={os.id} className="p-4 bg-emerald-500/5 border border-emerald-500/15 rounded-xl hover:bg-emerald-500/10 transition-all">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-black text-emerald-400">#{os.numero_os}</span>
+                            <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-md text-[10px] font-bold border border-emerald-500/20">
+                                {os.pecas} peça{os.pecas > 1 ? 's' : ''}
+                            </span>
+                        </div>
+                        <p className="text-sm font-bold text-white truncate">{os.cliente || 'Cliente'}</p>
+                        <p className="text-xs text-[var(--text-muted)] truncate">{os.modelo || ''}</p>
+                        <p className="text-[10px] text-emerald-400/70 mt-2">✅ Peças separadas — atribuir técnico para conclusão</p>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 interface OSNaoAtribuida {
     id: string;
     numero_os: string;
@@ -458,6 +512,9 @@ const PainelChefeOficina: React.FC = () => {
                             {/* Calendário de Operações */}
                             <CalendarWidget events={calendarEvents} />
                         </div>
+
+                        {/* ===== Seção: OS com Peças Prontas para Retirada ===== */}
+                        <OsPecasProntas />
                     </div>
                 )}
 
