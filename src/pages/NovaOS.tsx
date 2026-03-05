@@ -29,7 +29,6 @@ export function NovaOS() {
         valor_pecas: '0',
         valor_deslocamento: '0',
         data_abertura: new Date().toISOString().substring(0, 16), // datetime-local format
-        status_atual: 'EM_EXECUCAO' as const,
         aol: '',
     });
 
@@ -89,7 +88,7 @@ export function NovaOS() {
             valor_mao_de_obra: parseFloat(formData.valor_mao_de_obra) || 0,
             valor_pecas: parseFloat(formData.valor_pecas) || 0,
             valor_deslocamento: parseFloat(formData.valor_deslocamento) || 0,
-            status_atual: formData.status_atual,
+            status_atual: 'AGUARDANDO_ATRIBUICAO',
             data_abertura: new Date(formData.data_abertura).toISOString(),
             aol: formData.aol || null,
         });
@@ -212,20 +211,13 @@ export function NovaOS() {
                                     icon={Clock}
                                     required
                                 />
-                                <div className="space-y-2 relative">
+                                <div className="space-y-2 relative opacity-50 cursor-not-allowed">
                                     <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Status Inicial</label>
                                     <div className="relative group/select">
-                                        <Activity className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] group-focus-within/select:text-blue-400 transition-colors z-10" />
-                                        <select
-                                            value={formData.status_atual}
-                                            onChange={(e) => handleInputChange('status_atual', e.target.value)}
-                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl pl-12 pr-4 py-3.5 text-[var(--text-primary)] font-medium focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none appearance-none cursor-pointer"
-                                        >
-                                            <option value="EM_EXECUCAO" className="bg-[#0b0f14]">Em Execução</option>
-                                            <option value="EM_DIAGNOSTICO" className="bg-[#0b0f14]">Em Diagnóstico</option>
-                                            <option value="AGUARDANDO_PECAS" className="bg-[#0b0f14]">Aguardando Peças</option>
-                                            <option value="EM_TRANSITO" className="bg-[#0b0f14]">Em Trânsito</option>
-                                        </select>
+                                        <Activity className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] z-10" />
+                                        <div className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl pl-12 pr-4 py-3.5 text-[var(--text-primary)] font-medium">
+                                            Aguardando Atribuição
+                                        </div>
                                     </div>
                                 </div>
                             </div>
