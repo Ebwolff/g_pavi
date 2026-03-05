@@ -105,7 +105,7 @@ const PainelChefeOficina: React.FC = () => {
 
     const osSemTecnico = osAtivas.filter((o: any) => !o.tecnico_id);
     const totalHorasSemTecnico = osSemTecnico.reduce((acc: number, o: any) => {
-        const horas = (Date.now() - new Date(o.created_at || o.data_abertura).getTime()) / (1000 * 60 * 60);
+        const horas = (Date.now() - new Date(o.data_abertura).getTime()) / (1000 * 60 * 60);
         return acc + horas;
     }, 0);
 
@@ -116,7 +116,7 @@ const PainelChefeOficina: React.FC = () => {
         osEmAndamento: osAtivas.filter((o: any) => o.status_atual === 'EM_EXECUCAO').length,
         osAguardandoPecas: osAtivas.filter((o: any) => o.status_atual === 'AGUARDANDO_PECAS').length,
         osSemTecnico: osSemTecnico.length,
-        osCriticas: osAtivas.filter((o: any) => new Date(o.created_at || o.data_abertura) < limite60Dias).length,
+        osCriticas: osAtivas.filter((o: any) => new Date(o.data_abertura) < limite60Dias).length,
         leadTimeTriagem: osSemTecnico.length > 0 ? (totalHorasSemTecnico / osSemTecnico.length).toFixed(1) : 0,
     };
 
@@ -129,7 +129,7 @@ const PainelChefeOficina: React.FC = () => {
             nome_cliente_digitavel: o.nome_cliente_digitavel,
             modelo_maquina: o.modelo_maquina,
             data_abertura: o.data_abertura,
-            dias_em_aberto: Math.floor((Date.now() - new Date(o.created_at || o.data_abertura).getTime()) / (1000 * 60 * 60 * 24)),
+            dias_em_aberto: Math.floor((Date.now() - new Date(o.data_abertura).getTime()) / (1000 * 60 * 60 * 24)),
             descricao_problema: o.descricao_problema || 'Nenhuma descrição detalhada fornecida.',
         }));
 
@@ -434,7 +434,7 @@ const PainelChefeOficina: React.FC = () => {
                                         </div>
                                     ) : (
                                         osPrazoExcedido.map((os: any) => {
-                                            const dias = Math.floor((Date.now() - new Date(os.created_at || os.data_abertura).getTime()) / (1000 * 60 * 60 * 24));
+                                            const dias = Math.floor((Date.now() - new Date(os.data_abertura).getTime()) / (1000 * 60 * 60 * 24));
                                             return (
                                                 <div key={os.id} className="flex items-center justify-between p-4 bg-rose-500/5 border border-rose-500/15 rounded-xl hover:bg-rose-500/10 transition-all">
                                                     <div className="flex items-center gap-3">
