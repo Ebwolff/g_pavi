@@ -36,6 +36,7 @@ export interface SolicitacaoCompra {
 
 export interface CreateSolicitacaoInput {
     ordem_servico_id?: string;
+    item_os_id?: string;
     codigo_peca?: string;
     descricao_peca: string;
     quantidade?: number;
@@ -137,10 +138,11 @@ class ComprasService {
      * Cria nova solicitação de compra
      */
     async criarSolicitacao(dados: CreateSolicitacaoInput): Promise<SolicitacaoCompra> {
-        const { data, error } = await supabase
-            .from('solicitacoes_compra')
+        const { data, error } = await (supabase
+            .from('solicitacoes_compra') as any)
             .insert({
                 ordem_servico_id: dados.ordem_servico_id || null,
+                item_os_id: dados.item_os_id || null,
                 codigo_peca: dados.codigo_peca || null,
                 descricao_peca: dados.descricao_peca,
                 quantidade: dados.quantidade || 1,

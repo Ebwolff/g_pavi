@@ -83,6 +83,7 @@ export function ModalTriagemPecas({ isOpen, onClose, os, onSuccess }: ModalTriag
             // 1. Criar solicitação de compra vinculada à OS e ao item
             await comprasService.criarSolicitacao({
                 ordem_servico_id: os.id,
+                item_os_id: item.id,
                 codigo_peca: item.codigo_peca || undefined,
                 descricao_peca: item.descricao,
                 quantidade: item.quantidade,
