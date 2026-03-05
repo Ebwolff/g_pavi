@@ -9,23 +9,16 @@ import {
     Package,
     Truck,
     XCircle,
-    Info,
-    ArrowUpRight,
-    Loader2,
-    Check,
-    TrendingUp
 } from 'lucide-react';
 import { comprasService, SolicitacaoCompra } from '@/services/compras.service';
-import { ordemServicoService } from '@/services/ordemServico.service';
 import { Button } from '@/components/ui/Button';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
 
 export function PedidoPeca() {
     const [pedidos, setPedidos] = useState<SolicitacaoCompra[]>([]);
     const [loading, setLoading] = useState(true);
     const [showNewModal, setShowNewModal] = useState(false);
-    const [showDetailModal, setShowDetailModal] = useState<SolicitacaoCompra | null>(null);
+    const [selectedGroup, setSelectedGroup] = useState<{ numero_os: string; cliente: string; modelo_maquina: string; itens: SolicitacaoCompra[]; maxUrgencia: string; dias_aguardando: number } | null>(null);
     const [filtroStatus, setFiltroStatus] = useState<string>('');
 
     const loadPedidos = async () => {
@@ -44,6 +37,39 @@ export function PedidoPeca() {
         loadPedidos();
     }, []);
 
+    // Agrupamento por OS
+    const pedidosAgrupados = pedidos.reduce((acc: any, pedido) => {
+        if (filtroStatus && pedido.status !== filtroStatus) return acc;
+
+        const key = pedido.numero_os || 'SEM_OS';
+        if (!acc[key]) {
+            acc[key] = {
+                numero_os: key,
+                cliente: pedido.cliente,
+                modelo_maquina: pedido.modelo_maquina,
+                itens: [],
+                maxUrgencia: pedido.urgencia,
+                dias_aguardando: pedido.dias_aguardando || 0
+            };
+        }
+
+        acc[key].itens.push(pedido);
+
+        // Prioridade de urgência
+        const niveis = { 'URGENTE': 4, 'ALTA': 3, 'NORMAL': 2, 'BAIXA': 1 };
+        if (niveis[pedido.urgencia as keyof typeof niveis] > niveis[acc[key].maxUrgencia as keyof typeof niveis]) {
+            acc[key].maxUrgencia = pedido.urgencia;
+        }
+
+        if ((pedido.dias_aguardando || 0) > acc[key].dias_aguardando) {
+            acc[key].dias_aguardando = pedido.dias_aguardando;
+        }
+
+        return acc;
+    }, {});
+
+    const grupos = Object.values(pedidosAgrupados) as any[];
+
     const getStatusIcon = (status: string) => {
         switch (status) {
             case 'PENDENTE': return <Clock className="w-4 h-4 text-amber-500" />;
@@ -54,11 +80,6 @@ export function PedidoPeca() {
             case 'CANCELADO': return <XCircle className="w-4 h-4 text-rose-500" />;
             default: return <AlertCircle className="w-4 h-4 text-gray-400" />;
         }
-    };
-
-    const formatCurrency = (value: number | null) => {
-        if (value === null) return '-';
-        return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     };
 
     return (
@@ -96,6 +117,22 @@ export function PedidoPeca() {
                 </div>
             </div>
 
+            {/* Modal para solicitar peça (Placeholder/Not implemented here but kept for UI consistency) */}
+            {showNewModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+                    <div className="glass-card-enterprise p-8 rounded-3xl border border-white/10 max-w-md w-full text-center space-y-6">
+                        <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto border border-blue-500/20">
+                            <Plus className="w-8 h-8 text-blue-500" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-white mb-2">Solicitar Nova Peça</h3>
+                            <p className="text-sm text-[var(--text-muted)]">A funcionabilidade de abertura de pedidos deve ser feita através da edição da OS.</p>
+                        </div>
+                        <Button className="w-full" onClick={() => setShowNewModal(false)}>Entendi</Button>
+                    </div>
+                </div>
+            )}
+
             {/* List */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? (
@@ -110,49 +147,45 @@ export function PedidoPeca() {
                             </div>
                         </div>
                     ))
-                ) : pedidos.length === 0 ? (
+                ) : grupos.length === 0 ? (
                     <div className="col-span-full py-20 text-center glass-card-enterprise rounded-3xl border border-white/5 opacity-50">
                         <Package className="w-12 h-12 mx-auto mb-4 text-[var(--text-muted)]" />
                         <p className="text-sm font-bold uppercase tracking-widest text-[var(--text-muted)]">Nenhuma solicitação encontrada</p>
                     </div>
                 ) : (
-                    pedidos.map((pedido) => (
+                    grupos.map((grupo) => (
                         <div
-                            key={pedido.id}
-                            onClick={() => setShowDetailModal(pedido)}
+                            key={grupo.numero_os}
+                            onClick={() => setSelectedGroup(grupo)}
                             className="glass-card-enterprise p-6 rounded-3xl border border-white/[0.03] hover:border-blue-500/30 transition-all cursor-pointer group relative overflow-hidden"
                         >
-                            <div className="absolute top-0 right-0 p-4 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity">
-                                {getStatusIcon(pedido.status)}
-                            </div>
-
                             <div className="flex items-center justify-between mb-4">
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400/80">
-                                    OS #{pedido.numero_os || 'N/A'}
+                                    OS #{grupo.numero_os}
                                 </span>
-                                <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border ${pedido.urgencia === 'URGENTE' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' :
-                                    pedido.urgencia === 'ALTA' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                                <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border ${grupo.maxUrgencia === 'URGENTE' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' :
+                                    grupo.maxUrgencia === 'ALTA' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
                                         'bg-blue-500/10 text-blue-500 border-blue-500/20'
                                     }`}>
-                                    {pedido.urgencia}
+                                    {grupo.maxUrgencia}
                                 </div>
                             </div>
 
-                            <h3 className="text-lg font-bold text-white mb-1 line-clamp-1">{pedido.descricao_peca}</h3>
-                            <p className="text-xs text-[var(--text-muted)] mb-4">Qtd: <span className="text-white">{pedido.quantidade} {pedido.unidade}</span></p>
+                            <h3 className="text-lg font-bold text-white mb-1 line-clamp-1">{grupo.cliente || 'Cliente não identificado'}</h3>
+                            <p className="text-xs text-[var(--text-muted)] mb-4">{grupo.modelo_maquina || 'Máquina não identificada'}</p>
 
                             <div className="flex items-center justify-between pt-4 border-t border-white/5">
                                 <div className="flex items-center gap-2">
                                     <div className="p-1.5 rounded-lg bg-white/5">
-                                        {getStatusIcon(pedido.status)}
+                                        <Package className="w-3 h-3 text-blue-400" />
                                     </div>
                                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">
-                                        {pedido.status.replace('_', ' ')}
+                                        {grupo.itens.length} Peça{grupo.itens.length > 1 ? 's' : ''}
                                     </span>
                                 </div>
                                 <div className="text-[10px] text-[var(--text-muted)] flex items-center gap-1 italic">
                                     <Clock className="w-3 h-3" />
-                                    {pedido.dias_aguardando}d atrás
+                                    Hpa {grupo.dias_aguardando}d
                                 </div>
                             </div>
                         </div>
@@ -160,113 +193,68 @@ export function PedidoPeca() {
                 )}
             </div>
 
-            {/* Detail Modal */}
-            {showDetailModal && (
+            {/* List Modal */}
+            {selectedGroup && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/60 animate-fadeIn">
-                    <div className="glass-card-enterprise w-full max-w-2xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden animate-slideUp">
+                    <div className="glass-card-enterprise w-full max-w-4xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden animate-slideUp max-h-[90vh] flex flex-col">
                         <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-blue-600/10 rounded-2xl border border-blue-500/20">
-                                    <Info className="w-6 h-6 text-blue-500" />
+                                    <Package className="w-6 h-6 text-blue-500" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-white">Detalhes do Pedido</h2>
-                                    <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest font-bold">Solicitação #{showDetailModal.id.substring(0, 8).toUpperCase()}</p>
+                                    <h2 className="text-xl font-bold text-white">Peças Solicitadas - OS #{selectedGroup.numero_os}</h2>
+                                    <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest font-bold">{selectedGroup.cliente}</p>
                                 </div>
                             </div>
-                            <button onClick={() => setShowDetailModal(null)} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
+                            <button onClick={() => setSelectedGroup(null)} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
                                 <XCircle className="w-6 h-6 text-[var(--text-muted)]" />
                             </button>
                         </div>
 
-                        <div className="p-8 space-y-8">
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Ordem de Serviço</p>
-                                    <p className="font-bold text-white">#{showDetailModal.numero_os || 'N/A'}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Peça (Código)</p>
-                                    <p className="font-bold text-white">{showDetailModal.codigo_peca || 'Não informado'}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Quantidade</p>
-                                    <p className="font-bold text-white">{showDetailModal.quantidade} {showDetailModal.unidade}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Valor Unitário</p>
-                                    <p className="font-black text-emerald-400">{formatCurrency(showDetailModal.valor_unitario)}</p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Descrição da Peça</p>
-                                <p className="text-lg font-bold text-white leading-tight">{showDetailModal.descricao_peca}</p>
-                            </div>
-
-                            {/* Status Timeline / Notifications */}
-                            <div className="space-y-4">
-                                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Status da Operação</p>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between group">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                                                <Filter className="w-4 h-4" />
-                                            </div>
-                                            <div>
-                                                <p className="text-xs font-bold text-white uppercase tracking-tighter">Setor de Compras</p>
-                                                <p className="text-[10px] text-[var(--text-muted)]">{showDetailModal.status === 'PENDENTE' ? 'Aguardando Cotação' : showDetailModal.status === 'CANCELADO' ? 'Cancelado' : 'Processado'}</p>
-                                            </div>
+                        <div className="p-8 overflow-y-auto flex-1 space-y-4">
+                            {selectedGroup.itens.map((item) => (
+                                <div key={item.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+                                    <div className="flex-1 min-w-[200px]">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{item.codigo_peca || 'S/ Cod.'}</span>
+                                            <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold border ${item.urgencia === 'URGENTE' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' :
+                                                item.urgencia === 'ALTA' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                                                    'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                                                }`}>
+                                                {item.urgencia}
+                                            </span>
                                         </div>
-                                        <div className={`p-1 rounded-full ${['COMPRADO', 'AGUARDANDO_ENTREGA', 'ENTREGUE'].includes(showDetailModal.status) ? 'bg-emerald-500 text-black' : 'bg-white/10 text-white/30'}`}>
-                                            <Check className="w-3 h-3" />
-                                        </div>
+                                        <p className="font-bold text-white">{item.descricao_peca}</p>
+                                        <p className="text-xs text-[var(--text-muted)]">Quantidade: {item.quantidade} {item.unidade}</p>
+                                        {item.valor_unitario && (
+                                            <p className="text-xs font-bold text-emerald-400">
+                                                {item.valor_unitario.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                            </p>
+                                        )}
                                     </div>
-                                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between group">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 rounded-xl bg-violet-500/10 text-violet-500 border border-violet-500/20">
-                                                <Truck className="w-4 h-4" />
-                                            </div>
-                                            <div>
-                                                <p className="text-xs font-bold text-white uppercase tracking-tighter">Entrada Almoxarifado</p>
-                                                <p className="text-[10px] text-[var(--text-muted)]">{showDetailModal.status === 'ENTREGUE' ? 'Confirmado' : 'Pendente'}</p>
+
+                                    <div className="flex items-center gap-6">
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Status</p>
+                                            <div className="flex items-center gap-2">
+                                                {getStatusIcon(item.status)}
+                                                <span className="text-xs font-bold text-white">{item.status.replace('_', ' ')}</span>
                                             </div>
                                         </div>
-                                        <div className={`p-1 rounded-full ${showDetailModal.status === 'ENTREGUE' ? 'bg-emerald-500 text-black' : 'bg-white/10 text-white/30'}`}>
-                                            <Check className="w-3 h-3" />
+                                        <div className="text-right min-w-[120px]">
+                                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Previsão</p>
+                                            <p className="text-xs font-bold text-blue-400">
+                                                {item.data_previsao_entrega ? new Date(item.data_previsao_entrega).toLocaleDateString() : 'Não informada'}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="p-6 bg-blue-500/5 rounded-2xl border border-blue-500/10">
-                                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Previsão de Entrega</p>
-                                    <p className="text-sm font-bold text-white flex items-center gap-2">
-                                        <Clock className="w-4 h-4 text-blue-400" />
-                                        {showDetailModal.data_previsao_entrega ? new Date(showDetailModal.data_previsao_entrega).toLocaleDateString() : 'Aguardando Cotação'}
-                                    </p>
-                                </div>
-                                <div className="p-6 bg-violet-500/5 rounded-2xl border border-violet-500/10">
-                                    <p className="text-[10px] font-black text-violet-400 uppercase tracking-widest mb-2">Faturamento Fábrica</p>
-                                    <p className="text-sm font-bold text-white flex items-center gap-2">
-                                        <TrendingUp className="w-4 h-4 text-violet-400" />
-                                        {showDetailModal.data_faturamento_fabrica ? new Date(showDetailModal.data_faturamento_fabrica).toLocaleDateString() : 'Pendente'}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="p-6 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
-                                <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2">AOL (Status Fábrica)</p>
-                                <p className="text-sm font-bold text-white flex items-center gap-2">
-                                    <Package className="w-4 h-4 text-emerald-400" />
-                                    {showDetailModal.aol || 'Aguardando Processamento'}
-                                </p>
-                            </div>
+                            ))}
                         </div>
 
                         <div className="p-6 bg-white/[0.02] border-t border-white/5 flex justify-end">
-                            <Button variant="secondary" onClick={() => setShowDetailModal(null)}>Fechar Detalhes</Button>
+                            <Button variant="secondary" onClick={() => setSelectedGroup(null)}>Fechar</Button>
                         </div>
                     </div>
                 </div>
