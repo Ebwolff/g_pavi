@@ -346,9 +346,14 @@ export default function PainelAlmoxarifado() {
                                             {done ? (
                                                 <span className="flex items-center gap-1.5 text-[10px] font-black text-emerald-400 uppercase tracking-widest"><CheckCircle2 className="w-4 h-4" /> Separada</span>
                                             ) : (
-                                                <Button variant="primary" size="sm" disabled={processando[item.id]} onClick={() => separarPeca(item.id)}
-                                                    leftIcon={processando[item.id] ? <Loader2 className="w-4 h-4 animate-spin" /> : <PackageCheck className="w-4 h-4" />}>
-                                                    {processando[item.id] ? '...' : 'Separar'}
+                                                <Button
+                                                    variant="primary"
+                                                    size="sm"
+                                                    disabled={processando[item.id] || selectedOS.temComprasPendentes}
+                                                    onClick={() => separarPeca(item.id)}
+                                                    leftIcon={processando[item.id] ? <Loader2 className="w-4 h-4 animate-spin" /> : <PackageCheck className="w-4 h-4" />}
+                                                >
+                                                    {processando[item.id] ? '...' : (selectedOS.temComprasPendentes ? 'Aguardando Compra' : 'Separar')}
                                                 </Button>
                                             )}
                                         </div>
