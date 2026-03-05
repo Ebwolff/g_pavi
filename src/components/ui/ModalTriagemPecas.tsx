@@ -165,29 +165,6 @@ export function ModalTriagemPecas({ isOpen, onClose, os, onSuccess }: ModalTriag
                         </div>
                     ) : (
                         <>
-                            {/* Peças já processadas */}
-                            {os.itens.filter(i => processados.includes(i.id)).map(item => (
-                                <div key={item.id} className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 opacity-70">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                                            <div>
-                                                <p className="text-sm font-bold text-white">{item.descricao}</p>
-                                                <p className="text-xs text-[var(--text-muted)]">
-                                                    {item.codigo_peca || 'Sem código'} • Qtd: {item.quantidade}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${decisoes[item.id] === 'estoque'
-                                            ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                                            : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                                            }`}>
-                                            {decisoes[item.id] === 'estoque' ? '📦 Estoque' : '🛒 Compra'}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-
                             {/* Peças pendentes */}
                             {pecasPendentes.map(item => (
                                 <div key={item.id} className="p-4 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-all">
