@@ -3,14 +3,12 @@ import {
     ShoppingCart,
     Search,
     RefreshCw,
-    Calendar,
     Clock,
     CheckCircle2,
     Truck,
     DollarSign,
     X,
-    Loader2,
-    AlertTriangle
+    Loader2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { AppLayout } from '@/components/AppLayout';
@@ -146,17 +144,22 @@ export default function PainelCompras() {
         }
     };
 
-    const registrarCompra = async (id: string, fornecedor: string, valor: number) => {
+    const registrarCompra = async (id: string, fornecedor: string, valor: number, previsao: string) => {
         try {
+            const updateData: any = { fornecedor, valor_unitario: valor, status: 'COMPRADO' };
+            if (previsao) {
+                updateData.data_previsao_entrega = previsao;
+                updateData.status = 'AGUARDANDO_ENTREGA';
+            }
             const { error } = await (supabase.from('solicitacoes_compra') as any)
-                .update({ fornecedor, valor_unitario: valor, status: 'COMPRADO' })
+                .update(updateData)
                 .eq('id', id);
             if (error) throw error;
             setEditando(null);
             if (selectedOS) {
                 setSelectedOS({
                     ...selectedOS,
-                    itens: selectedOS.itens.map(i => i.id === id ? { ...i, status: 'COMPRADO', fornecedor, valor_unitario: valor } : i),
+                    itens: selectedOS.itens.map(i => i.id === id ? { ...i, ...updateData } : i),
                 });
             }
         } catch (error: any) {
@@ -164,23 +167,6 @@ export default function PainelCompras() {
         }
     };
 
-    const definirPrevisao = async (id: string, data: string) => {
-        try {
-            const { error } = await (supabase.from('solicitacoes_compra') as any)
-                .update({ data_previsao_entrega: data, status: 'AGUARDANDO_ENTREGA' })
-                .eq('id', id);
-            if (error) throw error;
-            setEditando(null);
-            if (selectedOS) {
-                setSelectedOS({
-                    ...selectedOS,
-                    itens: selectedOS.itens.map(i => i.id === id ? { ...i, status: 'AGUARDANDO_ENTREGA', data_previsao_entrega: data } : i),
-                });
-            }
-        } catch (error: any) {
-            alert(`Erro: ${error.message}`);
-        }
-    };
 
     const stats = {
         totalOS: osAgrupadas.length,
@@ -299,8 +285,8 @@ export default function PainelCompras() {
                                 const color = STATUS_COLORS[item.status] || 'gray';
                                 return (
                                     <div key={item.id} className={`p-4 rounded-xl border transition-all ${item.status === 'AGUARDANDO_ENTREGA' ? 'border-violet-500/20 bg-violet-500/5' :
-                                            item.status === 'COMPRADO' ? 'border-emerald-500/20 bg-emerald-500/5' :
-                                                'border-white/10 bg-white/[0.02]'
+                                        item.status === 'COMPRADO' ? 'border-emerald-500/20 bg-emerald-500/5' :
+                                            'border-white/10 bg-white/[0.02]'
                                         }`}>
                                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                             <div className="flex-1">
@@ -330,9 +316,7 @@ export default function PainelCompras() {
                                                     </Button>
                                                 )}
                                                 {item.status === 'COMPRADO' && (
-                                                    <Button size="sm" variant="primary" onClick={() => setEditando({ id: item.id, field: 'previsao' })}>
-                                                        <Calendar className="w-3 h-3 mr-1" /> Previsão
-                                                    </Button>
+                                                    <span className="text-[10px] text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Comprado — aguard. previsão</span>
                                                 )}
                                                 {item.status === 'AGUARDANDO_ENTREGA' && (
                                                     <span className="text-[10px] text-violet-400 flex items-center gap-1"><Truck className="w-3 h-3" /> Aguard. Almoxarifado</span>
@@ -363,7 +347,8 @@ export default function PainelCompras() {
                             const form = e.target as HTMLFormElement;
                             const fornecedor = (form.elements.namedItem('fornecedor') as HTMLInputElement).value;
                             const valor = parseFloat((form.elements.namedItem('valor') as HTMLInputElement).value) || 0;
-                            registrarCompra(editando.id, fornecedor, valor);
+                            const previsao = (form.elements.namedItem('previsao') as HTMLInputElement).value;
+                            registrarCompra(editando.id, fornecedor, valor, previsao);
                         }} className="space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-[var(--text-muted)] mb-1">Fornecedor</label>
@@ -373,38 +358,19 @@ export default function PainelCompras() {
                                 <label className="block text-xs font-bold text-[var(--text-muted)] mb-1">Valor Unitário (R$)</label>
                                 <input name="valor" type="number" step="0.01" className="w-full px-3 py-2 rounded-lg border border-white/10 bg-white/[0.02] text-white text-sm outline-none focus:ring-2 focus:ring-blue-500/50" />
                             </div>
+                            <div>
+                                <label className="block text-xs font-bold text-[var(--text-muted)] mb-1">Previsão de Chegada</label>
+                                <input name="previsao" type="date" className="w-full px-3 py-2 rounded-lg border border-white/10 bg-white/[0.02] text-white text-sm outline-none focus:ring-2 focus:ring-blue-500/50" />
+                            </div>
                             <div className="flex gap-2 pt-2">
                                 <Button type="button" variant="secondary" onClick={() => setEditando(null)}>Cancelar</Button>
-                                <Button type="submit" variant="primary">Confirmar</Button>
+                                <Button type="submit" variant="primary">Confirmar Compra</Button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* Modal: Previsão de Entrega */}
-            {editando?.field === 'previsao' && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-                    <div className="glass-card-enterprise p-6 rounded-2xl border border-white/10 max-w-sm w-full">
-                        <h3 className="text-lg font-bold text-white mb-4">Previsão de Chegada</h3>
-                        <form onSubmit={(e) => {
-                            e.preventDefault();
-                            const form = e.target as HTMLFormElement;
-                            const data = (form.elements.namedItem('data') as HTMLInputElement).value;
-                            definirPrevisao(editando.id, data);
-                        }} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-[var(--text-muted)] mb-1">Data Prevista</label>
-                                <input name="data" type="date" required className="w-full px-3 py-2 rounded-lg border border-white/10 bg-white/[0.02] text-white text-sm outline-none focus:ring-2 focus:ring-blue-500/50" />
-                            </div>
-                            <div className="flex gap-2 pt-2">
-                                <Button type="button" variant="secondary" onClick={() => setEditando(null)}>Cancelar</Button>
-                                <Button type="submit" variant="primary">Salvar</Button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </AppLayout>
     );
 }
