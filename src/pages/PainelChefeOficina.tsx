@@ -35,7 +35,7 @@ import { ModalDetalhesTecnico } from '@/components/ui/ModalDetalhesTecnico';
 import { CalendarWidget } from '@/components/dashboard/CalendarWidget';
 
 // Sub-componente: OS com pepas prontas para retirada
-function OsPecasProntas() {
+function OsPecasProntas({ onAssignClick }: { onAssignClick?: (os: any) => void }) {
     const [osProntas, setOsProntas] = React.useState<any[]>([]);
 
     React.useEffect(() => {
@@ -52,7 +52,7 @@ function OsPecasProntas() {
                 const os = item.ordens_servico;
                 if (!os) return;
                 if (!osMap.has(os.id)) {
-                    osMap.set(os.id, { id: os.id, numero_os: os.numero_os, cliente: os.nome_cliente_digitavel, modelo: os.modelo_maquina, pecas: 0 });
+                    osMap.set(os.id, { id: os.id, numero_os: os.numero_os, nome_cliente_digitavel: os.nome_cliente_digitavel, modelo_maquina: os.modelo_maquina, pecas: 0 });
                 }
                 osMap.get(os.id).pecas++;
             });
@@ -71,16 +71,20 @@ function OsPecasProntas() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {osProntas.map((os: any) => (
-                    <div key={os.id} className="p-4 bg-emerald-500/5 border border-emerald-500/15 rounded-xl hover:bg-emerald-500/10 transition-all">
+                    <div
+                        key={os.id}
+                        onClick={() => onAssignClick && onAssignClick(os)}
+                        className={`p-4 bg-emerald-500/5 border border-emerald-500/15 rounded-xl transition-all ${onAssignClick ? 'cursor-pointer hover:bg-emerald-500/10 hover:border-emerald-500/30' : ''}`}
+                    >
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-xs font-black text-emerald-400">#{os.numero_os}</span>
                             <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-md text-[10px] font-bold border border-emerald-500/20">
                                 {os.pecas} peça{os.pecas > 1 ? 's' : ''}
                             </span>
                         </div>
-                        <p className="text-sm font-bold text-white truncate">{os.cliente || 'Cliente'}</p>
-                        <p className="text-xs text-[var(--text-muted)] truncate">{os.modelo || ''}</p>
-                        <p className="text-[10px] text-emerald-400/70 mt-2">✅ Peças separadas — atribuir técnico para conclusão</p>
+                        <p className="text-sm font-bold text-white truncate">{os.nome_cliente_digitavel || 'Cliente'}</p>
+                        <p className="text-xs text-[var(--text-muted)] truncate">{os.modelo_maquina || ''}</p>
+                        <p className="text-[10px] text-emerald-400/70 mt-2">✅ Peças separadas — clique para atribuir/notificar técnico p/ conclusão</p>
                     </div>
                 ))}
             </div>
@@ -231,7 +235,7 @@ const PainelChefeOficina: React.FC = () => {
     // === Desempenho Operacional dos Técnicos ===
     const desempenhoTecnicos = tecnicos.map((t: any) => {
         const osDoTecnico = todasOS.filter((os: any) => os.tecnico_id === t.id);
-        const concluidas = osDoTecnico.filter((os: any) => os.status_atual === 'CONCLUIDA' || os.status_atual === 'FATURADA').length;
+        const concluidas = osDoTecnico.filter((os: any) => ['CONCLUIDA', 'FATURADA', 'AGUARDANDO_PAGAMENTO'].includes(os.status_atual)).length;
         const emExecucao = osDoTecnico.filter((os: any) => os.status_atual === 'EM_EXECUCAO').length;
         const aguardando = osDoTecnico.filter((os: any) => os.status_atual === 'AGUARDANDO_PECAS').length;
         const totalAtivas = osDoTecnico.filter((os: any) => !['FATURADA', 'CANCELADA'].includes(os.status_atual)).length;
@@ -514,7 +518,7 @@ const PainelChefeOficina: React.FC = () => {
                         </div>
 
                         {/* ===== Seção: OS com Peças Prontas para Retirada ===== */}
-                        <OsPecasProntas />
+                        <OsPecasProntas onAssignClick={openAssignModal} />
                     </div>
                 )}
 

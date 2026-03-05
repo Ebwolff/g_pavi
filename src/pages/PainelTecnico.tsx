@@ -85,7 +85,7 @@ export default function PainelTecnico() {
             const result = await ordemServicoService.list(filters, 1, 100);
 
             return result.data
-                .filter(os => !['FATURADA', 'CANCELADA'].includes(os.status_atual) && !!os.tecnico_id)
+                .filter(os => !['FATURADA', 'CANCELADA', 'CONCLUIDA', 'AGUARDANDO_PAGAMENTO'].includes(os.status_atual) && !!os.tecnico_id)
                 .map((os: any) => {
                     const temPecasPendentes = os.itens?.some((i: any) => i.status_separacao === 'PENDENTE' || i.status_separacao === 'AGUARDANDO_COMPRA');
                     const todasPecasEntregues = os.itens?.length > 0 && !temPecasPendentes;
@@ -183,9 +183,9 @@ export default function PainelTecnico() {
     };
 
     // Dashboard KPIs
-    const osAbertas = todasOsTecnico.filter((os: any) => !['FATURADA', 'CANCELADA', 'CONCLUIDA'].includes(os.status_atual));
+    const osAbertas = todasOsTecnico.filter((os: any) => !['FATURADA', 'CANCELADA', 'CONCLUIDA', 'AGUARDANDO_PAGAMENTO'].includes(os.status_atual));
     const osPendentes = todasOsTecnico.filter((os: any) => os.status_atual === 'AGUARDANDO_PECAS' || os.status_atual === 'PAUSADA');
-    const osFaturadas = todasOsTecnico.filter((os: any) => os.status_atual === 'FATURADA');
+    const osFaturadas = todasOsTecnico.filter((os: any) => ['FATURADA', 'CONCLUIDA', 'AGUARDANDO_PAGAMENTO'].includes(os.status_atual));
 
     // Despesas por categoria
     const despesasPorCategoria = {
@@ -258,8 +258,8 @@ export default function PainelTecnico() {
                         <button
                             onClick={() => setActiveTab('dashboard')}
                             className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'dashboard'
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                                    : 'text-[var(--text-muted)] hover:bg-white/5'
+                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                                : 'text-[var(--text-muted)] hover:bg-white/5'
                                 }`}
                         >
                             <LayoutDashboard className="w-4 h-4" />
@@ -268,8 +268,8 @@ export default function PainelTecnico() {
                         <button
                             onClick={() => setActiveTab('os')}
                             className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'os'
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                                    : 'text-[var(--text-muted)] hover:bg-white/5'
+                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                                : 'text-[var(--text-muted)] hover:bg-white/5'
                                 }`}
                         >
                             <Wrench className="w-4 h-4" />
@@ -491,15 +491,34 @@ export default function PainelTecnico() {
 
                                                 {!isGerente && (
                                                     <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto pt-4 lg:pt-0 border-t lg:border-t-0 lg:border-l border-[var(--border-subtle)] lg:pl-6">
-                                                        <Button
-                                                            variant={os.status === 'EM_EXECUCAO' ? 'secondary' : 'primary'}
-                                                            size="sm"
-                                                            onClick={() => handleUpdateStatus(os.id, os.status === 'EM_EXECUCAO' ? 'PAUSADA' : 'EM_EXECUCAO')}
-                                                            leftIcon={os.status === 'EM_EXECUCAO' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                                                            className={os.status === 'EM_EXECUCAO' ? 'border-[var(--border-subtle)] flex-1 lg:flex-none' : 'bg-blue-600 hover:bg-blue-700 text-white flex-1 lg:flex-none'}
-                                                        >
-                                                            {os.status === 'EM_EXECUCAO' ? 'Pausar' : 'Iniciar'}
-                                                        </Button>
+                                                        {['EM_EXECUCAO', 'PAUSADA'].includes(os.status) && (
+                                                            <>
+                                                                <Button
+                                                                    variant={os.status === 'EM_EXECUCAO' ? 'secondary' : 'primary'}
+                                                                    size="sm"
+                                                                    onClick={() => handleUpdateStatus(os.id, os.status === 'EM_EXECUCAO' ? 'PAUSADA' : 'EM_EXECUCAO')}
+                                                                    leftIcon={os.status === 'EM_EXECUCAO' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                                                                    className={os.status === 'EM_EXECUCAO' ? 'border-[var(--border-subtle)] flex-1 lg:flex-none' : 'bg-blue-600 hover:bg-blue-700 text-white flex-1 lg:flex-none'}
+                                                                >
+                                                                    {os.status === 'EM_EXECUCAO' ? 'Pausar' : 'Iniciar'}
+                                                                </Button>
+                                                                {os.status === 'EM_EXECUCAO' && (
+                                                                    <Button
+                                                                        variant="primary"
+                                                                        size="sm"
+                                                                        onClick={() => {
+                                                                            if (confirm("Deseja realmente concluir este serviço? Esta ação enviará a OS para faturamento.")) {
+                                                                                handleUpdateStatus(os.id, 'AGUARDANDO_PAGAMENTO');
+                                                                            }
+                                                                        }}
+                                                                        leftIcon={<CheckCircle className="w-4 h-4" />}
+                                                                        className="bg-emerald-600 hover:bg-emerald-700 text-white flex-1 lg:flex-none"
+                                                                    >
+                                                                        Concluir
+                                                                    </Button>
+                                                                )}
+                                                            </>
+                                                        )}
 
                                                         <Button
                                                             variant="secondary"
