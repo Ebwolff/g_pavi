@@ -370,7 +370,7 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
                         variant="primary"
                         onClick={handleSubmit}
                         className="flex-1 font-black py-4 rounded-xl shadow-lg shadow-blue-500/20"
-                        disabled={loading || (tipoSelecionado === 'KM' ? kmRodados <= 0 : !valor)}
+                        disabled={loading || !(comprovante || (tipoSelecionado === 'KM' ? kmRodados > 0 : valor))}
                         isLoading={loading}
                         leftIcon={loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     >
