@@ -111,13 +111,13 @@ export default function PainelTecnico() {
         enabled: isGerente || !!tecnico?.id
     });
 
-    // Mutation para atualização de status
     const updateStatusMutation = useMutation({
         mutationFn: async ({ osId, status }: { osId: string, status: string }) => {
             return ordemServicoService.update(osId, { status_atual: status } as any);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['os-tecnico'] });
+            queryClient.invalidateQueries({ queryKey: ['todas-os-tecnico'] });
         }
     });
 
@@ -221,7 +221,7 @@ export default function PainelTecnico() {
     // KPIs do Período
     const osFechadasPeriodo = todasOsTecnico.filter((os: any) =>
         ['FATURADA', 'CONCLUIDA', 'AGUARDANDO_PAGAMENTO'].includes(os.status_atual) &&
-        filterByDate(os.data_fechamento || os.data_abertura)
+        filterByDate(os.data_faturamento || os.data_fechamento || os.data_conclusao_servico || os.updated_at || os.data_abertura)
     );
 
     let faturamentoPeriodo = 0;
