@@ -148,39 +148,40 @@ export function Login() {
                     <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/40 to-transparent" />
                 </div>
 
-                <div className="relative z-10 w-full h-full flex flex-col justify-between p-24 text-white">
-                    <div className="flex flex-col gap-4">
+                <div className="relative z-10 w-full h-full flex flex-col justify-between p-24 text-white items-center text-center">
+                    <div className="flex flex-col gap-4 items-center">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-0.5 bg-green-500 rounded-full" />
                             <span className="font-antigravity text-xs text-green-400 tracking-[0.4em] drop-shadow-md">Performance Layer</span>
+                            <div className="w-12 h-0.5 bg-green-500 rounded-full" />
                         </div>
 
                         <div className="max-w-2xl mt-4">
                             <h2 className="text-6xl font-black mb-8 leading-[1.1] tracking-tighter drop-shadow-2xl">
                                 Potencialize sua <br />
-                                <span className="text-white bg-green-600/20 px-4 py-1 rounded-2xl backdrop-blur-sm -ml-4 border border-green-500/20">gestão agrícola</span>
+                                <span className="text-white bg-green-600/20 px-4 py-1 rounded-2xl backdrop-blur-sm border border-green-500/20 inline-block mt-2">gestão agrícola</span>
                             </h2>
 
-                            <div className="flex gap-12 mt-6">
-                                <div className="flex flex-col gap-2">
+                            <div className="flex justify-center gap-12 mt-6">
+                                <div className="flex flex-col items-center gap-2">
                                     <div className="flex items-center gap-3 text-white">
                                         <div className="p-2 bg-green-600 rounded-lg shadow-lg border border-green-400/30"><ShieldCheck className="w-5 h-5 text-white" /></div>
                                         <span className="font-antigravity text-sm tracking-widest drop-shadow-md">Compliance</span>
                                     </div>
-                                    <p className="text-white/70 text-[11px] font-bold pl-11 drop-shadow-sm">Auditoria total</p>
+                                    <p className="text-white/70 text-[11px] font-bold drop-shadow-sm">Auditoria total</p>
                                 </div>
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col items-center gap-2">
                                     <div className="flex items-center gap-3 text-white">
                                         <div className="p-2 bg-green-600 rounded-lg shadow-lg border border-green-400/30"><Zap className="w-5 h-5 text-white" /></div>
                                         <span className="font-antigravity text-sm tracking-widest drop-shadow-md">Performance</span>
                                     </div>
-                                    <p className="text-white/70 text-[11px] font-bold pl-11 drop-shadow-sm">KPIs em tempo real</p>
+                                    <p className="text-white/70 text-[11px] font-bold drop-shadow-sm">KPIs em tempo real</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-white/10 pt-10">
+                    <div className="flex items-center justify-between w-full border-t border-white/10 pt-10">
                         <p className="text-white/50 text-[10px] font-black uppercase tracking-[0.3em] drop-shadow-sm">
                             © 2026 Visão 360 · Antigravity Core
                         </p>
