@@ -259,25 +259,23 @@ export function NovaOS() {
 
                             <div className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                        <div className="md:col-span-3 space-y-2">
-                                            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Razão Social / Nome Completo</label>
-                                            <Input
-                                                placeholder="Digite o nome do cliente..."
-                                                value={formData.nome_cliente_digitavel}
-                                                onChange={(e) => handleInputChange('nome_cliente_digitavel', e.target.value)}
-                                                icon={User}
-                                            />
-                                        </div>
-                                        <div className="md:col-span-1 space-y-2">
-                                            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">ID AOL</label>
-                                            <Input
-                                                placeholder="AOL #"
-                                                value={formData.aol}
-                                                onChange={(e) => handleInputChange('aol', e.target.value)}
-                                                icon={Info}
-                                            />
-                                        </div>
+                                    <div className="md:col-span-3 space-y-2">
+                                        <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Razão Social / Nome Completo</label>
+                                        <Input
+                                            placeholder="Digite o nome do cliente..."
+                                            value={formData.nome_cliente_digitavel}
+                                            onChange={(e) => handleInputChange('nome_cliente_digitavel', e.target.value)}
+                                            icon={User}
+                                        />
+                                    </div>
+                                    <div className="md:col-span-1 space-y-2">
+                                        <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">ID AOL</label>
+                                        <Input
+                                            placeholder="AOL #"
+                                            value={formData.aol}
+                                            onChange={(e) => handleInputChange('aol', e.target.value)}
+                                            icon={Info}
+                                        />
                                     </div>
                                 </div>
 
