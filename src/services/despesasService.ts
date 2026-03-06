@@ -210,6 +210,33 @@ class DespesasService {
             .filter(d => d.tipo === 'KM')
             .reduce((total, d) => total + (d.quantidade || 0), 0);
     }
+
+    /**
+     * Upload de comprovante de despesa para o Storage
+     */
+    async uploadComprovante(osId: string, file: File): Promise<string> {
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) throw new Error('Usuário não autenticado');
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `despesas/${osId}/${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = fileName; // No bucket anexos_os
+
+        const { error: uploadError } = await supabase.storage
+            .from('anexos_os')
+            .upload(filePath, file);
+
+        if (uploadError) {
+            console.error('Erro no upload do comprovante:', uploadError);
+            throw uploadError;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('anexos_os')
+            .getPublicUrl(filePath);
+
+        return publicUrl;
+    }
 }
 
 export const despesasService = new DespesasService();

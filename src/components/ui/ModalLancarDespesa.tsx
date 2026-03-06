@@ -1,10 +1,5 @@
-/**
- * Modal para lançar despesas de viagem em uma OS
- * Tipos: KM, Abastecimento, Alimentação, Hospedagem, Pedágio, Outros
- */
-
-import { useState, useEffect } from 'react';
-import { X, Car, Fuel, Utensils, Hotel, CircleDollarSign, MoreHorizontal, Save, Wrench } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Car, Fuel, Utensils, Hotel, CircleDollarSign, MoreHorizontal, Save, Wrench, Paperclip, Trash2, Camera, Loader2 } from 'lucide-react';
 import { Button } from './Button';
 import { Input } from './Input';
 import { despesasService, TipoDespesa, CreateDespesaInput } from '@/services/despesasService';
@@ -33,6 +28,7 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [tipoSelecionado, setTipoSelecionado] = useState<TipoDespesa>('KM');
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Campos do formulário
     const [kmInicial, setKmInicial] = useState('');
@@ -42,6 +38,7 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
     const [quantidade, setQuantidade] = useState('');
     const [descricao, setDescricao] = useState('');
     const [dataDespesa, setDataDespesa] = useState(new Date().toISOString().split('T')[0]);
+    const [comprovante, setComprovante] = useState<File | null>(null);
 
     // Calcular valor total para km
     const kmRodados = parseFloat(kmFinal || '0') - parseFloat(kmInicial || '0');
@@ -57,15 +54,29 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
             setValor('');
             setQuantidade('');
             setDescricao('');
+            setComprovante(null);
             setDataDespesa(new Date().toISOString().split('T')[0]);
         }
     }, [isOpen]);
 
     if (!isOpen) return null;
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setComprovante(e.target.files[0]);
+        }
+    };
+
     const handleSubmit = async () => {
         setLoading(true);
         try {
+            let comprovanteUrl = '';
+
+            // 1. Upload do comprovante se houver
+            if (comprovante) {
+                comprovanteUrl = await despesasService.uploadComprovante(osId, comprovante);
+            }
+
             const dados: CreateDespesaInput = {
                 ordem_servico_id: osId,
                 tipo: tipoSelecionado,
@@ -75,6 +86,7 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
                 quantidade: undefined,
                 valor_unitario: undefined,
                 valor_total: 0,
+                comprovante_url: comprovanteUrl || undefined,
             };
 
             if (tipoSelecionado === 'KM') {
@@ -115,7 +127,7 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
             {/* Modal */}
-            <div className="relative w-full max-w-lg bg-[var(--surface)] p-6 rounded-2xl shadow-2xl border border-[var(--border-subtle)] max-h-[90vh] overflow-y-auto">
+            <div className="relative w-full max-w-lg bg-[var(--surface)] p-6 rounded-2xl shadow-2xl border border-[var(--border-subtle)] max-h-[90vh] overflow-y-auto scrollbar-hide">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-8 border-b border-[var(--border-subtle)] pb-4">
                     <div>
@@ -146,7 +158,7 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
                                     className={cn(
                                         "flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all group",
                                         isSelected
-                                            ? "border-blue-500 bg-blue-500/5 shadow-lg shadow-blue-500/5 scale-[1.02]"
+                                            ? "border-blue-500 bg-blue-500/5 shadow-lg shadow-blue-500/20 scale-[1.02]"
                                             : "border-[var(--border-subtle)] bg-[var(--surface-light)] hover:border-[var(--border-hover)] hover:bg-[var(--surface-hover)]"
                                     )}
                                     disabled={loading}
@@ -277,6 +289,56 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
                         className="bg-[var(--surface-light)]"
                         disabled={loading}
                     />
+
+                    {/* Upload de Comprovante */}
+                    <div className="space-y-2">
+                        <label className="block text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">
+                            Anexar Comprovante (Foto/PDF)
+                        </label>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            accept="image/*,application/pdf"
+                            className="hidden"
+                        />
+                        {!comprovante ? (
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-full flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-[var(--border-subtle)] rounded-2xl hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group"
+                                disabled={loading}
+                            >
+                                <div className="p-3 bg-[var(--surface-light)] rounded-full group-hover:scale-110 transition-transform">
+                                    <Camera className="w-6 h-6 text-[var(--text-muted)]" />
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest">Toque para anexar</p>
+                                    <p className="text-[10px] text-[var(--text-muted)] mt-1">Suporta imagens e arquivos PDF</p>
+                                </div>
+                            </button>
+                        ) : (
+                            <div className="flex items-center justify-between p-4 bg-blue-500/5 border border-blue-500/20 rounded-2xl">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-blue-500 text-white rounded-lg">
+                                        <Paperclip className="w-4 h-4" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-black text-[var(--text-primary)] truncate max-w-[200px]">{comprovante.name}</span>
+                                        <span className="text-[10px] text-[var(--text-muted)]">{(comprovante.size / 1024 / 1024).toFixed(2)} MB</span>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setComprovante(null)}
+                                    className="p-2 hover:bg-rose-500/10 text-rose-400 rounded-xl transition-all"
+                                    disabled={loading}
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Ações */}
@@ -295,9 +357,9 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
                         className="flex-1 font-black py-4 rounded-xl shadow-lg shadow-blue-500/20"
                         disabled={loading || (tipoSelecionado === 'KM' ? kmRodados <= 0 : !valor)}
                         isLoading={loading}
-                        leftIcon={<Save className="w-4 h-4" />}
+                        leftIcon={loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     >
-                        Confirmar Lançamento
+                        {loading ? 'Processando...' : 'Confirmar Lançamento'}
                     </Button>
                 </div>
             </div>

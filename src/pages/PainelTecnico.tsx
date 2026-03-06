@@ -18,7 +18,8 @@ import {
     Utensils,
     Hotel,
     Car,
-    ImageIcon
+    ImageIcon,
+    Paperclip
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -455,8 +456,21 @@ export default function PainelTecnico() {
                                         <div key={desp.id} className="flex items-center justify-between p-4 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-2 h-2 rounded-full bg-blue-500" />
-                                                <div>
-                                                    <span className="text-xs font-black text-[var(--text-primary)] uppercase">{desp.tipo}</span>
+                                                <div className="flex flex-col">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs font-black text-[var(--text-primary)] uppercase">{desp.tipo}</span>
+                                                        {desp.comprovante_url && (
+                                                            <a
+                                                                href={desp.comprovante_url}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="p-1 bg-blue-500/10 text-blue-400 rounded hover:bg-blue-500 hover:text-white transition-all shadow-sm"
+                                                                title="Ver Comprovante"
+                                                            >
+                                                                <Paperclip className="w-3 h-3" />
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                     {desp.descricao && <p className="text-[10px] text-[var(--text-muted)] truncate max-w-[200px]">{desp.descricao}</p>}
                                                 </div>
                                             </div>
