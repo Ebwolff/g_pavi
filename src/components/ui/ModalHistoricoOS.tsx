@@ -12,7 +12,8 @@ import {
     Wrench,
     AlertCircle,
     FastForward,
-    ImageIcon
+    ImageIcon,
+    FileText
 } from 'lucide-react';
 import { ordemServicoService } from '@/services/ordemServico.service';
 import { anexosService, Anexo } from '@/services/anexosService';
@@ -156,8 +157,7 @@ export function ModalHistoricoOS({ isOpen, onClose, osId, osNumero }: ModalHisto
                             <>
                                 {/* Column 1 & 2: Pipeline & Images */}
                                 <div className="lg:col-span-2 space-y-8">
-
-                                    {/* Visual Pipeline (The "Snake" or "Process Flow") */}
+                                    {/* Visual Pipeline */}
                                     <div className="glass-card-enterprise p-8 rounded-3xl border border-white/5 bg-white/[0.01]">
                                         <h3 className="text-xs font-black text-white/40 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
                                             <FastForward className="w-5 h-5 text-blue-500" />
@@ -201,9 +201,10 @@ export function ModalHistoricoOS({ isOpen, onClose, osId, osNumero }: ModalHisto
                                                                 )}
                                                             </div>
 
-                                                            {/* Images for this Segment (Placeholder logic for chronological segmenting) */}
+                                                            {/* Images for this Segment */}
                                                             <div className="mt-6 flex flex-wrap gap-3">
                                                                 {anexos.filter(anexo => {
+                                                                    if (anexo.tipo_anexo === 'COMPROVANTE') return false;
                                                                     const anexoDate = new Date(anexo.created_at).getTime();
                                                                     const statusDate = new Date(item.created_at).getTime();
                                                                     const nextStatus = [...historico].reverse()[idx + 1];
@@ -232,16 +233,13 @@ export function ModalHistoricoOS({ isOpen, onClose, osId, osNumero }: ModalHisto
                                             </div>
                                         </div>
                                     </div>
-
                                 </div>
 
                                 {/* Column 3: Stats & Financials */}
                                 <div className="space-y-8">
-
                                     {/* Summary Card */}
                                     <div className="glass-card-enterprise p-8 rounded-3xl border border-white/5 bg-gradient-to-br from-blue-600/10 to-transparent">
                                         <h3 className="text-xs font-black text-blue-400 uppercase tracking-[0.2em] mb-6">Resumo Financeiro</h3>
-
                                         <div className="space-y-6">
                                             <div className="flex justify-between items-end border-b border-white/5 pb-4">
                                                 <div className="flex items-center gap-3">
@@ -250,7 +248,6 @@ export function ModalHistoricoOS({ isOpen, onClose, osId, osNumero }: ModalHisto
                                                 </div>
                                                 <span className="text-lg font-black text-white">{os?.valor_mao_de_obra?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                                             </div>
-
                                             <div className="flex justify-between items-end border-b border-white/5 pb-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 bg-blue-500/10 rounded-lg"><Package className="w-4 h-4 text-blue-500" /></div>
@@ -258,7 +255,6 @@ export function ModalHistoricoOS({ isOpen, onClose, osId, osNumero }: ModalHisto
                                                 </div>
                                                 <span className="text-lg font-black text-white">{os?.valor_pecas?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                                             </div>
-
                                             <div className="mt-8 p-6 bg-white/5 rounded-2xl border border-white/10 shadow-inner">
                                                 <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest block mb-2 text-center">Valor Líquido Total</span>
                                                 <span className="text-3xl font-black text-white block text-center tracking-tighter">
@@ -287,29 +283,65 @@ export function ModalHistoricoOS({ isOpen, onClose, osId, osNumero }: ModalHisto
                                         </div>
                                     </div>
 
-                                    {/* Attachments quick view */}
+                                    {/* Tech Gallery */}
                                     <div className="glass-card-enterprise p-8 rounded-3xl border border-white/5">
                                         <h3 className="text-xs font-black text-white/40 uppercase tracking-[0.2em] mb-6 flex items-center justify-between">
-                                            Galeria Total ({anexos.length})
+                                            Fotos do Serviço ({anexos.filter(a => a.tipo_anexo !== 'COMPROVANTE').length})
                                             <ImageIcon className="w-4 h-4" />
                                         </h3>
                                         <div className="grid grid-cols-4 gap-2">
-                                            {anexos.slice(0, 8).map(anexo => (
-                                                <div key={anexo.id} className="aspect-square rounded-lg overflow-hidden border border-white/5 bg-white/5">
+                                            {anexos.filter(a => a.tipo_anexo !== 'COMPROVANTE').slice(0, 8).map(anexo => (
+                                                <a
+                                                    key={anexo.id}
+                                                    href={anexo.url_anexo}
+                                                    target="_blank"
+                                                    className="aspect-square rounded-lg overflow-hidden border border-white/5 bg-white/5 hover:border-blue-500/30 transition-all"
+                                                >
                                                     <img src={anexo.url_anexo} className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity cursor-pointer" />
-                                                </div>
+                                                </a>
                                             ))}
-                                            {anexos.length > 8 && (
+                                            {anexos.filter(a => a.tipo_anexo !== 'COMPROVANTE').length > 8 && (
                                                 <div className="aspect-square rounded-lg bg-white/5 border border-white/5 flex items-center justify-center">
-                                                    <span className="text-xs font-black text-white/40">+{anexos.length - 8}</span>
+                                                    <span className="text-xs font-black text-white/40">+{anexos.filter(a => a.tipo_anexo !== 'COMPROVANTE').length - 8}</span>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
 
+                                    {/* Expenditure Gallery */}
+                                    <div className="glass-card-enterprise p-8 rounded-3xl border border-rose-500/10 bg-rose-500/[0.02]">
+                                        <h3 className="text-xs font-black text-rose-400 uppercase tracking-[0.2em] mb-6 flex items-center justify-between">
+                                            Comprovantes de Despesa ({anexos.filter(a => a.tipo_anexo === 'COMPROVANTE').length})
+                                            <FileText className="w-4 h-4" />
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {anexos.filter(a => a.tipo_anexo === 'COMPROVANTE').map(anexo => (
+                                                <a
+                                                    key={anexo.id}
+                                                    href={anexo.url_anexo}
+                                                    target="_blank"
+                                                    className="group/receipt relative aspect-[4/3] rounded-xl overflow-hidden border border-white/10 bg-white/5 hover:border-rose-500/50 transition-all"
+                                                >
+                                                    <img src={anexo.url_anexo} className="w-full h-full object-cover opacity-40 group-hover/receipt:opacity-100 transition-all" />
+                                                    <div className="absolute inset-x-0 bottom-0 p-2 bg-black/60 backdrop-blur-sm border-t border-white/10 translate-y-full group-hover/receipt:translate-y-0 transition-transform">
+                                                        <p className="text-[9px] font-bold text-white truncate">{anexo.descricao || 'Recibo'}</p>
+                                                    </div>
+                                                    <div className="absolute top-2 right-2 p-1.5 bg-rose-600 rounded-lg shadow-lg opacity-0 group-hover/receipt:opacity-100 transition-opacity">
+                                                        <FileText className="w-3 h-3 text-white" />
+                                                    </div>
+                                                </a>
+                                            ))}
+                                            {anexos.filter(a => a.tipo_anexo === 'COMPROVANTE').length === 0 && (
+                                                <div className="col-span-2 py-8 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-2xl opacity-20">
+                                                    <FileText className="w-8 h-8 mb-2" />
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest">Nenhum comprovante</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-
-                            </>)}
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
