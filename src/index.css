@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Exo+2:wght@300;400;600;700;900&display=swap');
 @import './styles/variables.css';
 @import './styles/base.css';
 @import './styles/components.css';
@@ -7,3 +7,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+    .font-antigravity {
+        font-family: 'Exo 2', sans-serif;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-weight: 900;
+    }
+
+    .bg-visao-green {
+        background-color: #0A2F1C;
+    }
+
+    .text-visao-light {
+        color: #16a34a;
+    }
+}
