@@ -230,10 +230,20 @@ class DespesasService {
             console.error('Erro no upload do comprovante:', uploadError);
             throw uploadError;
         }
-
+        // 3. Obter URL pública
         const { data: { publicUrl } } = supabase.storage
             .from('anexos_os')
             .getPublicUrl(filePath);
+
+        // 4. Também registrar na tabela de anexos_os para aparecer na galeria geral
+        await supabase
+            .from('anexos_os' as any)
+            .insert({
+                ordem_servico_id: osId,
+                url_anexo: publicUrl,
+                tipo_anexo: 'COMPROVANTE',
+                descricao: `Comprovante de Despesa (${file.name})`
+            } as any);
 
         return publicUrl;
     }

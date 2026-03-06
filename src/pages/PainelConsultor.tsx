@@ -23,6 +23,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { StatusOS, TipoOS } from '@/types/database.types';
+import { Paperclip } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -103,7 +104,11 @@ export default function PainelConsultor() {
         try {
             let query = supabase
                 .from('ordens_servico')
-                .select('*, tecnico:tecnicos(*)')
+                .select(`
+                    *,
+                    tecnico:tecnicos(*),
+                    despesas:despesas_os(comprovante_url)
+                `)
                 .order('data_abertura', { ascending: false });
 
             // 1. Filtro por Cargo e Autoria (Segregação de Dados)
@@ -546,6 +551,11 @@ export default function PainelConsultor() {
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
                                                             <span className="font-black text-white text-base">#{os.numero_os}</span>
+                                                            {(os as any).despesas?.some((d: any) => d.comprovante_url) && (
+                                                                <span title="Possui comprovantes de despesa">
+                                                                    <Paperclip className="w-3 h-3 text-blue-400 opacity-60" />
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-6" onClick={() => !isGerente && navigate(`/os/editar/${os.id}`)}>

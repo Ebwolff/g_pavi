@@ -46,7 +46,8 @@ class OrdemServicoService {
         cliente:clientes(*),
         maquina:maquinas(*),
         consultor:profiles(*),
-        itens:itens_os(*)
+        itens:itens_os(*),
+        despesas:despesas_os(comprovante_url)
       `, { count: 'exact' });
 
         // Aplicar filtros

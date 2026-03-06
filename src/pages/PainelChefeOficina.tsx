@@ -16,7 +16,8 @@ import {
     Wrench,
     Award,
     Timer,
-    FileText
+    FileText,
+    Paperclip
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -710,11 +711,16 @@ const PainelChefeOficina: React.FC = () => {
                                             <div className="space-y-4 relative z-10">
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-[10px] font-black text-orange-400 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 shadow-sm">#{os.numero_os}</span>
+                                                    {(os as any).despesas?.some((d: any) => d.comprovante_url) && (
+                                                        <span title="Possui comprovantes de despesa">
+                                                            <Paperclip className="w-3 h-3 text-blue-400 opacity-60 ml-1" />
+                                                        </span>
+                                                    )}
                                                     <StatusBadge status={os.tipo_os as any} size="sm" />
                                                     <span className={`text-[9px] font-black px-2 py-0.5 rounded border uppercase tracking-widest ${os.nivel_urgencia === 'CRITICO' ? 'bg-red-500/10 border-red-500/30 text-red-500' :
-                                                            os.nivel_urgencia === 'ALTO' ? 'bg-orange-500/10 border-orange-500/30 text-orange-500' :
-                                                                os.nivel_urgencia === 'MEDIO' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' :
-                                                                    'bg-blue-500/10 border-blue-500/30 text-blue-400'
+                                                        os.nivel_urgencia === 'ALTO' ? 'bg-orange-500/10 border-orange-500/30 text-orange-500' :
+                                                            os.nivel_urgencia === 'MEDIO' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' :
+                                                                'bg-blue-500/10 border-blue-500/30 text-blue-400'
                                                         }`}>
                                                         {os.nivel_urgencia}
                                                     </span>
