@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     ArrowLeft, Save, X, Wrench, User,
     DollarSign, Activity, Hash, Tag,
-    FileText, UserCheck, Settings, Info, Clock
+    FileText, UserCheck, Settings, Info, Clock, AlertTriangle
 } from 'lucide-react';
 
 import { ordemServicoService } from '@/services/ordemServico.service';
@@ -21,6 +21,7 @@ export function NovaOS() {
     const [formData, setFormData] = useState({
         numero_os: '',
         tipo_os: 'NORMAL' as 'NORMAL' | 'GARANTIA',
+        nivel_urgencia: 'NORMAL' as 'NORMAL' | 'MEDIO' | 'ALTO' | 'CRITICO',
         nome_cliente_digitavel: '',
         modelo_maquina: '',
         chassi: '',
@@ -89,6 +90,7 @@ export function NovaOS() {
             valor_pecas: parseFloat(formData.valor_pecas) || 0,
             valor_deslocamento: parseFloat(formData.valor_deslocamento) || 0,
             status_atual: 'AGUARDANDO_ATRIBUICAO',
+            nivel_urgencia: formData.nivel_urgencia,
             data_abertura: new Date(formData.data_abertura).toISOString(),
             aol: formData.aol || null,
         });
@@ -202,7 +204,7 @@ export function NovaOS() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                                 <Input
                                     type="datetime-local"
                                     label="Data/Hora de Abertura"
@@ -211,6 +213,24 @@ export function NovaOS() {
                                     icon={Clock}
                                     required
                                 />
+
+                                <div className="space-y-2 relative">
+                                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Nível de Urgência</label>
+                                    <div className="relative group/select">
+                                        <AlertTriangle className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] group-focus-within/select:text-amber-400 transition-colors z-10" />
+                                        <select
+                                            value={formData.nivel_urgencia}
+                                            onChange={(e) => handleInputChange('nivel_urgencia', e.target.value)}
+                                            className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl pl-12 pr-4 py-3.5 text-[var(--text-primary)] font-medium focus:ring-2 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none appearance-none cursor-pointer"
+                                        >
+                                            <option value="NORMAL" className="bg-[#0b0f14] text-blue-400">Normal</option>
+                                            <option value="MEDIO" className="bg-[#0b0f14] text-yellow-500">Médio</option>
+                                            <option value="ALTO" className="bg-[#0b0f14] text-orange-500">Alto</option>
+                                            <option value="CRITICO" className="bg-[#0b0f14] text-red-500">Crítico</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div className="space-y-2 relative opacity-50 cursor-not-allowed">
                                     <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Status Inicial</label>
                                     <div className="relative group/select">

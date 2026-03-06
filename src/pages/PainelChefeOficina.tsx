@@ -102,6 +102,7 @@ interface OSNaoAtribuida {
     data_abertura: string;
     dias_em_aberto: number;
     descricao_problema: string | null;
+    nivel_urgencia?: string;
 }
 
 const PainelChefeOficina: React.FC = () => {
@@ -190,7 +191,15 @@ const PainelChefeOficina: React.FC = () => {
             data_abertura: o.data_abertura,
             dias_em_aberto: Math.floor((Date.now() - new Date(o.data_abertura).getTime()) / (1000 * 60 * 60 * 24)),
             descricao_problema: o.descricao_problema || 'Nenhuma descrição detalhada fornecida.',
-        }));
+            nivel_urgencia: o.nivel_urgencia || 'NORMAL',
+        }))
+        .sort((a, b) => {
+            const urgencyWeight: Record<string, number> = { 'CRITICO': 4, 'ALTO': 3, 'MEDIO': 2, 'NORMAL': 1 };
+            const weightA = urgencyWeight[a.nivel_urgencia!] || 1;
+            const weightB = urgencyWeight[b.nivel_urgencia!] || 1;
+            if (weightA !== weightB) return weightB - weightA;
+            return b.dias_em_aberto - a.dias_em_aberto;
+        });
 
     const statusCounts = osAtivas.reduce((acc: any, os: any) => {
         acc[os.status_atual] = (acc[os.status_atual] || 0) + 1;
@@ -702,6 +711,13 @@ const PainelChefeOficina: React.FC = () => {
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-[10px] font-black text-orange-400 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 shadow-sm">#{os.numero_os}</span>
                                                     <StatusBadge status={os.tipo_os as any} size="sm" />
+                                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded border uppercase tracking-widest ${os.nivel_urgencia === 'CRITICO' ? 'bg-red-500/10 border-red-500/30 text-red-500' :
+                                                            os.nivel_urgencia === 'ALTO' ? 'bg-orange-500/10 border-orange-500/30 text-orange-500' :
+                                                                os.nivel_urgencia === 'MEDIO' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' :
+                                                                    'bg-blue-500/10 border-blue-500/30 text-blue-400'
+                                                        }`}>
+                                                        {os.nivel_urgencia}
+                                                    </span>
                                                 </div>
                                                 <h4 className="text-base font-black text-[var(--text-primary)] uppercase leading-tight line-clamp-2 min-h-[2.5em]">
                                                     {os.nome_cliente_digitavel || 'S/ Proprietário'}

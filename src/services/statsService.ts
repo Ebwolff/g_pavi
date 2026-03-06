@@ -166,7 +166,10 @@ export const statsService = {
 
                 osNormal: osNormal.length,
                 osGarantia: osGarantia.length,
-                osCriticas: 0, osAltas: 0, osMedias: 0, osNormais: 0,
+                osCriticas: osAbertas.filter((o: any) => o.nivel_urgencia === 'CRITICO').length,
+                osAltas: osAbertas.filter((o: any) => o.nivel_urgencia === 'ALTO').length,
+                osMedias: osAbertas.filter((o: any) => o.nivel_urgencia === 'MEDIO').length,
+                osNormais: osAbertas.filter((o: any) => !o.nivel_urgencia || o.nivel_urgencia === 'NORMAL').length,
                 valorTotal: sumValor(os),
                 valorNormal: sumValor(osNormal),
                 valorGarantia: sumValor(osGarantia),

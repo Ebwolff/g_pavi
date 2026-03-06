@@ -113,6 +113,7 @@ export interface Database {
                     valor_pecas: number;
                     valor_deslocamento: number;
                     valor_liquido_total: number;
+                    nivel_urgencia: NivelUrgencia;
                     created_at: string;
                     updated_at: string;
                     data_agendamento: string | null;
@@ -159,6 +160,7 @@ export interface Database {
                     valor_pecas?: number;
                     valor_deslocamento?: number;
                     valor_liquido_total?: number;
+                    nivel_urgencia?: NivelUrgencia;
                     created_at?: string;
                     updated_at?: string;
                     data_agendamento?: string | null;
@@ -202,6 +204,7 @@ export interface Database {
                     valor_pecas?: number;
                     valor_deslocamento?: number;
                     valor_liquido_total?: number;
+                    nivel_urgencia?: NivelUrgencia;
                     created_at?: string;
                     updated_at?: string;
                     data_agendamento?: string | null;
