@@ -14,7 +14,6 @@ import {
     CreditCard,
     LayoutDashboard,
     DollarSign,
-    TrendingUp,
     Fuel,
     Utensils,
     Hotel,
@@ -353,10 +352,29 @@ export default function PainelTecnico() {
 
                         {/* KPIs */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <Card title="OS Concluídas (Período)" value={osFechadasPeriodo.length} icon={CheckCircle} color="blue" priority={1} />
-                            <Card title="Faturamento (Período)" value={formatCurrency(faturamentoPeriodo)} icon={TrendingUp} color="emerald" priority={2} />
-                            <Card title="Despesas (Período)" value={formatCurrency(totalDespesasPeriodo)} icon={CreditCard} color="rose" priority={3} />
-                            <Card title="Saldo Líquido" value={formatCurrency(saldoPeriodo)} icon={DollarSign} color={saldoPeriodo >= 0 ? 'emerald' : 'rose'} priority={4} />
+                            {/* Card: OS Concluídas */}
+                            <div className="glass-card-enterprise p-6 rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
+                                <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2">OS Concluídas</span>
+                                <span className="text-3xl font-black text-blue-400 tracking-tight">{osFechadasPeriodo.length}</span>
+                            </div>
+
+                            {/* Card: Faturamento */}
+                            <div className="glass-card-enterprise p-6 rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
+                                <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2">Faturamento</span>
+                                <span className="text-3xl font-black text-emerald-400 tracking-tight">{formatCurrency(faturamentoPeriodo)}</span>
+                            </div>
+
+                            {/* Card: Despesas */}
+                            <div className="glass-card-enterprise p-6 rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
+                                <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2">Despesas</span>
+                                <span className="text-3xl font-black text-rose-400 tracking-tight">{formatCurrency(totalDespesasPeriodo)}</span>
+                            </div>
+
+                            {/* Card: Saldo */}
+                            <div className="glass-card-enterprise p-6 rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
+                                <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2">Saldo Líquido</span>
+                                <span className={`text-3xl font-black tracking-tight ${saldoPeriodo >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>{formatCurrency(saldoPeriodo)}</span>
+                            </div>
                         </div>
 
                         {/* Minhas Despesas */}
