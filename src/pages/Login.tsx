@@ -139,51 +139,55 @@ export function Login() {
                 <div className="absolute inset-0 z-0">
                     <img
                         src={frameUrl}
-                        className="w-full h-full object-cover transition-opacity duration-300 opacity-80 scale-105"
+                        className="w-full h-full object-cover transition-opacity duration-300 opacity-90 scale-100 object-center"
                         alt="Hero Animation"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-visao-green via-visao-green/40 to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-visao-green to-transparent w-32" />
+                    {/* Melhores degradês para legibilidade do texto no topo */}
+                    <div className="absolute inset-x-0 top-0 h-2/3 bg-gradient-to-b from-[#0A2F1C]/90 via-[#0A2F1C]/40 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-visao-green/40 to-transparent w-32" />
+                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/40 to-transparent" />
                 </div>
 
                 <div className="relative z-10 w-full h-full flex flex-col justify-between p-24 text-white">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-0.5 bg-green-500 rounded-full" />
-                        <span className="font-antigravity text-xs text-green-400 tracking-[0.4em]">Performance Layer</span>
-                    </div>
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-0.5 bg-green-500 rounded-full" />
+                            <span className="font-antigravity text-xs text-green-400 tracking-[0.4em] drop-shadow-md">Performance Layer</span>
+                        </div>
 
-                    <div className="max-w-xl">
-                        <h2 className="text-6xl font-black mb-8 leading-[1.1] tracking-tighter">
-                            Potencialize sua <br />
-                            <span className="text-green-500 italic">gestão agrícola</span>
-                        </h2>
+                        <div className="max-w-2xl mt-4">
+                            <h2 className="text-6xl font-black mb-8 leading-[1.1] tracking-tighter drop-shadow-2xl">
+                                Potencialize sua <br />
+                                <span className="text-white bg-green-600/20 px-4 py-1 rounded-2xl backdrop-blur-sm -ml-4 border border-green-500/20">gestão agrícola</span>
+                            </h2>
 
-                        <div className="flex gap-12 mt-12 mb-16">
-                            <div className="flex flex-col gap-2">
-                                <div className="flex items-center gap-3 text-white">
-                                    <div className="p-2 bg-green-500/20 rounded-lg"><ShieldCheck className="w-5 h-5 text-green-400" /></div>
-                                    <span className="font-antigravity text-sm tracking-widest">Compliance</span>
+                            <div className="flex gap-12 mt-6">
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex items-center gap-3 text-white">
+                                        <div className="p-2 bg-green-600 rounded-lg shadow-lg border border-green-400/30"><ShieldCheck className="w-5 h-5 text-white" /></div>
+                                        <span className="font-antigravity text-sm tracking-widest drop-shadow-md">Compliance</span>
+                                    </div>
+                                    <p className="text-white/70 text-[11px] font-bold pl-11 drop-shadow-sm">Auditoria total</p>
                                 </div>
-                                <p className="text-white/40 text-xs font-medium pl-11">Auditoria total</p>
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <div className="flex items-center gap-3 text-white">
-                                    <div className="p-2 bg-green-500/20 rounded-lg"><Zap className="w-5 h-5 text-green-400" /></div>
-                                    <span className="font-antigravity text-sm tracking-widest">Performance</span>
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex items-center gap-3 text-white">
+                                        <div className="p-2 bg-green-600 rounded-lg shadow-lg border border-green-400/30"><Zap className="w-5 h-5 text-white" /></div>
+                                        <span className="font-antigravity text-sm tracking-widest drop-shadow-md">Performance</span>
+                                    </div>
+                                    <p className="text-white/70 text-[11px] font-bold pl-11 drop-shadow-sm">KPIs em tempo real</p>
                                 </div>
-                                <p className="text-white/40 text-xs font-medium pl-11">KPIs em tempo real</p>
                             </div>
                         </div>
                     </div>
 
                     <div className="flex items-center justify-between border-t border-white/10 pt-10">
-                        <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">
+                        <p className="text-white/50 text-[10px] font-black uppercase tracking-[0.3em] drop-shadow-sm">
                             © 2026 Visão 360 · Antigravity Core
                         </p>
                         <div className="flex gap-2">
                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                            <div className="w-1.5 h-1.5 bg-white/10 rounded-full" />
-                            <div className="w-1.5 h-1.5 bg-white/10 rounded-full" />
+                            <div className="w-1.5 h-1.5 bg-white/20 rounded-full" />
+                            <div className="w-1.5 h-1.5 bg-white/20 rounded-full" />
                         </div>
                     </div>
                 </div>
