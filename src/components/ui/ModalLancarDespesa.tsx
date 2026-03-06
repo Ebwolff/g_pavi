@@ -59,6 +59,21 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
         }
     }, [isOpen]);
 
+    // Reset anexo e valores ao trocar de categoria (para lançamentos individuais)
+    useEffect(() => {
+        if (isOpen) {
+            setKmInicial('');
+            setKmFinal('');
+            setValor('');
+            setQuantidade('');
+            setDescricao('');
+            setComprovante(null);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    }, [tipoSelecionado]);
+
     if (!isOpen) return null;
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
