@@ -31,6 +31,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { DistribuicaoOperacionalChart } from '@/components/ui/Charts';
 import { PedidoPeca } from '@/components/consultor/PedidoPeca';
 import { ModalGaleriaImagens } from '@/components/ui/ModalGaleriaImagens';
+import { ModalHistoricoOS } from '@/components/ui/ModalHistoricoOS';
 import { ModalTriagemPecas } from '@/components/ui/ModalTriagemPecas';
 import { Card } from '@/components/ui/Card';
 
@@ -91,6 +92,7 @@ export default function PainelConsultor() {
     const [activeTab, setActiveTab] = useState<'dashboard' | 'servicos' | 'faturadas' | 'pedidos'>('dashboard');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOSForGallery, setSelectedOSForGallery] = useState<{ id: string, numero: string } | null>(null);
+    const [selectedOSForHistorico, setSelectedOSForHistorico] = useState<{ id: string; numero: string } | null>(null);
     const [osComPecasPendentes, setOsComPecasPendentes] = useState<any[]>([]);
     const [selectedOSTriagem, setSelectedOSTriagem] = useState<any | null>(null);
 
@@ -601,6 +603,13 @@ export default function PainelConsultor() {
                                                             >
                                                                 <ImageIcon className="w-4 h-4" />
                                                             </button>
+                                                            <button
+                                                                onClick={() => setSelectedOSForHistorico({ id: os.id, numero: os.numero_os })}
+                                                                className="p-2 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all border border-amber-500/20"
+                                                                title="Ver Histórico/Pipeline"
+                                                            >
+                                                                <History className="w-4 h-4" />
+                                                            </button>
                                                             {!isGerente && (
                                                                 <button
                                                                     onClick={() => navigate(`/os/editar/${os.id}`)}
@@ -628,6 +637,15 @@ export default function PainelConsultor() {
                     osNumero={selectedOSForGallery?.numero || ''}
                     onClose={() => setSelectedOSForGallery(null)}
                 />
+
+                {selectedOSForHistorico && (
+                    <ModalHistoricoOS
+                        isOpen={!!selectedOSForHistorico}
+                        onClose={() => setSelectedOSForHistorico(null)}
+                        osId={selectedOSForHistorico.id}
+                        osNumero={selectedOSForHistorico.numero}
+                    />
+                )}
 
                 {/* Modal Triagem de Peças */}
                 {selectedOSTriagem && (

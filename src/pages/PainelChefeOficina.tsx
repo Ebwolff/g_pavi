@@ -17,11 +17,13 @@ import {
     Award,
     Timer,
     FileText,
-    Paperclip
+    Paperclip,
+    History
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import { useNavigate } from 'react-router-dom';
 import { tecnicoService } from '@/services/tecnico.service';
 import { ordemServicoService } from '@/services/ordemServico.service';
 import { AppLayout } from '@/components/AppLayout';
@@ -34,6 +36,7 @@ import { ModalCadastrarTecnico } from '@/components/ui/ModalCadastrarTecnico';
 import { Card } from '@/components/ui/Card';
 import { ModalDetalhesTecnico } from '@/components/ui/ModalDetalhesTecnico';
 import { CalendarWidget } from '@/components/dashboard/CalendarWidget';
+import { ModalHistoricoOS } from '@/components/ui/ModalHistoricoOS';
 
 // Sub-componente: OS com pepas prontas para retirada
 function OsPecasProntas({ onAssignClick }: { onAssignClick?: (os: any) => void }) {
@@ -112,7 +115,9 @@ const PainelChefeOficina: React.FC = () => {
     const [selectedOS, setSelectedOS] = useState<OSNaoAtribuida | null>(null);
     const [modalCadastroOpen, setModalCadastroOpen] = useState(false);
     const [modalDetalhesOpen, setModalDetalhesOpen] = useState(false);
+    const navigate = useNavigate();
     const [selectedTecnico, setSelectedTecnico] = useState<any | null>(null);
+    const [selectedOSForHistorico, setSelectedOSForHistorico] = useState<{ id: string, numero: string } | null>(null);
     const [expandedOS, setExpandedOS] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'dashboard' | 'gestao'>('dashboard');
     const { profile } = useAuth();
@@ -751,7 +756,7 @@ const PainelChefeOficina: React.FC = () => {
                                                 </div>
                                             </div>
                                             {!isGerente && (
-                                                <div className="mt-6 pt-5 border-t border-[var(--border-subtle)] relative z-10">
+                                                <div className="mt-6 pt-5 border-t border-[var(--border-subtle)] relative z-10 flex gap-2">
                                                     <Button
                                                         variant="secondary"
                                                         size="sm"
@@ -760,10 +765,31 @@ const PainelChefeOficina: React.FC = () => {
                                                             openAssignModal(os);
                                                         }}
                                                         leftIcon={<UserPlus className="w-4 h-4" />}
-                                                        className="w-full text-[10px] font-black tracking-widest uppercase hover:bg-orange-500 hover:text-white transition-all"
+                                                        className="flex-1 text-[10px] font-black tracking-widest uppercase hover:bg-orange-500 hover:text-white transition-all"
                                                     >
                                                         Atribuir Técnico
                                                     </Button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedOSForHistorico({ id: os.id, numero: os.numero_os });
+                                                        }}
+                                                        className="p-1 px-2 rounded bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border border-amber-500/20 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 transition-all"
+                                                        title="Ver Histórico/Pipeline"
+                                                    >
+                                                        <History className="w-3 h-3" />
+                                                        Histórico
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigate(`/os/editar/${os.id}`);
+                                                        }}
+                                                        className="p-1 px-2 rounded bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border border-blue-500/20 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 transition-all"
+                                                    >
+                                                        <FileText className="w-3 h-3" />
+                                                        Detalhes
+                                                    </button>
                                                 </div>
                                             )}
                                         </div>
@@ -803,6 +829,15 @@ const PainelChefeOficina: React.FC = () => {
                 }}
                 tecnico={selectedTecnico}
             />
+
+            {selectedOSForHistorico && (
+                <ModalHistoricoOS
+                    isOpen={!!selectedOSForHistorico}
+                    onClose={() => setSelectedOSForHistorico(null)}
+                    osId={selectedOSForHistorico.id}
+                    osNumero={selectedOSForHistorico.numero}
+                />
+            )}
         </AppLayout>
     );
 };
