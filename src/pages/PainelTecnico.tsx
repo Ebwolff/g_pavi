@@ -14,7 +14,6 @@ import {
     CreditCard,
     LayoutDashboard,
     DollarSign,
-    FileText,
     TrendingUp,
     Fuel,
     Utensils,
@@ -54,6 +53,7 @@ export default function PainelTecnico() {
     const [activeTab, setActiveTab] = useState<'dashboard' | 'os'>('dashboard');
     const [despesasTecnico, setDespesasTecnico] = useState<any[]>([]);
     const [loadingDespesas, setLoadingDespesas] = useState(false);
+    const [periodoFiltro, setPeriodoFiltro] = useState<'SEMANA' | 'MES' | 'TRIMESTRE' | 'SEMESTRE' | 'ANO' | 'TUDO'>('MES');
 
     // 1. Identificar Técnico
     const { data: tecnico, isLoading: isLoadingTecnico } = useQuery({
@@ -185,22 +185,64 @@ export default function PainelTecnico() {
         concluidas: osAtribuidas.filter((os: any) => os.status === 'CONCLUIDA').length
     };
 
-    // Dashboard KPIs
-    const osAbertas = todasOsTecnico.filter((os: any) => !['FATURADA', 'CANCELADA', 'CONCLUIDA', 'AGUARDANDO_PAGAMENTO'].includes(os.status_atual));
-    const osPendentes = todasOsTecnico.filter((os: any) => os.status_atual === 'AGUARDANDO_PECAS' || os.status_atual === 'PAUSADA');
-    const osFaturadas = todasOsTecnico.filter((os: any) => ['FATURADA', 'CONCLUIDA', 'AGUARDANDO_PAGAMENTO'].includes(os.status_atual));
+    // Filtros de tempo
+    const filterByDate = (dateString: string) => {
+        if (periodoFiltro === 'TUDO') return true;
+        if (!dateString) return false;
 
-    // Despesas por categoria
-    const despesasPorCategoria = {
-        km: despesasTecnico.filter(d => d.tipo === 'KM').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
-        abastecimento: despesasTecnico.filter(d => d.tipo === 'ABASTECIMENTO').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
-        alimentacao: despesasTecnico.filter(d => d.tipo === 'ALIMENTACAO').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
-        hospedagem: despesasTecnico.filter(d => d.tipo === 'HOSPEDAGEM').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
-        pedagio: despesasTecnico.filter(d => d.tipo === 'PEDAGIO').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
-        outros: despesasTecnico.filter(d => d.tipo === 'OUTROS').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
+        const now = new Date();
+        const date = new Date(dateString);
+
+        switch (periodoFiltro) {
+            case 'SEMANA': {
+                const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                return date >= oneWeekAgo;
+            }
+            case 'MES': {
+                return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+            }
+            case 'TRIMESTRE': {
+                const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+                return date >= threeMonthsAgo;
+            }
+            case 'SEMESTRE': {
+                const sixMonthsAgo = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+                return date >= sixMonthsAgo;
+            }
+            case 'ANO': {
+                return date.getFullYear() === now.getFullYear();
+            }
+            default: return true;
+        }
     };
-    const totalDespesas = Object.values(despesasPorCategoria).reduce((a, b) => a + b, 0);
-    const totalKmRodados = despesasTecnico.filter(d => d.tipo === 'KM').reduce((sum: number, d: any) => sum + (Number(d.quantidade) || 0), 0);
+
+    // Dashboard KPIs (Gerais)
+
+    // KPIs do Período
+    const osFechadasPeriodo = todasOsTecnico.filter((os: any) =>
+        ['FATURADA', 'CONCLUIDA', 'AGUARDANDO_PAGAMENTO'].includes(os.status_atual) &&
+        filterByDate(os.data_fechamento || os.data_abertura)
+    );
+
+    let faturamentoPeriodo = 0;
+    osFechadasPeriodo.forEach((os: any) => {
+        faturamentoPeriodo += Number(os.valor_liquido_total) || Number(os.valor_servico) || 0;
+    });
+
+    const despesasPeriodo = despesasTecnico.filter(d => filterByDate(d.data_despesa));
+    const totalDespesasPeriodo = despesasPeriodo.reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0);
+    const saldoPeriodo = faturamentoPeriodo - totalDespesasPeriodo;
+
+    // Despesas por categoria no período
+    const despesasPorCategoria = {
+        km: despesasPeriodo.filter(d => d.tipo === 'KM').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
+        abastecimento: despesasPeriodo.filter(d => d.tipo === 'ABASTECIMENTO').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
+        alimentacao: despesasPeriodo.filter(d => d.tipo === 'ALIMENTACAO').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
+        hospedagem: despesasPeriodo.filter(d => d.tipo === 'HOSPEDAGEM').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
+        pedagio: despesasPeriodo.filter(d => d.tipo === 'PEDAGIO').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
+        outros: despesasPeriodo.filter(d => d.tipo === 'OUTROS').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
+    };
+    const totalKmRodados = despesasPeriodo.filter(d => d.tipo === 'KM').reduce((sum: number, d: any) => sum + (Number(d.quantidade) || 0), 0);
 
     const formatCurrency = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -284,12 +326,37 @@ export default function PainelTecnico() {
                 {/* ========== TAB: DASHBOARD ========== */}
                 {(!isGerente && activeTab === 'dashboard') && (
                     <div className="space-y-8 animate-fadeIn">
+                        {/* Filtro de Período */}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tight">Desempenho e Financeiro</h2>
+                            <div className="flex bg-[var(--surface-light)] rounded-xl p-1 border border-[var(--border-subtle)] overflow-x-auto scrollbar-hide">
+                                {(
+                                    [
+                                        { id: 'SEMANA', title: '7 Dias' },
+                                        { id: 'MES', title: 'Este Mês' },
+                                        { id: 'TRIMESTRE', title: 'Trimestre' },
+                                        { id: 'SEMESTRE', title: 'Semestre' },
+                                        { id: 'ANO', title: 'Este Ano' },
+                                        { id: 'TUDO', title: 'Tudo' }
+                                    ] as const
+                                ).map(op => (
+                                    <button
+                                        key={op.id}
+                                        onClick={() => setPeriodoFiltro(op.id as any)}
+                                        className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all whitespace-nowrap ${periodoFiltro === op.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text-primary)]'}`}
+                                    >
+                                        {op.title}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
                         {/* KPIs */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <Card title="OS Abertas" value={osAbertas.length} icon={FileText} color="blue" priority={1} />
-                            <Card title="Pendentes" value={osPendentes.length} icon={Clock} color="amber" priority={2} />
-                            <Card title="Faturadas" value={osFaturadas.length} icon={TrendingUp} color="emerald" priority={3} />
-                            <Card title="Total Despesas" value={formatCurrency(totalDespesas)} icon={DollarSign} color="rose" priority={4} />
+                            <Card title="OS Concluídas (Período)" value={osFechadasPeriodo.length} icon={CheckCircle} color="blue" priority={1} />
+                            <Card title="Faturamento (Período)" value={formatCurrency(faturamentoPeriodo)} icon={TrendingUp} color="emerald" priority={2} />
+                            <Card title="Despesas (Período)" value={formatCurrency(totalDespesasPeriodo)} icon={CreditCard} color="rose" priority={3} />
+                            <Card title="Saldo Líquido" value={formatCurrency(saldoPeriodo)} icon={DollarSign} color={saldoPeriodo >= 0 ? 'emerald' : 'rose'} priority={4} />
                         </div>
 
                         {/* Minhas Despesas */}
@@ -318,7 +385,7 @@ export default function PainelTecnico() {
                                             { tipo: 'OUTROS', label: 'Outros', icon: DollarSign, valor: despesasPorCategoria.outros, color: 'slate' },
                                         ].filter(c => c.valor > 0).map((cat) => {
                                             const Icon = cat.icon;
-                                            const percentual = totalDespesas > 0 ? Math.round((cat.valor / totalDespesas) * 100) : 0;
+                                            const percentual = totalDespesasPeriodo > 0 ? Math.round((cat.valor / totalDespesasPeriodo) * 100) : 0;
                                             return (
                                                 <div key={cat.tipo} className="flex items-center gap-4 p-4 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-2xl hover:bg-[var(--surface-hover)] transition-all">
                                                     <div className={`p-3 rounded-xl bg-${cat.color}-500/10 border border-${cat.color}-500/20`}>
@@ -344,9 +411,9 @@ export default function PainelTecnico() {
                                     {/* Totalizador */}
                                     <div className="space-y-6">
                                         <div className="p-6 bg-gradient-to-br from-blue-600/10 to-blue-500/5 rounded-2xl border border-blue-500/20">
-                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Total Acumulado</p>
-                                            <p className="text-3xl font-black text-white">{formatCurrency(totalDespesas)}</p>
-                                            <p className="text-xs text-[var(--text-muted)] mt-1">{despesasTecnico.length} despesas registradas</p>
+                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Total no Período</p>
+                                            <p className="text-3xl font-black text-white">{formatCurrency(totalDespesasPeriodo)}</p>
+                                            <p className="text-xs text-[var(--text-muted)] mt-1">{despesasPeriodo.length} despesas registradas</p>
                                         </div>
                                         <div className="p-6 bg-[var(--surface-light)] rounded-2xl border border-[var(--border-subtle)]">
                                             <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-2">KM Total Rodados</p>
@@ -366,7 +433,7 @@ export default function PainelTecnico() {
                                     Últimas Despesas Registradas
                                 </h3>
                                 <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 scrollbar-visao360">
-                                    {despesasTecnico.slice(0, 10).map((desp: any) => (
+                                    {despesasPeriodo.slice(0, 10).map((desp: any) => (
                                         <div key={desp.id} className="flex items-center justify-between p-4 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-2 h-2 rounded-full bg-blue-500" />
