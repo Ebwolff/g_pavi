@@ -169,15 +169,15 @@ export function NovaOS() {
 
                             <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                                 <div className="md:col-span-3 space-y-2">
+                                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Nº da Ordem de Serviço</label>
                                     <Input
-                                        label="Nº da Ordem de Serviço"
                                         placeholder="XXXX-0000"
                                         value={formData.numero_os}
                                         onChange={(e) => handleInputChange('numero_os', e.target.value)}
                                         icon={Hash}
                                         required
                                     />
-                                    <div className="flex justify-end pr-1">
+                                    <div className="flex justify-end pr-1 pt-1">
                                         <button
                                             type="button"
                                             onClick={handleGenerateNumber}
@@ -204,17 +204,19 @@ export function NovaOS() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-                                <Input
-                                    type="datetime-local"
-                                    label="Data/Hora de Abertura"
-                                    value={formData.data_abertura}
-                                    onChange={(e) => handleInputChange('data_abertura', e.target.value)}
-                                    icon={Clock}
-                                    required
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Data/Hora de Abertura</label>
+                                    <Input
+                                        type="datetime-local"
+                                        value={formData.data_abertura}
+                                        onChange={(e) => handleInputChange('data_abertura', e.target.value)}
+                                        icon={Clock}
+                                        required
+                                    />
+                                </div>
 
-                                <div className="space-y-2 relative">
+                                <div className="space-y-1 relative">
                                     <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Nível de Urgência</label>
                                     <div className="relative group/select">
                                         <AlertTriangle className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] group-focus-within/select:text-amber-400 transition-colors z-10" />
@@ -231,7 +233,7 @@ export function NovaOS() {
                                     </div>
                                 </div>
 
-                                <div className="space-y-2 relative opacity-50 cursor-not-allowed">
+                                <div className="space-y-2 opacity-50 cursor-not-allowed">
                                     <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Status Inicial</label>
                                     <div className="relative group/select">
                                         <Activity className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] z-10" />
@@ -257,42 +259,48 @@ export function NovaOS() {
 
                             <div className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                    <div className="md:col-span-3">
-                                        <Input
-                                            label="Razão Social / Nome Completo"
-                                            placeholder="Digite o nome do cliente..."
-                                            value={formData.nome_cliente_digitavel}
-                                            onChange={(e) => handleInputChange('nome_cliente_digitavel', e.target.value)}
-                                            icon={User}
-                                        />
-                                    </div>
-                                    <div className="md:col-span-1">
-                                        <Input
-                                            label="ID AOL"
-                                            placeholder="AOL #"
-                                            value={formData.aol}
-                                            onChange={(e) => handleInputChange('aol', e.target.value)}
-                                            icon={Info}
-                                        />
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                        <div className="md:col-span-3 space-y-2">
+                                            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Razão Social / Nome Completo</label>
+                                            <Input
+                                                placeholder="Digite o nome do cliente..."
+                                                value={formData.nome_cliente_digitavel}
+                                                onChange={(e) => handleInputChange('nome_cliente_digitavel', e.target.value)}
+                                                icon={User}
+                                            />
+                                        </div>
+                                        <div className="md:col-span-1 space-y-2">
+                                            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">ID AOL</label>
+                                            <Input
+                                                placeholder="AOL #"
+                                                value={formData.aol}
+                                                onChange={(e) => handleInputChange('aol', e.target.value)}
+                                                icon={Info}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <Input
-                                        label="Modelo do Ativo"
-                                        placeholder="Ex: T250 / 8R 370"
-                                        value={formData.modelo_maquina}
-                                        onChange={(e) => handleInputChange('modelo_maquina', e.target.value)}
-                                        icon={Activity}
-                                    />
-                                    <Input
-                                        label="Nº Chassi / Série"
-                                        placeholder="Identificador Único"
-                                        value={formData.chassi}
-                                        onChange={(e) => handleInputChange('chassi', e.target.value.toUpperCase())}
-                                        icon={Info}
-                                        className="uppercase"
-                                    />
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Modelo do Ativo</label>
+                                        <Input
+                                            placeholder="Ex: T250 / 8R 370"
+                                            value={formData.modelo_maquina}
+                                            onChange={(e) => handleInputChange('modelo_maquina', e.target.value)}
+                                            icon={Activity}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1 block">Nº Chassi / Série</label>
+                                        <Input
+                                            placeholder="Identificador Único"
+                                            value={formData.chassi}
+                                            onChange={(e) => handleInputChange('chassi', e.target.value.toUpperCase())}
+                                            icon={Info}
+                                            className="uppercase"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -334,30 +342,30 @@ export function NovaOS() {
                             </h2>
 
                             <div className="space-y-6">
-                                <div className="space-y-1 group">
+                                <div className="space-y-2 group">
+                                    <label className="text-xs font-bold text-emerald-400/70 uppercase tracking-widest ml-1 mb-1 block">Mão de Obra</label>
                                     <Input
                                         type="number"
-                                        label="Mão de Obra"
                                         value={formData.valor_mao_de_obra}
                                         onChange={(e) => handleInputChange('valor_mao_de_obra', e.target.value)}
                                         className="!bg-emerald-500/[0.02] border-emerald-500/10 focus:border-emerald-500"
                                     />
                                 </div>
 
-                                <div className="space-y-1">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-emerald-400/70 uppercase tracking-widest ml-1 mb-1 block">Peças</label>
                                     <Input
                                         type="number"
-                                        label="Peças & Insumos"
                                         value={formData.valor_pecas}
                                         onChange={(e) => handleInputChange('valor_pecas', e.target.value)}
                                         className="!bg-emerald-500/[0.02] border-emerald-500/10 focus:border-emerald-500"
                                     />
                                 </div>
 
-                                <div className="space-y-1">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-emerald-400/70 uppercase tracking-widest ml-1 mb-1 block">Deslocamento</label>
                                     <Input
                                         type="number"
-                                        label="Deslocamento"
                                         value={formData.valor_deslocamento}
                                         onChange={(e) => handleInputChange('valor_deslocamento', e.target.value)}
                                         className="!bg-emerald-500/[0.02] border-emerald-500/10 focus:border-emerald-500"
