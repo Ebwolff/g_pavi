@@ -9,6 +9,9 @@ const Dashboard = lazy(() => import('../pages/DashboardNovo').then(module => ({ 
 const NovaOS = lazy(() => import('../pages/NovaOS').then(module => ({ default: module.NovaOS })));
 const ListaOS = lazy(() => import('../pages/ListaOS').then(module => ({ default: module.ListaOS })));
 const EditarOS = lazy(() => import('../pages/EditarOS').then(module => ({ default: module.EditarOS })));
+const ListaOrcamentos = lazy(() => import('../pages/ListaOrcamentos').then(module => ({ default: module.ListaOrcamentos })));
+const OrcamentoForm = lazy(() => import('../pages/OrcamentoForm').then(module => ({ default: module.OrcamentoForm })));
+const DetalhesOrcamento = lazy(() => import('../pages/DetalhesOrcamento').then(module => ({ default: module.DetalhesOrcamento })));
 const Relatorios = lazy(() => import('../pages/Relatorios').then(module => ({ default: module.Relatorios })));
 const Configuracoes = lazy(() => import('../pages/Configuracoes').then(module => ({ default: module.Configuracoes })));
 const Alertas = lazy(() => import('../pages/Alertas').then(module => ({ default: module.Alertas })));
@@ -65,6 +68,12 @@ export function AppRoutes() {
                 <Route path="/os/lista" element={<ProtectedRoute><ListaOS /></ProtectedRoute>} />
                 <Route path="/os/faturadas" element={<ProtectedRoute><ListaOS onlyFaturadas={true} /></ProtectedRoute>} />
                 <Route path="/os/editar/:id" element={<ProtectedRoute><EditarOS /></ProtectedRoute>} />
+                
+                {/* Rotas de Orçamentos */}
+                <Route path="/orcamentos" element={<ProtectedRoute><ListaOrcamentos /></ProtectedRoute>} />
+                <Route path="/orcamentos/novo" element={<ProtectedRoute><OrcamentoForm /></ProtectedRoute>} />
+                <Route path="/orcamentos/:id" element={<ProtectedRoute><DetalhesOrcamento /></ProtectedRoute>} />
+
                 <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
                 <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
                 <Route path="/alertas" element={<ProtectedRoute><Alertas /></ProtectedRoute>} />

@@ -77,8 +77,9 @@ export function ModalAdicionarPeca({ isOpen, onClose, osId, onSuccess }: ModalAd
                         descricao: peca.descricao,
                         quantidade: peca.quantidade,
                         valor_unitario: 0,
-                        status_separacao: 'PENDENTE'
-                    }))
+                        status_separacao: 'PENDENTE',
+                        status_aprovacao: 'PENDENTE_CONSULTOR'
+                    })) as any
                 );
 
             if (error) throw error;
@@ -86,7 +87,7 @@ export function ModalAdicionarPeca({ isOpen, onClose, osId, onSuccess }: ModalAd
             // Atualizar status da OS para AGUARDANDO_PECAS
             await supabase
                 .from('ordens_servico')
-                .update({ status_atual: 'AGUARDANDO_PECAS' })
+                .update({ status_atual: 'AGUARDANDO_PECAS' } as any)
                 .eq('id', osId);
 
             onSuccess();

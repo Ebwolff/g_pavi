@@ -22,6 +22,8 @@ export type TipoMeta = 'FATURAMENTO' | 'QUANTIDADE_OS' | 'TEMPO_RESOLUCAO' | 'SA
 export type TipoImportacao = 'INCREMENTAL' | 'FULL' | 'MERGE';
 export type StatusImportacao = 'INICIADO' | 'PROCESSANDO' | 'SUCESSO' | 'ERRO' | 'CANCELADO';
 export type NivelUrgencia = 'NORMAL' | 'MEDIO' | 'ALTO' | 'CRITICO';
+export type StatusOrcamento = 'EM_ELABORACAO' | 'ENVIADO_CLIENTE' | 'APROVADO' | 'REPROVADO' | 'CONVERTIDO_OS';
+export type StatusAprovacaoPeca = 'PENDENTE_CONSULTOR' | 'APROVADO' | 'REPROVADO';
 
 export interface Database {
     public: {
@@ -56,6 +58,71 @@ export interface Database {
                     is_active?: boolean;
                     created_at?: string;
                     updated_at?: string;
+                };
+            };
+            orcamentos_servico: {
+                Row: {
+                    id: string;
+                    numero_orcamento: string;
+                    cliente_id: string | null;
+                    nome_cliente_digitavel: string | null;
+                    maquina_id: string | null;
+                    modelo_maquina: string | null;
+                    chassi: string | null;
+                    descricao_problema: string | null;
+                    valor_mao_de_obra: number;
+                    valor_pecas: number;
+                    valor_deslocamento: number;
+                    valor_liquido_total: number;
+                    tipo_diagnostico: string | null;
+                    status_orcamento: StatusOrcamento;
+                    consultor_id: string | null;
+                    data_criacao: string;
+                    data_aprovacao: string | null;
+                    updated_at: string;
+                    observacoes: string | null;
+                };
+                Insert: {
+                    id?: string;
+                    numero_orcamento?: string;
+                    cliente_id?: string | null;
+                    nome_cliente_digitavel?: string | null;
+                    maquina_id?: string | null;
+                    modelo_maquina?: string | null;
+                    chassi?: string | null;
+                    descricao_problema?: string | null;
+                    valor_mao_de_obra?: number;
+                    valor_pecas?: number;
+                    valor_deslocamento?: number;
+                    valor_liquido_total?: number;
+                    tipo_diagnostico?: string | null;
+                    status_orcamento?: StatusOrcamento;
+                    consultor_id?: string | null;
+                    data_criacao?: string;
+                    data_aprovacao?: string | null;
+                    updated_at?: string;
+                    observacoes?: string | null;
+                };
+                Update: {
+                    id?: string;
+                    numero_orcamento?: string;
+                    cliente_id?: string | null;
+                    nome_cliente_digitavel?: string | null;
+                    maquina_id?: string | null;
+                    modelo_maquina?: string | null;
+                    chassi?: string | null;
+                    descricao_problema?: string | null;
+                    valor_mao_de_obra?: number;
+                    valor_pecas?: number;
+                    valor_deslocamento?: number;
+                    valor_liquido_total?: number;
+                    tipo_diagnostico?: string | null;
+                    status_orcamento?: StatusOrcamento;
+                    consultor_id?: string | null;
+                    data_criacao?: string;
+                    data_aprovacao?: string | null;
+                    updated_at?: string;
+                    observacoes?: string | null;
                 };
             };
             clientes: {
@@ -137,6 +204,7 @@ export interface Database {
                     aol: string | null;
                     data_faturamento_fabrica: string | null;
                     link_pdf_os: string | null;
+                    orcamento_id: string | null;
                 };
                 Insert: {
                     id?: string;
@@ -181,6 +249,7 @@ export interface Database {
                     previsao_retorno?: string | null;
                     localizacao_atual?: string | null;
                     roteiro?: string | null;
+                    orcamento_id?: string | null;
                 };
                 Update: {
                     id?: string;
@@ -225,6 +294,7 @@ export interface Database {
                     previsao_retorno?: string | null;
                     localizacao_atual?: string | null;
                     roteiro?: string | null;
+                    orcamento_id?: string | null;
                 };
             };
             historico_status_os: {
@@ -498,6 +568,7 @@ export interface Database {
                     status_separacao: string;
                     solicitacao_compra_id: string | null;
                     codigo_peca: string | null;
+                    status_aprovacao: StatusAprovacaoPeca | string;
                     created_at: string;
                 };
                 Insert: {
@@ -509,6 +580,7 @@ export interface Database {
                     status_separacao?: string;
                     solicitacao_compra_id?: string | null;
                     codigo_peca?: string | null;
+                    status_aprovacao?: StatusAprovacaoPeca | string;
                     created_at?: string;
                 };
                 Update: {
@@ -520,6 +592,7 @@ export interface Database {
                     status_separacao?: string;
                     solicitacao_compra_id?: string | null;
                     codigo_peca?: string | null;
+                    status_aprovacao?: StatusAprovacaoPeca | string;
                     created_at?: string;
                 };
             };
@@ -547,6 +620,7 @@ export interface Database {
                     comprador_id: string | null;
                     observacoes: string | null;
                     motivo_cancelamento: string | null;
+                    status_aprovacao: StatusAprovacaoPeca | string;
                     created_at: string;
                     updated_at: string;
                 };

@@ -33,6 +33,7 @@ import { PedidoPeca } from '@/components/consultor/PedidoPeca';
 import { ModalGaleriaImagens } from '@/components/ui/ModalGaleriaImagens';
 import { ModalHistoricoOS } from '@/components/ui/ModalHistoricoOS';
 import { ModalTriagemPecas } from '@/components/ui/ModalTriagemPecas';
+import { ModalAprovacaoPecas } from '@/components/ui/ModalAprovacaoPecas';
 import { Card } from '@/components/ui/Card';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -89,12 +90,14 @@ export default function PainelConsultor() {
         valorFaturado: 0,
         osCriticas: 0,
     });
-    const [activeTab, setActiveTab] = useState<'dashboard' | 'servicos' | 'faturadas' | 'pedidos'>('dashboard');
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'servicos' | 'faturadas' | 'pedidos' | 'aprovacao'>('dashboard');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOSForGallery, setSelectedOSForGallery] = useState<{ id: string, numero: string } | null>(null);
     const [selectedOSForHistorico, setSelectedOSForHistorico] = useState<{ id: string; numero: string } | null>(null);
     const [osComPecasPendentes, setOsComPecasPendentes] = useState<any[]>([]);
     const [selectedOSTriagem, setSelectedOSTriagem] = useState<any | null>(null);
+    const [osComAprovacaoPendente, setOsComAprovacaoPendente] = useState<any[]>([]);
+    const [selectedOSAprovacao, setSelectedOSAprovacao] = useState<any | null>(null);
 
     const isGerente = ['GERENTE', 'CHEFE_OFICINA'].includes(profile?.role?.toUpperCase() || '');
     const isGarantia = profile?.role?.toUpperCase() === 'CONSULTOR_GARANTIA';
@@ -167,7 +170,8 @@ export default function PainelConsultor() {
             let query = supabase
                 .from('itens_os')
                 .select('*, ordens_servico!inner(id, numero_os, nome_cliente_digitavel, modelo_maquina, tipo_os)')
-                .eq('status_separacao', 'PENDENTE');
+                .eq('status_separacao', 'PENDENTE')
+                .eq('status_aprovacao', 'APROVADO');
 
             if (!isGerente && profile?.id) {
                 const tipo = isGarantia ? 'GARANTIA' : 'NORMAL';
@@ -209,9 +213,48 @@ export default function PainelConsultor() {
         }
     };
 
+    const carregarPecasAprovacaoPendentes = async () => {
+        if (isGarantia) return; // Garantia não tem aprovação de peças financeira
+        try {
+            let query = supabase
+                .from('itens_os')
+                .select('*, ordens_servico!inner(id, numero_os, nome_cliente_digitavel, modelo_maquina, tipo_os)')
+                .eq('status_aprovacao', 'PENDENTE_CONSULTOR');
+
+            if (!isGerente && profile?.id) {
+                query = query.eq('ordens_servico.tipo_os', 'NORMAL');
+            }
+
+            const { data: itens, error } = await query;
+            if (error) throw error;
+
+            // Agrupar por OS
+            const osMap = new Map<string, any>();
+            (itens || []).forEach((item: any) => {
+                const os = item.ordens_servico;
+                if (!os) return;
+                if (!osMap.has(os.id)) {
+                    osMap.set(os.id, {
+                        id: os.id,
+                        numero_os: os.numero_os,
+                        nome_cliente_digitavel: os.nome_cliente_digitavel,
+                        modelo_maquina: os.modelo_maquina,
+                        itens: []
+                    });
+                }
+                osMap.get(os.id).itens.push(item);
+            });
+
+            setOsComAprovacaoPendente(Array.from(osMap.values()));
+        } catch (error) {
+            console.error('Erro ao carregar peças pendentes de aprovação:', error);
+        }
+    };
+
     useEffect(() => {
         carregarPecasPendentes();
-    }, []);
+        carregarPecasAprovacaoPendentes();
+    }, [isGarantia]);
 
     // Filtragem baseada na aba ativa
     const osFiltrada = osList.filter(os => {
@@ -253,11 +296,14 @@ export default function PainelConsultor() {
                     <div className="flex items-center gap-3">
                         <Button
                             variant="primary"
-                            onClick={() => navigate('/os/nova')}
+                            onClick={() => {
+                                if (!isGerente && !isGarantia) navigate('/orcamentos/novo');
+                                else navigate('/os/nova');
+                            }}
                             leftIcon={<Plus className="w-4 h-4" />}
                             className="shadow-lg shadow-blue-500/20"
                         >
-                            Nova OS
+                            {!isGerente && !isGarantia ? 'Novo Orçamento' : 'Nova OS'}
                         </Button>
                         <Button
                             variant="secondary"
@@ -315,6 +361,23 @@ export default function PainelConsultor() {
                                 {osComPecasPendentes.reduce((sum, os) => sum + os.itens.length, 0) || osList.filter(o => o.status_atual === 'AGUARDANDO_PECAS').length}
                             </span>
                         </button>
+                        {!isGarantia && (
+                            <button
+                                onClick={() => setActiveTab('aprovacao')}
+                                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all whitespace-nowrap relative ${activeTab === 'aprovacao'
+                                    ? 'bg-amber-600 text-white shadow-lg shadow-amber-500/20'
+                                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'
+                                    }`}
+                            >
+                                <AlertTriangle className="w-4 h-4" />
+                                Aprovação
+                                {osComAprovacaoPendente.length > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-[8px] font-black rounded-full flex items-center justify-center border-2 border-[var(--surface)]">
+                                        {osComAprovacaoPendente.reduce((sum, os) => sum + os.itens.length, 0)}
+                                    </span>
+                                )}
+                            </button>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-4 w-full lg:w-[400px]">
@@ -443,6 +506,56 @@ export default function PainelConsultor() {
                                 )}
                             </div>
                         </div>
+                    </div>
+                ) : activeTab === 'aprovacao' ? (
+                    <div className="space-y-8 animate-slideUp">
+                        {osComAprovacaoPendente.length === 0 ? (
+                            <div className="py-24 text-center">
+                                <div className="max-w-xs mx-auto opacity-30">
+                                    <CheckCircle className="w-12 h-12 mx-auto mb-4 text-emerald-500" />
+                                    <p className="text-sm font-bold uppercase tracking-widest text-white">Nenhuma peça pendente de aprovação</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-amber-500/10 rounded-xl">
+                                        <AlertTriangle className="w-6 h-6 text-amber-500" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold text-white">Peças Pendentes de Aprovação</h2>
+                                        <p className="text-xs text-[var(--text-muted)]">Reveja as solicitações feitas pelos técnicos antes de irem para o estoque</p>
+                                    </div>
+                                    <span className="ml-auto px-3 py-1 bg-amber-500/10 text-amber-400 rounded-full text-xs font-bold border border-amber-500/20">
+                                        {osComAprovacaoPendente.reduce((sum: number, os: any) => sum + os.itens.length, 0)} solicitações
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {osComAprovacaoPendente.map((os: any) => (
+                                        <div
+                                            key={os.id}
+                                            onClick={() => setSelectedOSAprovacao(os)}
+                                            className="glass-card-enterprise p-5 rounded-2xl border border-amber-500/15 hover:border-amber-500/30 cursor-pointer transition-all group"
+                                        >
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">
+                                                    OS #{os.numero_os}
+                                                </span>
+                                                <span className="px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded-md text-[10px] font-bold border border-amber-500/20">
+                                                    {os.itens.length} peça{os.itens.length > 1 ? 's' : ''}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm font-bold text-white mb-1 truncate">{os.nome_cliente_digitavel || 'Cliente'}</p>
+                                            <p className="text-xs text-[var(--text-muted)] truncate">{os.modelo_maquina || ''}</p>
+                                            <div className="mt-3 pt-3 border-t border-white/5">
+                                                <p className="text-[10px] text-[var(--text-muted)] group-hover:text-amber-400 transition-colors">Clique para iniciar aprovação →</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ) : activeTab === 'pedidos' ? (
                     <div className="space-y-8 animate-slideUp">
@@ -663,6 +776,17 @@ export default function PainelConsultor() {
                         onSuccess={() => {
                             carregarPecasPendentes();
                             carregarDados();
+                        }}
+                    />
+                )}
+                {selectedOSAprovacao && (
+                    <ModalAprovacaoPecas
+                        os={selectedOSAprovacao}
+                        onClose={() => setSelectedOSAprovacao(null)}
+                        onSuccess={() => {
+                            setSelectedOSAprovacao(null);
+                            carregarPecasAprovacaoPendentes();
+                            carregarPecasPendentes(); // Para o Estoque já ver
                         }}
                     />
                 )}
