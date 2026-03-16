@@ -13,19 +13,30 @@ import {
 import { comprasService, SolicitacaoCompra } from '@/services/compras.service';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useAuth } from '@/hooks/useAuth';
 
 export function PedidoPeca() {
+    const { profile } = useAuth();
     const [pedidos, setPedidos] = useState<SolicitacaoCompra[]>([]);
     const [loading, setLoading] = useState(true);
     const [showNewModal, setShowNewModal] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<{ numero_os: string; cliente: string; modelo_maquina: string; itens: SolicitacaoCompra[]; maxUrgencia: string; dias_aguardando: number } | null>(null);
     const [filtroStatus, setFiltroStatus] = useState<string>('');
 
+    const isGerente = ['GERENTE', 'CHEFE_OFICINA'].includes(profile?.role?.toUpperCase() || '');
+    const isGarantia = profile?.role?.toUpperCase() === 'CONSULTOR_GARANTIA';
+
     const loadPedidos = async () => {
         setLoading(true);
         try {
             const data = await comprasService.getSolicitacoes();
-            setPedidos(data);
+            let pedidosFiltrados = data;
+            if (!isGerente && profile) {
+                const tipoPermitido = isGarantia ? 'GARANTIA' : 'NORMAL';
+                // Mostra apenas peças da própria área (Garantia ou Normal) ou que sejam avulsas
+                pedidosFiltrados = data.filter(p => !p.ordem_servico_id || p.tipo_os === tipoPermitido);
+            }
+            setPedidos(pedidosFiltrados);
         } catch (error) {
             console.error('Erro ao carregar pedidos:', error);
         } finally {
@@ -34,8 +45,10 @@ export function PedidoPeca() {
     };
 
     useEffect(() => {
-        loadPedidos();
-    }, []);
+        if (profile) {
+            loadPedidos();
+        }
+    }, [profile?.id, profile?.role]);
 
     // Agrupamento por OS
     const pedidosAgrupados = pedidos.reduce((acc: any, pedido) => {

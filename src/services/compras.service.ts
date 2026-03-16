@@ -1,7 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { StatusSolicitacaoCompra, UrgenciaCompra } from '@/types/database.types';
 
-// Interface para solicitação de compra
 export interface SolicitacaoCompra {
     id: string;
     ordem_servico_id: string | null;
@@ -28,6 +27,7 @@ export interface SolicitacaoCompra {
     updated_at: string;
     // Campos de relacionamento (quando JOIN)
     numero_os?: string;
+    tipo_os?: 'NORMAL' | 'GARANTIA';
     cliente?: string;
     modelo_maquina?: string;
     solicitante_nome?: string;
@@ -71,7 +71,7 @@ class ComprasService {
             .from('solicitacoes_compra')
             .select(`
                 *,
-                ordens_servico:ordem_servico_id (numero_os, nome_cliente_digitavel, modelo_maquina),
+                ordens_servico:ordem_servico_id (numero_os, nome_cliente_digitavel, modelo_maquina, tipo_os),
                 solicitante:solicitante_id (first_name, last_name)
             `)
             .order('data_solicitacao', { ascending: false });
@@ -101,6 +101,7 @@ class ComprasService {
             numero_os: item.ordens_servico?.numero_os,
             cliente: item.ordens_servico?.nome_cliente_digitavel,
             modelo_maquina: item.ordens_servico?.modelo_maquina,
+            tipo_os: item.ordens_servico?.tipo_os,
             solicitante_nome: item.solicitante
                 ? `${item.solicitante.first_name || ''} ${item.solicitante.last_name || ''}`.trim()
                 : null,

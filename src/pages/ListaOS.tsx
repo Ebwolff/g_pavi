@@ -13,16 +13,21 @@ import { StatusBadge, TipoBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatarValor, formatarData } from '@/utils/osHelpers';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ListaOSProps {
     onlyFaturadas?: boolean;
 }
 
 export function ListaOS({ onlyFaturadas = false }: ListaOSProps = {}) {
+    const { profile } = useAuth();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [page, setPage] = useState(1);
     const ITEMS_PER_PAGE = 25;
+
+    const isGerente = ['GERENTE', 'CHEFE_OFICINA'].includes(profile?.role?.toUpperCase() || '');
+    const isGarantia = profile?.role?.toUpperCase() === 'CONSULTOR_GARANTIA';
 
     const [uiFilters, setUiFilters] = useState<UIOSFilters>({
         tipo: 'TODOS',
@@ -35,9 +40,16 @@ export function ListaOS({ onlyFaturadas = false }: ListaOSProps = {}) {
 
     // Mapeamento de filtros da UI para Filters do Service
     const serviceFilters = useMemo((): ServiceFilters => {
+        let tipo = uiFilters.tipo === 'TODOS' ? undefined : uiFilters.tipo as 'NORMAL' | 'GARANTIA';
+        
+        // Bloqueio Forçado de Visualização:
+        if (!isGerente && profile) {
+            tipo = isGarantia ? 'GARANTIA' : 'NORMAL';
+        }
+
         return {
             search: uiFilters.busca || undefined,
-            tipo: uiFilters.tipo === 'TODOS' ? undefined : uiFilters.tipo as 'NORMAL' | 'GARANTIA',
+            tipo,
             // Se for onlyFaturadas, fixa em FATURADA. Senão usa o status da UI (se existir).
             status: onlyFaturadas ? 'FATURADA' : (uiFilters.status === 'TODOS' ? undefined : uiFilters.status),
             // Se não for onlyFaturadas, oculta as faturadas da visão normal

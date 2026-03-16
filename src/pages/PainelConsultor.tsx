@@ -113,10 +113,10 @@ export default function PainelConsultor() {
                 `)
                 .order('data_abertura', { ascending: false });
 
-            // 1. Filtro por Cargo e Autoria (Segregação de Dados)
+            // 1. Filtro por Cargo (Segregação de Dados Garantia vs Normal)
             if (!isGerente && profile?.id) {
                 const tipo = isGarantia ? 'GARANTIA' : 'NORMAL';
-                query = query.or(`consultor_id.eq."${profile.id}",tipo_os.eq."${tipo}"`);
+                query = query.eq('tipo_os', tipo);
             }
 
             const { data, error } = await query;
@@ -164,10 +164,17 @@ export default function PainelConsultor() {
     // Carregar peças pendentes de triagem
     const carregarPecasPendentes = async () => {
         try {
-            const { data: itens, error } = await supabase
+            let query = supabase
                 .from('itens_os')
-                .select('*, ordens_servico:ordem_servico_id(id, numero_os, nome_cliente_digitavel, modelo_maquina)')
+                .select('*, ordens_servico!inner(id, numero_os, nome_cliente_digitavel, modelo_maquina, tipo_os)')
                 .eq('status_separacao', 'PENDENTE');
+
+            if (!isGerente && profile?.id) {
+                const tipo = isGarantia ? 'GARANTIA' : 'NORMAL';
+                query = query.eq('ordens_servico.tipo_os', tipo);
+            }
+
+            const { data: itens, error } = await query;
 
             if (error) throw error;
 
