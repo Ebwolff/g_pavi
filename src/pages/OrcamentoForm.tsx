@@ -147,7 +147,7 @@ export function OrcamentoForm() {
                                         <p className="text-sm text-[var(--text-muted)]">Faça o upload do PDF NBS para preencher a maioria dos campos abaixo</p>
                                     </div>
                                 </div>
-                                <UploadNBS_PDF onExtractSuccess={handleNBSUploadSuccess} />
+                                <UploadNBS_PDF onUploadSuccess={handleNBSUploadSuccess} />
                             </div>
                         </div>
 
