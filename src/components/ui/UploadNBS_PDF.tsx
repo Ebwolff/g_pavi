@@ -28,6 +28,14 @@ async function loadPdfJs(): Promise<any> {
     });
 }
 
+export interface ItemOrcamento {
+    codigo: string;
+    descricao: string;
+    qtde: number;
+    valor_unitario: number;
+    valor_total: number;
+}
+
 export interface ExtractedNBS {
     numero_os?: string;
     nome_cliente_digitavel?: string;
@@ -39,6 +47,7 @@ export interface ExtractedNBS {
     valor_mao_de_obra?: string;
     valor_pecas?: string;
     pdfFile?: File;
+    itens?: ItemOrcamento[];
 }
 
 interface UploadNBS_PDFProps {
@@ -204,6 +213,63 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             }
 
             console.log('[NBS] Valores finais:', { maoDeObra: extraidos.valor_mao_de_obra, pecas: extraidos.valor_pecas });
+
+            // 9. Extração de Itens/Peças do Orçamento
+            // Texto real: "...Descrição do Item Qtde Estoque/Res. Preço Unitário Valor Final LD UN H218PB1510421 / 1 0 0 19058,146500 19058,15 VENTILADOR VISCO UN 21.558,15 Itens:..."
+            // Estratégia: Extrair seção entre "Descrição do Item" e "Itens:" ou "Total:"
+            const matchItensSection = normalizedText.match(/Descri[çc][ãa]o do Item.*?Valor Final\s+(.*?)\s+(?:\d[\d.,]*\s+Itens:|Total:)/i);
+            if (matchItensSection && matchItensSection[1]) {
+                const itensText = matchItensSection[1].trim();
+                console.log('[NBS] Seção de itens:', itensText);
+                
+                // Encontrar códigos de peça (alfanuméricos com pelo menos 1 letra e 1 número, 6+ chars)
+                const itens: ItemOrcamento[] = [];
+                const codigoPattern = /([A-Z0-9][A-Z0-9\/\-]{5,})/g;
+                let codigoMatch;
+                const codigosEncontrados: string[] = [];
+                
+                while ((codigoMatch = codigoPattern.exec(itensText)) !== null) {
+                    const cod = codigoMatch[1];
+                    // Filtrar: deve ter letras E números, não ser chassi já encontrado
+                    if (/[A-Z]/.test(cod) && /[0-9]/.test(cod) && cod !== extraidos.chassi && cod.length <= 20) {
+                        codigosEncontrados.push(cod);
+                    }
+                }
+                
+                // Para cada código, tentar extrair descrição e valores
+                // Padrão: CODIGO / QTDE ... VALOR_UNIT VALOR_TOTAL DESCRICAO
+                for (const codigo of codigosEncontrados) {
+                    const escapedCode = codigo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const itemMatch = itensText.match(new RegExp(escapedCode + '\\s*\\/\\s*(\\d+)\\s+\\d+\\s+\\d+\\s+([\\d.,]+)\\s+([\\d.,]+)\\s+([A-Z][A-Z\\s]+?)\\s+(?:UN|PC|KG|LT|JG|CJ)', 'i'));
+                    
+                    if (itemMatch) {
+                        itens.push({
+                            codigo,
+                            descricao: itemMatch[4].trim(),
+                            qtde: parseInt(itemMatch[1]) || 1,
+                            valor_unitario: parseBR(itemMatch[2]),
+                            valor_total: parseBR(itemMatch[3]),
+                        });
+                    } else {
+                        // Fallback: pegar último valor monetário próximo ao código
+                        const simpleMatch = itensText.match(new RegExp(escapedCode + '.*?([\\d.]+,\\d{2})(?:\\s+([A-Z][A-Z\\s]{2,30}))?', 'i'));
+                        if (simpleMatch) {
+                            itens.push({
+                                codigo,
+                                descricao: simpleMatch[2]?.trim() || 'Peça ' + codigo,
+                                qtde: 1,
+                                valor_unitario: parseBR(simpleMatch[1]),
+                                valor_total: parseBR(simpleMatch[1]),
+                            });
+                        }
+                    }
+                }
+                
+                if (itens.length > 0) {
+                    extraidos.itens = itens;
+                    console.log('[NBS] Itens extraídos:', itens);
+                }
+            }
 
             if (Object.keys(extraidos).length === 0) {
                 setError("Não foi possível extrair dados estruturados deste PDF (formato NBS não detectado).");

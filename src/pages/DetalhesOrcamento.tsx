@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
     ArrowLeft, CheckCircle, 
-    Play, DollarSign, User, Wrench, Calendar, FileDown
+    Play, DollarSign, User, Wrench, Calendar, FileDown, Package
 } from 'lucide-react';
 
 import { orcamentoService } from '@/services/orcamento.service';
@@ -221,6 +221,44 @@ export function DetalhesOrcamento() {
                                 </div>
                             )}
                         </section>
+
+                        {/* Relação de Peças */}
+                        {(orcamento as any).itens_orcamento && (orcamento as any).itens_orcamento.length > 0 && (
+                            <section className="bg-[var(--surface-light)] rounded-2xl p-6 border border-[var(--border-subtle)]">
+                                <h3 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <Package className="w-4 h-4" />
+                                    Relação de Peças ({(orcamento as any).itens_orcamento.length} {(orcamento as any).itens_orcamento.length === 1 ? 'item' : 'itens'})
+                                </h3>
+                                <div className="overflow-hidden rounded-xl border border-[var(--border-subtle)]">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="bg-[var(--surface-hover)]">
+                                                <th className="text-left px-4 py-2.5 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Código</th>
+                                                <th className="text-left px-4 py-2.5 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Descrição</th>
+                                                <th className="text-center px-4 py-2.5 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Qtde</th>
+                                                <th className="text-right px-4 py-2.5 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Valor Unit.</th>
+                                                <th className="text-right px-4 py-2.5 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Valor Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {(orcamento as any).itens_orcamento.map((item: any, idx: number) => (
+                                                <tr key={idx} className="border-t border-[var(--border-subtle)] hover:bg-[var(--surface-hover)] transition-colors">
+                                                    <td className="px-4 py-3 font-mono text-xs text-blue-400">{item.codigo}</td>
+                                                    <td className="px-4 py-3 text-[var(--text-primary)]">{item.descricao}</td>
+                                                    <td className="px-4 py-3 text-center font-mono">{item.qtde}</td>
+                                                    <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)]">
+                                                        {Number(item.valor_unitario).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right font-mono font-bold text-[var(--text-primary)]">
+                                                        {Number(item.valor_total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+                        )}
 
                         {/* PDF NBS Anexado */}
                         {(orcamento as any).pdf_nbs_url && (

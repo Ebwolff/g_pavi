@@ -2,7 +2,7 @@ import { useState, FormEvent, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-    ArrowLeft, Save, X, FileText, Upload, RefreshCw
+    ArrowLeft, Save, X, FileText, Upload, RefreshCw, Package
 } from 'lucide-react';
 
 import { orcamentoService } from '@/services/orcamento.service';
@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { UploadNBS_PDF, ExtractedNBS } from '@/components/ui/UploadNBS_PDF';
+import { UploadNBS_PDF, ExtractedNBS, ItemOrcamento } from '@/components/ui/UploadNBS_PDF';
 
 export function OrcamentoForm() {
     const navigate = useNavigate();
@@ -35,6 +35,9 @@ export function OrcamentoForm() {
     // PDF file para upload ao Storage
     const [pdfFile, setPdfFile] = useState<File | null>(null);
 
+    // Itens/Peças extraídos do NBS
+    const [itensOrcamento, setItensOrcamento] = useState<ItemOrcamento[]>([]);
+
     const createMutation = useMutation({
         mutationFn: (data: any) => orcamentoService.create(data),
         onSuccess: (data) => {
@@ -56,6 +59,10 @@ export function OrcamentoForm() {
         // Guardar o PDF original para upload posterior
         if (dados.pdfFile) {
             setPdfFile(dados.pdfFile);
+        }
+        // Guardar itens extraídos
+        if (dados.itens && dados.itens.length > 0) {
+            setItensOrcamento(dados.itens);
         }
         setFormData(prev => ({
             ...prev,
@@ -116,7 +123,8 @@ export function OrcamentoForm() {
             observacoes: formData.observacoes || null,
             status_orcamento: 'EM_ELABORACAO',
             consultor_id: profile?.id,
-            pdf_nbs_url: pdfNbsUrl
+            pdf_nbs_url: pdfNbsUrl,
+            itens_orcamento: itensOrcamento.length > 0 ? itensOrcamento : null
         });
     };
 
@@ -243,6 +251,44 @@ export function OrcamentoForm() {
                                     onChange={(e) => handleInputChange('descricao_problema', e.target.value)}
                                 />
                             </div>
+
+                            {/* Relação de Peças extraída do NBS */}
+                            {itensOrcamento.length > 0 && (
+                                <div className="mt-6">
+                                    <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-3 flex items-center gap-2">
+                                        <Package className="w-4 h-4 text-blue-400" />
+                                        Relação de Peças ({itensOrcamento.length} {itensOrcamento.length === 1 ? 'item' : 'itens'})
+                                    </h3>
+                                    <div className="overflow-hidden rounded-xl border border-[var(--border-subtle)]">
+                                        <table className="w-full text-sm">
+                                            <thead>
+                                                <tr className="bg-[var(--surface-hover)]">
+                                                    <th className="text-left px-4 py-2.5 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Código</th>
+                                                    <th className="text-left px-4 py-2.5 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Descrição</th>
+                                                    <th className="text-center px-4 py-2.5 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Qtde</th>
+                                                    <th className="text-right px-4 py-2.5 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Valor Unit.</th>
+                                                    <th className="text-right px-4 py-2.5 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Valor Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {itensOrcamento.map((item, idx) => (
+                                                    <tr key={idx} className="border-t border-[var(--border-subtle)] hover:bg-[var(--surface-hover)] transition-colors">
+                                                        <td className="px-4 py-3 font-mono text-xs text-blue-400">{item.codigo}</td>
+                                                        <td className="px-4 py-3 text-[var(--text-primary)]">{item.descricao}</td>
+                                                        <td className="px-4 py-3 text-center font-mono">{item.qtde}</td>
+                                                        <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)]">
+                                                            {item.valor_unitario.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-right font-mono font-bold text-[var(--text-primary)]">
+                                                            {item.valor_total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
