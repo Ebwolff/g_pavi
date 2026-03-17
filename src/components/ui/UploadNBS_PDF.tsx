@@ -1,9 +1,32 @@
 import React, { useState } from 'react';
 import { UploadCloud, FileText, AlertTriangle, Loader2 } from 'lucide-react';
-import * as pdfjsLib from 'pdfjs-dist';
 
-// Worker via CDN com fallback para thread principal
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+// Carregar pdfjs via CDN para evitar quebra de minificação do Rollup/Vite
+const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174';
+
+let pdfjsLibCache: any = null;
+
+async function loadPdfJs(): Promise<any> {
+    if (pdfjsLibCache) return pdfjsLibCache;
+
+    return new Promise((resolve, reject) => {
+        // Carregar o script principal
+        const script = document.createElement('script');
+        script.src = `${PDFJS_CDN}/pdf.min.js`;
+        script.onload = () => {
+            const pdfjsLib = (window as any).pdfjsLib;
+            if (!pdfjsLib) {
+                reject(new Error('pdfjsLib não carregou corretamente'));
+                return;
+            }
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `${PDFJS_CDN}/pdf.worker.min.js`;
+            pdfjsLibCache = pdfjsLib;
+            resolve(pdfjsLib);
+        };
+        script.onerror = () => reject(new Error('Falha ao carregar biblioteca PDF do CDN'));
+        document.head.appendChild(script);
+    });
+}
 
 export interface ExtractedNBS {
     numero_os?: string;
@@ -31,30 +54,12 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
         setError(null);
 
         try {
-            const arrayBuffer = await file.arrayBuffer();
-            let pdf;
+            // Carregar pdfjs dinamicamente do CDN (evita minificação do Rollup)
+            const pdfjsLib = await loadPdfJs();
             
-            try {
-                // Tentar com worker CDN
-                const loadingTask = pdfjsLib.getDocument({
-                    data: arrayBuffer,
-                    useWorkerFetch: false,
-                    isEvalSupported: false,
-                    useSystemFonts: true,
-                });
-                pdf = await loadingTask.promise;
-            } catch (workerError) {
-                // Fallback: desabilitar worker e tentar novamente
-                console.warn('[NBS] Worker falhou, tentando sem worker:', workerError);
-                pdfjsLib.GlobalWorkerOptions.workerSrc = '';
-                const loadingTask = pdfjsLib.getDocument({
-                    data: arrayBuffer,
-                    useWorkerFetch: false,
-                    isEvalSupported: false,
-                    useSystemFonts: true,
-                });
-                pdf = await loadingTask.promise;
-            }
+            const arrayBuffer = await file.arrayBuffer();
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            const pdf = await loadingTask.promise;
 
             let extractedTextStr = '';
 
