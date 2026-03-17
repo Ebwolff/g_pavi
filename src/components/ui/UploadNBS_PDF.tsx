@@ -77,6 +77,8 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             // Normaliza espaços extras E normaliza Unicode (NFC) para resolver encoding de ç, ã, etc.
             const normalizedText = extractedTextStr.replace(/\s+/g, ' ').trim().normalize('NFC');
 
+            console.log('[NBS] Texto completo extraído:', normalizedText);
+
             const extraidos: ExtractedNBS = {};
 
 
