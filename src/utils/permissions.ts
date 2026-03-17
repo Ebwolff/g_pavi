@@ -19,7 +19,9 @@ export type AppRoute =
     | '/dashboard'
     | '/os/nova'
     | '/os/lista'
+    | '/os/faturadas'
     | '/os/editar'
+    | '/orcamentos'
     | '/consultor'
     | '/chefe-oficina'
     | '/tecnico'
@@ -37,7 +39,9 @@ const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
     GERENTE: [
         '/dashboard',
         '/os/lista',
+        '/os/faturadas',
         '/os/editar',
+        '/orcamentos',
         '/consultor',
         '/chefe-oficina',
         '/tecnico',
@@ -55,7 +59,9 @@ const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
         '/dashboard',
         '/os/nova',
         '/os/lista',
+        '/os/faturadas',
         '/os/editar',
+        '/orcamentos',
         '/consultor',
         '/alertas',
         '/configuracoes',
@@ -66,7 +72,9 @@ const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
         '/dashboard',
         '/os/nova',
         '/os/lista',
+        '/os/faturadas',
         '/os/editar',
+        '/orcamentos',
         '/consultor',
         '/alertas',
         '/configuracoes',
