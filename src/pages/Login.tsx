@@ -64,7 +64,7 @@ export function Login() {
                             <div className="w-10 h-10 bg-visao-green rounded-xl flex items-center justify-center shadow-lg shadow-green-900/10">
                                 <Tractor className="w-6 h-6 text-green-400" />
                             </div>
-                            <h1 className="text-xl font-antigravity text-visao-green tracking-tighter">Visão 360</h1>
+                            <h1 className="text-xl font-visao text-visao-green tracking-tighter">Visão 360</h1>
                         </div>
                         <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Bem-vindo.</h2>
                         <p className="text-slate-500 font-medium">Acesse a plataforma de gestão agrícola</p>
@@ -135,7 +135,7 @@ export function Login() {
 
             {/* Right Side - Dark Green Hero Branding */}
             <div className="hidden lg:flex lg:w-7/12 relative bg-visao-green overflow-hidden">
-                {/* Antigravity Animation Container */}
+                {/* Animation Container */}
                 <div className="absolute inset-0 z-0">
                     <img
                         src={frameUrl}
@@ -152,7 +152,7 @@ export function Login() {
                     <div className="flex flex-col gap-4 items-center">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-0.5 bg-green-500 rounded-full" />
-                            <span className="font-antigravity text-xs text-green-400 tracking-[0.4em] drop-shadow-md">Performance Layer</span>
+                            <span className="font-visao text-xs text-green-400 tracking-[0.4em] drop-shadow-md">Performance Layer</span>
                             <div className="w-12 h-0.5 bg-green-500 rounded-full" />
                         </div>
 
@@ -166,14 +166,14 @@ export function Login() {
                                 <div className="flex flex-col items-center gap-2">
                                     <div className="flex items-center gap-3 text-white">
                                         <div className="p-2 bg-green-600 rounded-lg shadow-lg border border-green-400/30"><ShieldCheck className="w-5 h-5 text-white" /></div>
-                                        <span className="font-antigravity text-sm tracking-widest drop-shadow-md">Compliance</span>
+                                        <span className="font-visao text-sm tracking-widest drop-shadow-md">Compliance</span>
                                     </div>
                                     <p className="text-white/70 text-[11px] font-bold drop-shadow-sm">Auditoria total</p>
                                 </div>
                                 <div className="flex flex-col items-center gap-2">
                                     <div className="flex items-center gap-3 text-white">
                                         <div className="p-2 bg-green-600 rounded-lg shadow-lg border border-green-400/30"><Zap className="w-5 h-5 text-white" /></div>
-                                        <span className="font-antigravity text-sm tracking-widest drop-shadow-md">Performance</span>
+                                        <span className="font-visao text-sm tracking-widest drop-shadow-md">Performance</span>
                                     </div>
                                     <p className="text-white/70 text-[11px] font-bold drop-shadow-sm">KPIs em tempo real</p>
                                 </div>
@@ -183,7 +183,7 @@ export function Login() {
 
                     <div className="flex items-center justify-between w-full border-t border-white/10 pt-10">
                         <p className="text-white/50 text-[10px] font-black uppercase tracking-[0.3em] drop-shadow-sm">
-                            © 2026 Visão 360 · Antigravity Core
+                            © 2026 Visão 360 · Mardisa Agro
                         </p>
                         <div className="flex gap-2">
                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />

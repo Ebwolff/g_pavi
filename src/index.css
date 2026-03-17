@@ -9,7 +9,7 @@
 @tailwind utilities;
 
 @layer utilities {
-    .font-antigravity {
+    .font-visao {
         font-family: 'Exo 2', sans-serif;
         letter-spacing: 0.1em;
         text-transform: uppercase;
