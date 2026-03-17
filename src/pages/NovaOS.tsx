@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     ArrowLeft, Save, X, Wrench, User,
     DollarSign, Activity, Hash, Tag,
-    FileText, UserCheck, Settings, Info, Clock, AlertTriangle, Link2, Package
+    FileText, UserCheck, Settings, Info, Clock, AlertTriangle, Link2, Package, Search
 } from 'lucide-react';
 
 import { ordemServicoService } from '@/services/ordemServico.service';
@@ -62,9 +62,31 @@ export function NovaOS() {
         }
     };
 
-    // Orçamento vinculado (auto-detectado pelo número NBS)
+    // Orçamento vinculado
     const [orcamentoVinculado, setOrcamentoVinculado] = useState<any>(null);
     const [itensOrcamento, setItensOrcamento] = useState<ItemOrcamento[]>([]);
+    const [numOrcamentoInput, setNumOrcamentoInput] = useState('');
+    const [buscandoOrc, setBuscandoOrc] = useState(false);
+    const [orcNaoEncontrado, setOrcNaoEncontrado] = useState(false);
+
+    const buscarOrcamento = async (numero: string) => {
+        if (!numero.trim()) {
+            setOrcamentoVinculado(null);
+            setOrcNaoEncontrado(false);
+            return;
+        }
+        setBuscandoOrc(true);
+        setOrcNaoEncontrado(false);
+        const orc = await orcamentoService.findByNumeroNBS(numero.trim());
+        if (orc) {
+            setOrcamentoVinculado(orc);
+            setOrcNaoEncontrado(false);
+        } else {
+            setOrcamentoVinculado(null);
+            setOrcNaoEncontrado(true);
+        }
+        setBuscandoOrc(false);
+    };
 
     const handleNBSUploadSuccess = async (dados: ExtractedNBS) => {
         setFormData(prev => ({
@@ -87,6 +109,7 @@ export function NovaOS() {
 
         // Auto-detectar orçamento vinculado pelo número NBS
         if (dados.numero_os) {
+            setNumOrcamentoInput(dados.numero_os);
             const orc = await orcamentoService.findByNumeroNBS(dados.numero_os);
             if (orc) {
                 setOrcamentoVinculado(orc);
@@ -176,34 +199,81 @@ export function NovaOS() {
                             <UploadNBS_PDF onUploadSuccess={handleNBSUploadSuccess} />
                         </div>
 
-                        {/* Banner de Orçamento Vinculado */}
-                        {orcamentoVinculado && (
-                            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-5 mb-6 animate-fadeIn">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center">
-                                        <Link2 className="w-5 h-5 text-emerald-400" />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-bold text-emerald-400">Orçamento Vinculado Automaticamente</h4>
-                                        <p className="text-xs text-[var(--text-muted)]">
-                                            Orçamento <span className="font-mono font-bold text-emerald-300">ORC-{orcamentoVinculado.numero_orcamento}</span>
-                                            {' — '}
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${ 
-                                                orcamentoVinculado.status_orcamento === 'APROVADO' ? 'bg-green-500/20 text-green-300' :
-                                                orcamentoVinculado.status_orcamento === 'ENVIADO_CLIENTE' ? 'bg-yellow-500/20 text-yellow-300' :
-                                                'bg-blue-500/20 text-blue-300'
-                                            }`}>
-                                                {orcamentoVinculado.status_orcamento?.replace(/_/g, ' ')}
-                                            </span>
-                                            {' — '}
-                                            Total: <span className="font-mono font-bold text-emerald-300">
-                                                R$ {(orcamentoVinculado.valor_liquido_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                            </span>
-                                        </p>
+                        {/* Campo de Vinculação de Orçamento */}
+                        <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-light)] p-5 mb-6">
+                            <h4 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <Link2 className="w-4 h-4" />
+                                Vincular Orçamento (Opcional)
+                            </h4>
+                            <div className="flex gap-3">
+                                <Input
+                                    placeholder="Digite o número do orçamento NBS..."
+                                    value={numOrcamentoInput}
+                                    onChange={(e) => setNumOrcamentoInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), buscarOrcamento(numOrcamentoInput))}
+                                    className="h-10 font-mono flex-1"
+                                    icon={Hash}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => buscarOrcamento(numOrcamentoInput)}
+                                    disabled={buscandoOrc || !numOrcamentoInput.trim()}
+                                    className="px-4 h-10 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                                >
+                                    <Search className="w-4 h-4" />
+                                    {buscandoOrc ? 'Buscando...' : 'Buscar'}
+                                </button>
+                            </div>
+
+                            {/* Resultado: Orçamento encontrado */}
+                            {orcamentoVinculado && (
+                                <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 animate-fadeIn">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center">
+                                            <Link2 className="w-4 h-4 text-emerald-400" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="text-sm font-bold text-emerald-400">Orçamento Vinculado</h4>
+                                            <p className="text-xs text-[var(--text-muted)]">
+                                                <span className="font-mono font-bold text-emerald-300">ORC-{orcamentoVinculado.numero_orcamento}</span>
+                                                {orcamentoVinculado.nome_cliente_digitavel && (
+                                                    <> — {orcamentoVinculado.nome_cliente_digitavel}</>
+                                                )}
+                                                {' — '}
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                                    orcamentoVinculado.status_orcamento === 'APROVADO' ? 'bg-green-500/20 text-green-300' :
+                                                    orcamentoVinculado.status_orcamento === 'ENVIADO_CLIENTE' ? 'bg-yellow-500/20 text-yellow-300' :
+                                                    'bg-blue-500/20 text-blue-300'
+                                                }`}>
+                                                    {orcamentoVinculado.status_orcamento?.replace(/_/g, ' ')}
+                                                </span>
+                                                {' — R$ '}
+                                                <span className="font-mono font-bold text-emerald-300">
+                                                    {(orcamentoVinculado.valor_liquido_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setOrcamentoVinculado(null); setNumOrcamentoInput(''); setOrcNaoEncontrado(false); }}
+                                            className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400 transition-all"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+
+                            {/* Resultado: Não encontrado */}
+                            {orcNaoEncontrado && (
+                                <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 animate-fadeIn">
+                                    <p className="text-xs text-amber-400 flex items-center gap-2">
+                                        <AlertTriangle className="w-4 h-4" />
+                                        Nenhum orçamento encontrado com o número <span className="font-mono font-bold">{numOrcamentoInput}</span>. A OS será criada sem vínculo.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
 
                         {/* Seção 1: Identificação */}
                         <div className="glass-card-enterprise p-8 rounded-3xl border border-white/[0.03] shadow-2xl relative overflow-hidden group">
