@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { UploadCloud, FileText, AlertTriangle, Loader2 } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Configurar o worker do pdfjs-dist para rodar no Vite
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url';
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+// Usar o worker via CDN para evitar problemas de minificação do Vite/Rollup
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
 export interface ExtractedNBS {
     numero_os?: string;
