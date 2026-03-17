@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 
 import { orcamentoService } from '@/services/orcamento.service';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
@@ -19,7 +20,7 @@ export function OrcamentoForm() {
 
     // Form State
     const [formData, setFormData] = useState({
-        numero_orcamento: '', // Fica vazio p/ gerar no BD via trigger, mas pode ser sobreescrito via PDF
+        numero_orcamento: '',
         nome_cliente_digitavel: '',
         modelo_maquina: '',
         chassi: '',
@@ -30,6 +31,9 @@ export function OrcamentoForm() {
         tipo_diagnostico: 'MANUTENCAO',
         observacoes: ''
     });
+
+    // PDF file para upload ao Storage
+    const [pdfFile, setPdfFile] = useState<File | null>(null);
 
     const createMutation = useMutation({
         mutationFn: (data: any) => orcamentoService.create(data),
@@ -49,9 +53,13 @@ export function OrcamentoForm() {
     };
 
     const handleNBSUploadSuccess = (dados: ExtractedNBS) => {
+        // Guardar o PDF original para upload posterior
+        if (dados.pdfFile) {
+            setPdfFile(dados.pdfFile);
+        }
         setFormData(prev => ({
             ...prev,
-            ...(dados.numero_os && { numero_orcamento: dados.numero_os }), // Utiliza o # da OS provisória do NBS
+            ...(dados.numero_os && { numero_orcamento: dados.numero_os }),
             ...(dados.nome_cliente_digitavel && { nome_cliente_digitavel: dados.nome_cliente_digitavel }),
             ...(dados.modelo_maquina && { modelo_maquina: dados.modelo_maquina }),
             ...(dados.chassi && { chassi: dados.chassi }),
@@ -67,11 +75,36 @@ export function OrcamentoForm() {
             (parseFloat(formData.valor_deslocamento) || 0);
     }, [formData.valor_mao_de_obra, formData.valor_pecas, formData.valor_deslocamento]);
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+
+        let pdfNbsUrl: string | null = null;
+
+        // Upload do PDF NBS ao Supabase Storage (se houver)
+        if (pdfFile) {
+            try {
+                const fileExt = pdfFile.name.split('.').pop() || 'pdf';
+                const fileName = `orcamentos/${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('anexos_os')
+                    .upload(fileName, pdfFile);
+
+                if (uploadError) {
+                    console.error('Erro upload PDF NBS:', uploadError);
+                } else {
+                    const { data: { publicUrl } } = supabase.storage
+                        .from('anexos_os')
+                        .getPublicUrl(fileName);
+                    pdfNbsUrl = publicUrl;
+                }
+            } catch (err) {
+                console.error('Erro ao enviar PDF NBS:', err);
+            }
+        }
         
         createMutation.mutate({
-            numero_orcamento: formData.numero_orcamento || undefined, // undefined faz o banco gerar
+            numero_orcamento: formData.numero_orcamento || undefined,
             nome_cliente_digitavel: formData.nome_cliente_digitavel || null,
             modelo_maquina: formData.modelo_maquina || null,
             chassi: formData.chassi || null,
@@ -82,7 +115,8 @@ export function OrcamentoForm() {
             tipo_diagnostico: formData.tipo_diagnostico,
             observacoes: formData.observacoes || null,
             status_orcamento: 'EM_ELABORACAO',
-            consultor_id: profile?.id
+            consultor_id: profile?.id,
+            pdf_nbs_url: pdfNbsUrl
         });
     };
 

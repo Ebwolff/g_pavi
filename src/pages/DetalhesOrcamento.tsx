@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
     ArrowLeft, CheckCircle, 
-    Play, DollarSign, User, Wrench, Calendar
+    Play, DollarSign, User, Wrench, Calendar, FileDown
 } from 'lucide-react';
 
 import { orcamentoService } from '@/services/orcamento.service';
@@ -221,6 +221,30 @@ export function DetalhesOrcamento() {
                                 </div>
                             )}
                         </section>
+
+                        {/* PDF NBS Anexado */}
+                        {(orcamento as any).pdf_nbs_url && (
+                            <section className="bg-[var(--surface-light)] rounded-2xl p-6 border border-[var(--border-subtle)]">
+                                <h3 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <FileDown className="w-4 h-4" />
+                                    PDF NBS Anexado
+                                </h3>
+                                <a
+                                    href={(orcamento as any).pdf_nbs_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-all group"
+                                >
+                                    <div className="p-2 bg-blue-500/20 rounded-lg">
+                                        <FileDown className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold group-hover:underline">Visualizar PDF do NBS</p>
+                                        <p className="text-xs text-blue-400/60">Clique para abrir o documento original</p>
+                                    </div>
+                                </a>
+                            </section>
+                        )}
                     </div>
 
                     {/* Right Column (Financial) */}

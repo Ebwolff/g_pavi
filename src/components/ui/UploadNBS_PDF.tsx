@@ -38,6 +38,7 @@ export interface ExtractedNBS {
     tipo_os?: 'NORMAL' | 'GARANTIA';
     valor_mao_de_obra?: string;
     valor_pecas?: string;
+    pdfFile?: File;
 }
 
 interface UploadNBS_PDFProps {
@@ -200,6 +201,7 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             if (Object.keys(extraidos).length === 0) {
                 setError("Não foi possível extrair dados estruturados deste PDF (formato NBS não detectado).");
             } else {
+                extraidos.pdfFile = file;
                 onUploadSuccess(extraidos);
             }
 
