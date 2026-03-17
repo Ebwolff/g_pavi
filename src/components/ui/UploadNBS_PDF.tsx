@@ -137,63 +137,68 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             }
 
             // 7. Descrição do Problema
-            // Formato 1: "01 CLIENTE ALEGA ROMPIMENTO DA ESTRUTURA..."
-            // Formato 2: "01 VERIFICAR FALHA NO SISTEMA DE TRATAMENTO..."
-            // Buscar texto entre "01 " e um delimiter de tabela
-            const matchDesc1 = normalizedText.match(/\b01\s+(CLIENTE ALEGA\s+[\s\S]*?)(?:\s+It\s+Servi|\s+0\d\s+\d{5,}|\s+Descri|\s+Fechamento|\s+C.digo)/i);
-            const matchDesc2 = normalizedText.match(/\b01\s+([A-Z][A-Z\s]{5,200}?)(?:\s+It\s+Servi|\s+0\d\s+\d{5,}|\s+Descri|\s+Fechamento|\s+C.digo)/i);
+            // Texto real: "Reclamações Originais feita pelo Cliente 01 VENTILADOR VISCO APRESENTANDO VIBRACAO AO ACIONAR A MAQUINA Serviço"
+            // Estratégia: capturar entre "01 " e "Serviço" na seção de Reclamações
+            const matchDescReclamacao = normalizedText.match(/Reclama[çc][õo]es.*?\b01\s+(.+?)\s+Servi[çc]o/i);
+            const matchDescGeneric = normalizedText.match(/\b01\s+([A-Z][A-Z\s,.\-\/]{5,300}?)\s+(?:Servi[çc]o|It\s+T\s+P|Descri[çc][ãa]o)/i);
 
-            if (matchDesc1 && matchDesc1[1]) {
-                extraidos.descricao_problema = matchDesc1[1].trim();
-            } else if (matchDesc2 && matchDesc2[1]) {
-                extraidos.descricao_problema = matchDesc2[1].trim();
+            if (matchDescReclamacao && matchDescReclamacao[1]) {
+                extraidos.descricao_problema = matchDescReclamacao[1].trim();
+            } else if (matchDescGeneric && matchDescGeneric[1]) {
+                extraidos.descricao_problema = matchDescGeneric[1].trim();
             }
 
-            // 8. Composição Estimada (Fechamento)
-            // DESCOBERTA via debug: O PDFjs separa LABELS e VALORES em blocos distintos!
-            // Texto real: "...Serviços: Fechamento Serviços+Itens: Descontos: Total: 31.657,78 0,00 31.307,78 0,00 31.307,78 350,00 0,00 350,00..."
-            // ESTRATÉGIA: Pegar TODOS os valores monetários após "Fechamento" e usar matemática.
+            // 8. Composição Estimada (Serviços e Peças)
+            // Texto real: "Serviços: 2500,00 0,00 2500,00 19058,15 0,00 19058,15 Fechamento Serviços+Itens: 21558,15"
+            // Estratégia: extrair os 6 valores entre "Serviços:" e "Fechamento"
+            // Layout: [serv_bruto, serv_desc, serv_total, item_bruto, item_desc, item_total]
 
             const parseBR = (str: string): number => {
                 return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
             };
 
-            const idxFechamento = normalizedText.indexOf('echamento');
-            if (idxFechamento > 0) {
-                // Pegar o texto após Fechamento e extrair todos os valores monetários
-                const textoAposFechamento = normalizedText.substring(idxFechamento);
-                const todosValores = textoAposFechamento.match(/\d[\d.]*,\d{2}/g);
+            // Primeiro: tentar extrair a composição detalhada ANTES do Fechamento
+            const matchComposicao = normalizedText.match(/Servi[çc]os:\s*([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+[Ff]echamento/);
+            
+            if (matchComposicao) {
+                const servTotal = parseBR(matchComposicao[3]);   // Total Serviços (MdO)
+                const itemTotal = parseBR(matchComposicao[6]);   // Total Itens (Peças)
+                
+                console.log('[NBS] Composição detalhada:', { servicos: servTotal, itens: itemTotal });
+                
+                extraidos.valor_mao_de_obra = servTotal.toString();
+                extraidos.valor_pecas = itemTotal.toString();
+            } else {
+                // Fallback: pegar valores após Fechamento (comportamento anterior)
+                const idxFechamento = normalizedText.indexOf('echamento');
+                if (idxFechamento > 0) {
+                    const textoAposFechamento = normalizedText.substring(idxFechamento);
+                    const todosValores = textoAposFechamento.match(/\d[\d.]*,\d{2}/g);
 
-                if (todosValores && todosValores.length > 0) {
-                    // Converter para números e pegar valores únicos não-zero
-                    const parsed = todosValores.map(v => parseBR(v));
-                    const unicos = [...new Set(parsed)].filter(v => v > 0).sort((a, b) => a - b);
+                    if (todosValores && todosValores.length > 0) {
+                        const parsed = todosValores.map(v => parseBR(v));
+                        const unicos = [...new Set(parsed)].filter(v => v > 0).sort((a, b) => a - b);
 
-                    console.log('[NBS] Valores após Fechamento:', parsed);
-                    console.log('[NBS] Valores únicos não-zero:', unicos);
+                        console.log('[NBS] Valores após Fechamento:', parsed);
+                        console.log('[NBS] Valores únicos não-zero:', unicos);
 
-                    if (unicos.length >= 2) {
-                        // Se há 3 valores: menor=mão de obra, médio=peças, maior=total
-                        // Se há 2 valores: o menor pode ser mão de obra ou peças
-                        // Verificar se A + B = C (total)
-                        const maior = unicos[unicos.length - 1];
-                        const menores = unicos.slice(0, -1);
-                        const soma = menores.reduce((a, b) => a + b, 0);
+                        if (unicos.length >= 2) {
+                            const maior = unicos[unicos.length - 1];
+                            const menores = unicos.slice(0, -1);
+                            const soma = menores.reduce((a, b) => a + b, 0);
 
-                        if (Math.abs(soma - maior) < 0.01) {
-                            // A + B = Total! O menor é mão de obra, o segundo é peças
-                            extraidos.valor_mao_de_obra = menores[0].toString();
-                            if (menores.length > 1) {
-                                extraidos.valor_pecas = menores[1].toString();
+                            if (Math.abs(soma - maior) < 0.01) {
+                                extraidos.valor_mao_de_obra = menores[0].toString();
+                                if (menores.length > 1) {
+                                    extraidos.valor_pecas = menores[1].toString();
+                                }
+                            } else {
+                                extraidos.valor_mao_de_obra = unicos[0].toString();
+                                extraidos.valor_pecas = unicos.length > 1 ? unicos[1].toString() : '0';
                             }
-                        } else {
-                            // Não é soma, pegar os dois menores como MdO e Peças
+                        } else if (unicos.length === 1) {
                             extraidos.valor_mao_de_obra = unicos[0].toString();
-                            extraidos.valor_pecas = unicos.length > 1 ? unicos[1].toString() : '0';
                         }
-                    } else if (unicos.length === 1) {
-                        // Só 1 valor não-zero: provavelmente só mão de obra
-                        extraidos.valor_mao_de_obra = unicos[0].toString();
                     }
                 }
             }
