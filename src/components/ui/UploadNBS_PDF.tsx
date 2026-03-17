@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { UploadCloud, FileText, AlertTriangle, Loader2 } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Usar o worker via CDN para evitar problemas de minificação do Vite/Rollup
+// Worker via CDN com fallback para thread principal
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
 export interface ExtractedNBS {
@@ -32,8 +32,29 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
 
         try {
             const arrayBuffer = await file.arrayBuffer();
-            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-            const pdf = await loadingTask.promise;
+            let pdf;
+            
+            try {
+                // Tentar com worker CDN
+                const loadingTask = pdfjsLib.getDocument({
+                    data: arrayBuffer,
+                    useWorkerFetch: false,
+                    isEvalSupported: false,
+                    useSystemFonts: true,
+                });
+                pdf = await loadingTask.promise;
+            } catch (workerError) {
+                // Fallback: desabilitar worker e tentar novamente
+                console.warn('[NBS] Worker falhou, tentando sem worker:', workerError);
+                pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+                const loadingTask = pdfjsLib.getDocument({
+                    data: arrayBuffer,
+                    useWorkerFetch: false,
+                    isEvalSupported: false,
+                    useSystemFonts: true,
+                });
+                pdf = await loadingTask.promise;
+            }
 
             let extractedTextStr = '';
 
