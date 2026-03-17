@@ -247,6 +247,23 @@ class OrcamentoService {
                 .reduce((sum, o) => sum + (o.valor_liquido_total || 0), 0)
         };
     }
+    /**
+     * Busca orçamento pelo número NBS (para auto-vincular à OS)
+     */
+    async findByNumeroNBS(numeroNBS: string): Promise<OrcamentoServico | null> {
+        const { data, error } = await supabase
+            .from('orcamentos_servico')
+            .select(`*, cliente:clientes(*), consultor:profiles(*)`)
+            .eq('numero_orcamento', numeroNBS)
+            .maybeSingle();
+
+        if (error) {
+            console.error('Erro ao buscar orçamento por NBS:', error);
+            return null;
+        }
+
+        return data as OrcamentoServico | null;
+    }
 }
 
 export const orcamentoService = new OrcamentoService();

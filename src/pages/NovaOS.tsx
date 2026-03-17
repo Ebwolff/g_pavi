@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     ArrowLeft, Save, X, Wrench, User,
     DollarSign, Activity, Hash, Tag,
-    FileText, UserCheck, Settings, Info, Clock, AlertTriangle
+    FileText, UserCheck, Settings, Info, Clock, AlertTriangle, Link2, Package
 } from 'lucide-react';
 
 import { ordemServicoService } from '@/services/ordemServico.service';
@@ -12,7 +12,8 @@ import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { formatarValor } from '@/utils/osHelpers';
-import { UploadNBS_PDF, ExtractedNBS } from '@/components/ui/UploadNBS_PDF';
+import { UploadNBS_PDF, ExtractedNBS, ItemOrcamento } from '@/components/ui/UploadNBS_PDF';
+import { orcamentoService } from '@/services/orcamento.service';
 
 export function NovaOS() {
     const navigate = useNavigate();
@@ -61,7 +62,11 @@ export function NovaOS() {
         }
     };
 
-    const handleNBSUploadSuccess = (dados: ExtractedNBS) => {
+    // Orçamento vinculado (auto-detectado pelo número NBS)
+    const [orcamentoVinculado, setOrcamentoVinculado] = useState<any>(null);
+    const [itensOrcamento, setItensOrcamento] = useState<ItemOrcamento[]>([]);
+
+    const handleNBSUploadSuccess = async (dados: ExtractedNBS) => {
         setFormData(prev => ({
             ...prev,
             ...(dados.numero_os && { numero_os: dados.numero_os }),
@@ -74,6 +79,20 @@ export function NovaOS() {
             ...(dados.valor_mao_de_obra && { valor_mao_de_obra: dados.valor_mao_de_obra }),
             ...(dados.valor_pecas && { valor_pecas: dados.valor_pecas }),
         }));
+
+        // Guardar itens extraídos do NBS
+        if (dados.itens && dados.itens.length > 0) {
+            setItensOrcamento(dados.itens);
+        }
+
+        // Auto-detectar orçamento vinculado pelo número NBS
+        if (dados.numero_os) {
+            const orc = await orcamentoService.findByNumeroNBS(dados.numero_os);
+            if (orc) {
+                setOrcamentoVinculado(orc);
+                console.log('[OS] Orçamento vinculado encontrado:', orc);
+            }
+        }
     };
 
     const handleSubmit = (e: FormEvent) => {
@@ -93,6 +112,8 @@ export function NovaOS() {
             nivel_urgencia: formData.nivel_urgencia,
             data_abertura: new Date(formData.data_abertura).toISOString(),
             aol: formData.aol || null,
+            orcamento_id: orcamentoVinculado?.id || null,
+            itens_orcamento: itensOrcamento.length > 0 ? itensOrcamento : null,
         });
     };
 
@@ -154,6 +175,35 @@ export function NovaOS() {
                         <div className="glass-card-enterprise p-1 rounded-3xl border border-emerald-500/20 shadow-lg shadow-emerald-500/5 relative overflow-hidden group mb-6">
                             <UploadNBS_PDF onUploadSuccess={handleNBSUploadSuccess} />
                         </div>
+
+                        {/* Banner de Orçamento Vinculado */}
+                        {orcamentoVinculado && (
+                            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-5 mb-6 animate-fadeIn">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center">
+                                        <Link2 className="w-5 h-5 text-emerald-400" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-emerald-400">Orçamento Vinculado Automaticamente</h4>
+                                        <p className="text-xs text-[var(--text-muted)]">
+                                            Orçamento <span className="font-mono font-bold text-emerald-300">ORC-{orcamentoVinculado.numero_orcamento}</span>
+                                            {' — '}
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${ 
+                                                orcamentoVinculado.status_orcamento === 'APROVADO' ? 'bg-green-500/20 text-green-300' :
+                                                orcamentoVinculado.status_orcamento === 'ENVIADO_CLIENTE' ? 'bg-yellow-500/20 text-yellow-300' :
+                                                'bg-blue-500/20 text-blue-300'
+                                            }`}>
+                                                {orcamentoVinculado.status_orcamento?.replace(/_/g, ' ')}
+                                            </span>
+                                            {' — '}
+                                            Total: <span className="font-mono font-bold text-emerald-300">
+                                                R$ {(orcamentoVinculado.valor_liquido_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Seção 1: Identificação */}
                         <div className="glass-card-enterprise p-8 rounded-3xl border border-white/[0.03] shadow-2xl relative overflow-hidden group">
