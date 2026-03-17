@@ -102,6 +102,7 @@ export default function PainelConsultor() {
     const isGerente = ['GERENTE', 'CHEFE_OFICINA'].includes(profile?.role?.toUpperCase() || '');
     const isGarantia = profile?.role?.toUpperCase() === 'CONSULTOR_GARANTIA';
     const isPosVenda = profile?.role?.toUpperCase() === 'CONSULTOR_POS_VENDA';
+    const isConsultorNormal = !isGerente && !isGarantia;
 
     // Carregar OS do consultor com filtros de cargo
     const carregarDados = async () => {
@@ -297,13 +298,13 @@ export default function PainelConsultor() {
                         <Button
                             variant="primary"
                             onClick={() => {
-                                if (!isGerente && !isGarantia) navigate('/orcamentos/novo');
+                                if (isConsultorNormal) navigate('/orcamentos/novo');
                                 else navigate('/os/nova');
                             }}
                             leftIcon={<Plus className="w-4 h-4" />}
                             className="shadow-lg shadow-blue-500/20"
                         >
-                            {!isGerente && !isGarantia ? 'Novo Orçamento' : 'Nova OS'}
+                            {isConsultorNormal ? 'Novo Orçamento' : 'Nova OS'}
                         </Button>
                         <Button
                             variant="secondary"
@@ -317,7 +318,7 @@ export default function PainelConsultor() {
 
                 {/* Tabs & Search */}
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                    <div className="flex items-center gap-2 p-1.5 bg-[var(--surface-light)]/50 backdrop-blur-md border border-white/5 rounded-2xl w-fit overflow-x-auto max-w-full">
+                    <div className="flex flex-wrap items-center gap-2 p-1.5 bg-[var(--surface-light)]/50 backdrop-blur-md border border-white/5 rounded-2xl w-full lg:w-fit">
                         <button
                             onClick={() => setActiveTab('dashboard')}
                             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all whitespace-nowrap ${activeTab === 'dashboard'
@@ -356,7 +357,7 @@ export default function PainelConsultor() {
                                 }`}
                         >
                             <ShoppingBag className="w-4 h-4" />
-                            Pedidos
+                            Triagem Peças
                             <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-[8px] font-black rounded-full flex items-center justify-center border-2 border-[var(--surface)]">
                                 {osComPecasPendentes.reduce((sum, os) => sum + os.itens.length, 0) || osList.filter(o => o.status_atual === 'AGUARDANDO_PECAS').length}
                             </span>

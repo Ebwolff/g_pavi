@@ -1,0 +1,181 @@
+﻿src/components/ui/ModalAdicionarPeca.tsx(90,25): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/components/ui/ModalAprovacaoPecas.tsx(62,29): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/components/ui/ModalDetalhesTecnico.tsx(7,5): error TS6133: 'AlertTriangle' is declared but its value is never read.
+src/components/ui/ModalTriagemPecas.tsx(44,12): error TS6133: 'decisoes' is declared but its value is never read.
+src/components/ui/UploadOrcamentoPDF.tsx(1,17): error TS6133: 'useCallback' is declared but its value is never read.
+src/components/ui/UploadOrcamentoPDF.tsx(2,33): error TS6133: 'CheckCircle' is declared but its value is never read.
+src/components/ui/UploadOrcamentoPDF.tsx(61,23): error TS6133: 'next2' is declared but its value is never read.
+src/pages/DetalhesOrcamento.tsx(5,16): error TS6133: 'FileText' is declared but its value is never read.
+src/pages/DetalhesOrcamento.tsx(5,39): error TS6133: 'Clock' is declared but its value is never read.
+src/pages/DetalhesOrcamento.tsx(6,5): error TS6133: 'XCircle' is declared but its value is never read.
+src/pages/DetalhesOrcamento.tsx(6,56): error TS6133: 'MapPin' is declared but its value is never read.
+src/pages/DetalhesOrcamento.tsx(9,28): error TS6133: 'OrcamentoServico' is declared but its value is never read.
+src/pages/DetalhesOrcamento.tsx(30,11): error TS6133: 'profile' is declared but its value is never read.
+src/pages/DetalhesOrcamento.tsx(115,37): error TS2322: Type '{ status: any; label: string; color: any; }' is not assignable to type 'IntrinsicAttributes & StatusBadgeProps'.
+  Property 'label' does not exist on type 'IntrinsicAttributes & StatusBadgeProps'.
+src/pages/ListaOrcamentos.tsx(5,19): error TS6133: 'Filter' is declared but its value is never read.
+src/pages/ListaOrcamentos.tsx(6,15): error TS6133: 'User' is declared but its value is never read.
+src/pages/ListaOrcamentos.tsx(6,21): error TS2305: Module '"lucide-react"' has no exported member 'Tool'.
+src/pages/ListaOrcamentos.tsx(6,21): error TS6133: 'Tool' is declared but its value is never read.
+src/pages/ListaOrcamentos.tsx(6,27): error TS6133: 'CheckCircle' is declared but its value is never read.
+src/pages/ListaOrcamentos.tsx(6,40): error TS6133: 'Clock' is declared but its value is never read.
+src/pages/ListaOrcamentos.tsx(6,47): error TS6133: 'XCircle' is declared but its value is never read.
+src/pages/ListaOrcamentos.tsx(15,25): error TS2724: '"@/utils/osHelpers"' has no exported member named 'formatarDataBR'. Did you mean 'formatarData'?
+src/pages/ListaOrcamentos.tsx(191,57): error TS2322: Type '{ status: any; label: string; color: any; }' is not assignable to type 'IntrinsicAttributes & StatusBadgeProps'.
+  Property 'label' does not exist on type 'IntrinsicAttributes & StatusBadgeProps'.
+src/pages/Login.tsx(35,46): error TS2339: Property 'role' does not exist on type 'never'.
+src/pages/OrcamentoForm.tsx(150,48): error TS2322: Type '{ onExtractSuccess: (dados: ExtractedNBS) => void; }' is not assignable to type 'IntrinsicAttributes & UploadNBS_PDFProps'.
+  Property 'onExtractSuccess' does not exist on type 'IntrinsicAttributes & UploadNBS_PDFProps'.
+src/services/alertasService.ts(58,21): error TS2345: Argument of type '{ lido: boolean; }' is not assignable to parameter of type 'never'.
+src/services/alertasService.ts(73,21): error TS2345: Argument of type '{ lido: boolean; }' is not assignable to parameter of type 'never'.
+src/services/alertasService.ts(86,21): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "alertas", never, "POST">', gave the following error.
+    Argument of type '{ id?: string | undefined; os_id?: string | null | undefined; tipo_alerta: TipoAlerta; titulo: string; mensagem: string; prioridade?: PrioridadeAlerta | undefined; lido?: boolean | undefined; data_leitura?: string | ... 1 more ... | undefined; usuario_id?: string | ... 1 more ... | undefined; created_at?: string | u...' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "alertas", never, "POST">', gave the following error.
+    Argument of type '{ id?: string | undefined; os_id?: string | null | undefined; tipo_alerta: TipoAlerta; titulo: string; mensagem: string; prioridade?: PrioridadeAlerta | undefined; lido?: boolean | undefined; data_leitura?: string | ... 1 more ... | undefined; usuario_id?: string | ... 1 more ... | undefined; created_at?: string | u...' is not assignable to parameter of type 'never[]'.
+      Type '{ id?: string | undefined; os_id?: string | null | undefined; tipo_alerta: TipoAlerta; titulo: string; mensagem: string; prioridade?: PrioridadeAlerta | undefined; lido?: boolean | undefined; data_leitura?: string | ... 1 more ... | undefined; usuario_id?: string | ... 1 more ... | undefined; created_at?: string | u...' is missing the following properties from type 'never[]': length, pop, push, concat, and 28 more.
+src/services/almoxarifado.service.ts(55,79): error TS2345: Argument of type '{ p_codigo_peca: string; p_quantidade: number; }' is not assignable to parameter of type 'undefined'.
+src/services/almoxarifado.service.ts(65,21): error TS2345: Argument of type '{ status_separacao: string; }' is not assignable to parameter of type 'never'.
+src/services/almoxarifado.service.ts(75,14): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "solicitacoes_compra", never, "POST">', gave the following error.
+    Argument of type '{ ordem_servico_id: string; codigo_peca: string | null; descricao_peca: string; quantidade: number; unidade: string; urgencia: string; status: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "solicitacoes_compra", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'ordem_servico_id' does not exist in type 'never[]'.
+src/services/almoxarifado.service.ts(92,21): error TS2345: Argument of type '{ status_separacao: string; solicitacao_compra_id: any; }' is not assignable to parameter of type 'never'.
+src/services/almoxarifado.service.ts(94,52): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/auth.service.ts(59,14): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "profiles", never, "POST">', gave the following error.
+    Argument of type '{ id: string; username: string; first_name: string | undefined; last_name: string | undefined; role: UserRole; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "profiles", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'id' does not exist in type 'never[]'.
+src/services/compras.service.ts(180,21): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/services/compras.service.ts(241,25): error TS2339: Property 'codigo_peca' does not exist on type 'never'.
+src/services/compras.service.ts(242,87): error TS2345: Argument of type '{ p_codigo_peca: any; p_descricao: any; p_quantidade: any; p_valor_unitario: any; }' is not assignable to parameter of type 'undefined'.
+src/services/compras.service.ts(243,44): error TS2339: Property 'codigo_peca' does not exist on type 'never'.
+src/services/compras.service.ts(244,42): error TS2339: Property 'descricao_peca' does not exist on type 'never'.
+src/services/compras.service.ts(245,43): error TS2339: Property 'quantidade' does not exist on type 'never'.
+src/services/compras.service.ts(246,47): error TS2339: Property 'valor_unitario' does not exist on type 'never'.
+src/services/compras.service.ts(261,25): error TS2339: Property 'item_os_id' does not exist on type 'never'.
+src/services/compras.service.ts(264,25): error TS2345: Argument of type '{ status_separacao: string; }' is not assignable to parameter of type 'never'.
+src/services/compras.service.ts(265,39): error TS2339: Property 'item_os_id' does not exist on type 'never'.
+src/services/compras.service.ts(307,43): error TS2339: Property 'status' does not exist on type 'never'.
+src/services/compras.service.ts(308,43): error TS2339: Property 'status' does not exist on type 'never'.
+src/services/compras.service.ts(309,51): error TS2339: Property 'status' does not exist on type 'never'.
+src/services/compras.service.ts(309,88): error TS2339: Property 'status' does not exist on type 'never'.
+src/services/compras.service.ts(311,19): error TS2339: Property 'status' does not exist on type 'never'.
+src/services/compras.service.ts(312,19): error TS2339: Property 'data_entrega_real' does not exist on type 'never'.
+src/services/compras.service.ts(315,68): error TS2339: Property 'status' does not exist on type 'never'.
+src/services/compras.service.ts(316,46): error TS2339: Property 'valor_total' does not exist on type 'never'.
+src/services/dashboard.service.ts(64,46): error TS2339: Property 'valor_liquido_total' does not exist on type 'never'.
+src/services/dashboard.service.ts(69,46): error TS2339: Property 'valor_liquido_total' does not exist on type 'never'.
+src/services/dashboard.service.ts(86,29): error TS2339: Property 'data_abertura' does not exist on type 'never'.
+src/services/dashboard.service.ts(86,50): error TS2339: Property 'data_fechamento' does not exist on type 'never'.
+src/services/dashboard.service.ts(87,50): error TS2339: Property 'data_abertura' does not exist on type 'never'.
+src/services/dashboard.service.ts(88,52): error TS2339: Property 'data_fechamento' does not exist on type 'never'.
+src/services/dashboard.service.ts(133,28): error TS2339: Property 'status_atual' does not exist on type 'never'.
+src/services/dashboard.service.ts(133,60): error TS2339: Property 'status_atual' does not exist on type 'never'.
+src/services/frotaService.ts(138,14): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, any, never, "POST">', gave the following error.
+    Argument of type '{ placa: string; modelo: string; marca: string | null; ano: number | null; cor: string | null; km_atual: number; status: string; observacoes: string | null; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, any, never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'placa' does not exist in type 'never[]'.
+src/services/frotaService.ts(170,21): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/services/frotaService.ts(194,21): error TS2345: Argument of type '{ tecnico_id: string; status: string; data_alocacao: string; }' is not assignable to parameter of type 'never'.
+src/services/frotaService.ts(206,14): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, any, never, "POST">', gave the following error.
+    Argument of type '{ veiculo_id: string; tecnico_id: string; data_inicio: string; km_inicio: number; alocado_por: string | null; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, any, never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'veiculo_id' does not exist in type 'never[]'.
+src/services/frotaService.ts(231,21): error TS2345: Argument of type '{ data_fim: string; km_fim: number; motivo: string | null; }' is not assignable to parameter of type 'never'.
+src/services/frotaService.ts(244,21): error TS2345: Argument of type '{ tecnico_id: null; status: string; data_alocacao: null; }' is not assignable to parameter of type 'never'.
+src/services/frotaService.ts(260,21): error TS2345: Argument of type '{ km_atual: number; }' is not assignable to parameter of type 'never'.
+src/services/orcamento.service.ts(105,21): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "orcamentos_servico", never, "POST">', gave the following error.
+    Argument of type '{ id?: string | undefined; numero_orcamento?: string | undefined; cliente_id?: string | null | undefined; nome_cliente_digitavel?: string | null | undefined; maquina_id?: string | null | undefined; ... 13 more ...; observacoes?: string | ... 1 more ... | undefined; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "orcamentos_servico", never, "POST">', gave the following error.
+    Argument of type '{ id?: string | undefined; numero_orcamento?: string | undefined; cliente_id?: string | null | undefined; nome_cliente_digitavel?: string | null | undefined; maquina_id?: string | null | undefined; ... 13 more ...; observacoes?: string | ... 1 more ... | undefined; }' is not assignable to parameter of type 'never[]'.
+      Type '{ id?: string | undefined; numero_orcamento?: string | undefined; cliente_id?: string | null | undefined; nome_cliente_digitavel?: string | null | undefined; maquina_id?: string | null | undefined; ... 13 more ...; observacoes?: string | ... 1 more ... | undefined; }' is missing the following properties from type 'never[]': length, pop, push, concat, and 28 more.
+src/services/orcamento.service.ts(128,21): error TS2345: Argument of type '{ id?: string | undefined; numero_orcamento?: string | undefined; cliente_id?: string | null | undefined; nome_cliente_digitavel?: string | null | undefined; maquina_id?: string | null | undefined; ... 13 more ...; observacoes?: string | ... 1 more ... | undefined; }' is not assignable to parameter of type 'never'.
+src/services/orcamento.service.ts(153,21): error TS2345: Argument of type '{ id?: string | undefined; numero_orcamento?: string | undefined; cliente_id?: string | null | undefined; nome_cliente_digitavel?: string | null | undefined; maquina_id?: string | null | undefined; ... 13 more ...; observacoes?: string | ... 1 more ... | undefined; }' is not assignable to parameter of type 'never'.
+src/services/orcamento.service.ts(203,21): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "ordens_servico", never, "POST">', gave the following error.
+    Argument of type '{ id?: string | undefined; numero_os: string; tipo_os?: TipoOS | undefined; status_atual?: StatusOS | undefined; data_abertura?: string | undefined; data_fechamento?: string | ... 1 more ... | undefined; ... 35 more ...; orcamento_id?: string | ... 1 more ... | undefined; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "ordens_servico", never, "POST">', gave the following error.
+    Argument of type '{ id?: string | undefined; numero_os: string; tipo_os?: TipoOS | undefined; status_atual?: StatusOS | undefined; data_abertura?: string | undefined; data_fechamento?: string | ... 1 more ... | undefined; ... 35 more ...; orcamento_id?: string | ... 1 more ... | undefined; }' is not assignable to parameter of type 'never[]'.
+      Type '{ id?: string | undefined; numero_os: string; tipo_os?: TipoOS | undefined; status_atual?: StatusOS | undefined; data_abertura?: string | undefined; data_fechamento?: string | ... 1 more ... | undefined; ... 35 more ...; orcamento_id?: string | ... 1 more ... | undefined; }' is missing the following properties from type 'never[]': length, pop, push, concat, and 28 more.
+src/services/orcamento.service.ts(217,38): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/orcamento.service.ts(222,59): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "historico_status_os", never, "POST">', gave the following error.
+    Argument of type '{ id?: string | undefined; ordem_servico_id: string; status_anterior?: string | null | undefined; status_novo: string; motivo_mudanca?: string | null | undefined; usuario_id?: string | null | undefined; ... 5 more ...; motivo_pausa?: string | ... 1 more ... | undefined; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "historico_status_os", never, "POST">', gave the following error.
+    Argument of type '{ id?: string | undefined; ordem_servico_id: string; status_anterior?: string | null | undefined; status_novo: string; motivo_mudanca?: string | null | undefined; usuario_id?: string | null | undefined; ... 5 more ...; motivo_pausa?: string | ... 1 more ... | undefined; }' is not assignable to parameter of type 'never[]'.
+      Type '{ id?: string | undefined; ordem_servico_id: string; status_anterior?: string | null | undefined; status_novo: string; motivo_mudanca?: string | null | undefined; usuario_id?: string | null | undefined; ... 5 more ...; motivo_pausa?: string | ... 1 more ... | undefined; }' is missing the following properties from type 'never[]': length, pop, push, concat, and 28 more.
+src/services/orcamento.service.ts(241,46): error TS2339: Property 'status_orcamento' does not exist on type 'never'.
+src/services/orcamento.service.ts(242,42): error TS2339: Property 'status_orcamento' does not exist on type 'never'.
+src/services/orcamento.service.ts(243,43): error TS2339: Property 'status_orcamento' does not exist on type 'never'.
+src/services/orcamento.service.ts(244,45): error TS2339: Property 'status_orcamento' does not exist on type 'never'.
+src/services/orcamento.service.ts(246,32): error TS2339: Property 'status_orcamento' does not exist on type 'never'.
+src/services/orcamento.service.ts(247,46): error TS2339: Property 'valor_liquido_total' does not exist on type 'never'.
+src/services/ordemServico.service.ts(168,21): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/services/ordemServico.service.ts(266,36): error TS2339: Property 'numero_os' does not exist on type 'never'.
+src/services/ordemServico.service.ts(319,21): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/services/pendencia.service.ts(77,21): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "pendencias_os", never, "POST">', gave the following error.
+    Argument of type 'Omit<{ id?: string | undefined; os_id: string; tipo_pendencia: TipoPendencia; descricao: string; data_inicio?: string | undefined; data_prevista?: string | null | undefined; ... 5 more ...; updated_at?: string | undefined; }, "id" | "created_at">' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "pendencias_os", never, "POST">', gave the following error.
+    Argument of type 'Omit<{ id?: string | undefined; os_id: string; tipo_pendencia: TipoPendencia; descricao: string; data_inicio?: string | undefined; data_prevista?: string | null | undefined; ... 5 more ...; updated_at?: string | undefined; }, "id" | "created_at">' is not assignable to parameter of type 'never[]'.
+      Type 'Omit<{ id?: string | undefined; os_id: string; tipo_pendencia: TipoPendencia; descricao: string; data_inicio?: string | undefined; data_prevista?: string | null | undefined; ... 5 more ...; updated_at?: string | undefined; }, "id" | "created_at">' is missing the following properties from type 'never[]': length, pop, push, concat, and 28 more.
+src/services/pendencia.service.ts(88,21): error TS2345: Argument of type '{ id?: string | undefined; os_id?: string | undefined; tipo_pendencia?: TipoPendencia | undefined; descricao?: string | undefined; data_inicio?: string | undefined; ... 6 more ...; updated_at?: string | undefined; }' is not assignable to parameter of type 'never'.
+src/services/relatoriosService.ts(25,59): error TS2339: Property 'valor_liquido_total' does not exist on type 'never'.
+src/services/relatoriosService.ts(26,79): error TS2339: Property 'status_atual' does not exist on type 'never'.
+src/services/relatoriosService.ts(27,45): error TS2339: Property 'status_atual' does not exist on type 'never'.
+src/services/relatoriosService.ts(35,96): error TS2339: Property 'status_atual' does not exist on type 'never'.
+src/services/relatoriosService.ts(37,70): error TS2339: Property 'valor_liquido_total' does not exist on type 'never'.
+src/services/relatoriosService.ts(38,72): error TS2339: Property 'valor_liquido_total' does not exist on type 'never'.
+src/services/relatoriosService.ts(57,20): error TS2339: Property 'numero_os' does not exist on type 'never'.
+src/services/relatoriosService.ts(58,20): error TS2339: Property 'nome_cliente_digitavel' does not exist on type 'never'.
+src/services/relatoriosService.ts(59,20): error TS2339: Property 'chassi' does not exist on type 'never'.
+src/services/relatoriosService.ts(60,33): error TS2339: Property 'data_abertura' does not exist on type 'never'.
+src/services/relatoriosService.ts(61,20): error TS2339: Property 'status_atual' does not exist on type 'never'.
+src/services/relatoriosService.ts(62,41): error TS2339: Property 'data_abertura' does not exist on type 'never'.
+src/services/relatoriosService.ts(63,34): error TS2339: Property 'valor_liquido_total' does not exist on type 'never'.
+src/services/relatoriosService.ts(198,38): error TS2339: Property 'nivel_urgencia' does not exist on type 'never'.
+src/services/relatoriosService.ts(199,37): error TS2339: Property 'nivel_urgencia' does not exist on type 'never'.
+src/services/relatoriosService.ts(200,36): error TS2339: Property 'nivel_urgencia' does not exist on type 'never'.
+src/services/relatoriosService.ts(201,39): error TS2339: Property 'nivel_urgencia' does not exist on type 'never'.
+src/services/relatoriosService.ts(213,59): error TS2339: Property 'valor_liquido_total' does not exist on type 'never'.
+src/services/relatoriosService.ts(214,74): error TS2339: Property 'dias_em_aberto' does not exist on type 'never'.
+src/services/relatoriosService.ts(230,35): error TS2339: Property 'dias_em_aberto' does not exist on type 'never'.
+src/services/relatoriosService.ts(230,54): error TS2339: Property 'dias_em_aberto' does not exist on type 'never'.
+src/services/relatoriosService.ts(232,24): error TS2339: Property 'numero_os' does not exist on type 'never'.
+src/services/relatoriosService.ts(233,24): error TS2339: Property 'cliente_nome' does not exist on type 'never'.
+src/services/relatoriosService.ts(234,24): error TS2339: Property 'tipo_os' does not exist on type 'never'.
+src/services/relatoriosService.ts(235,37): error TS2339: Property 'data_abertura' does not exist on type 'never'.
+src/services/relatoriosService.ts(236,24): error TS2339: Property 'dias_em_aberto' does not exist on type 'never'.
+src/services/relatoriosService.ts(237,24): error TS2339: Property 'nivel_urgencia' does not exist on type 'never'.
+src/services/relatoriosService.ts(238,38): error TS2339: Property 'valor_liquido_total' does not exist on type 'never'.
+src/services/relatoriosService.ts(275,33): error TS2339: Property 'data_fechamento' does not exist on type 'never'.
+src/services/relatoriosService.ts(276,42): error TS2339: Property 'data_abertura' does not exist on type 'never'.
+src/services/relatoriosService.ts(280,17): error TS2698: Spread types may only be created from object types.
+src/services/relatoriosService.ts(283,34): error TS2339: Property 'tipo_os' does not exist on type 'never'.
+src/services/relatoriosService.ts(284,42): error TS2339: Property 'tipo_os' does not exist on type 'never'.
+src/services/tecnico.service.ts(113,29): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/tecnico.service.ts(114,31): error TS2339: Property 'nome_completo' does not exist on type 'never'.
+src/services/tecnico.service.ts(115,33): error TS2339: Property 'user_id' does not exist on type 'never'.
+src/services/tecnico.service.ts(116,49): error TS2339: Property 'status_disponibilidade' does not exist on type 'never'.
+src/services/tecnico.service.ts(131,29): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/tecnico.service.ts(132,34): error TS2339: Property 'first_name' does not exist on type 'never'.
+src/services/tecnico.service.ts(132,62): error TS2339: Property 'last_name' does not exist on type 'never'.
+src/services/tecnico.service.ts(133,33): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/tecnico.service.ts(148,21): error TS2345: Argument of type '{ status_disponibilidade: StatusDisponibilidadeTecnico; }' is not assignable to parameter of type 'never'.
+src/services/tecnico.service.ts(168,14): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "tecnicos", never, "POST">', gave the following error.
+    Argument of type '{ user_id: string; nome_completo: string; status_disponibilidade: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "tecnicos", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'user_id' does not exist in type 'never[]'.
+src/services/tecnico.service.ts(170,43): error TS2339: Property 'first_name' does not exist on type 'never'.
+src/services/tecnico.service.ts(170,71): error TS2339: Property 'last_name' does not exist on type 'never'.
+src/services/tecnico.service.ts(179,29): error TS2339: Property 'id' does not exist on type 'never'.
+src/services/tecnico.service.ts(180,31): error TS2339: Property 'nome_completo' does not exist on type 'never'.
+src/services/tecnico.service.ts(181,33): error TS2339: Property 'user_id' does not exist on type 'never'.
+src/services/tecnico.service.ts(182,49): error TS2339: Property 'status_disponibilidade' does not exist on type 'never'.
