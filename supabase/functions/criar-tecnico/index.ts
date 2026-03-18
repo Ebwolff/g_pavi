@@ -1,12 +1,33 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = [
+    'https://visao-360.vercel.app',
+    'http://localhost:1420',
+    'http://localhost:5173',
+];
+
+function getCorsHeaders(req: Request) {
+    const origin = req.headers.get('origin') || '';
+    const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    return {
+        'Access-Control-Allow-Origin': allowedOrigin,
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+        'Vary': 'Origin',
+    };
+}
+
+function validatePassword(senha: string): string | null {
+    if (senha.length < 10) return 'A senha deve ter no mínimo 10 caracteres';
+    if (!/[A-Z]/.test(senha)) return 'A senha deve conter ao menos uma letra maiúscula';
+    if (!/[a-z]/.test(senha)) return 'A senha deve conter ao menos uma letra minúscula';
+    if (!/[0-9]/.test(senha)) return 'A senha deve conter ao menos um número';
+    return null;
 }
 
 serve(async (req) => {
+    const corsHeaders = getCorsHeaders(req);
+
     // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
@@ -18,19 +39,9 @@ serve(async (req) => {
         const defaultKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
         const supabaseKey = serviceKey ?? defaultKey;
 
-        console.log('Environment Check:', {
-            hasUrl: !!supabaseUrl,
-            hasServiceKey: !!serviceKey,
-            hasDefaultKey: !!defaultKey,
-            usingKey: serviceKey ? 'CUSTOM' : 'DEFAULT'
-        });
-
         if (!supabaseUrl || !supabaseKey) {
             return new Response(
-                JSON.stringify({
-                    error: 'Server Configuration Error',
-                    details: `Missing Vars (URL: ${!!supabaseUrl}, Key: ${!!supabaseKey})`
-                }),
+                JSON.stringify({ error: 'Server Configuration Error' }),
                 { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             )
         }
@@ -50,9 +61,8 @@ serve(async (req) => {
         // Validar autenticação do usuário que está fazendo a requisição
         const authHeader = req.headers.get('Authorization')
         if (!authHeader) {
-            console.error('No Authorization header provided');
             return new Response(
-                JSON.stringify({ error: 'Authentication Required', details: 'No Authorization header' }),
+                JSON.stringify({ error: 'Authentication Required' }),
                 { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             )
         }
@@ -61,12 +71,8 @@ serve(async (req) => {
         const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token)
 
         if (userError || !user) {
-            console.error('Token verification failed:', userError);
             return new Response(
-                JSON.stringify({
-                    error: 'Invalid Session',
-                    details: userError?.message || 'Token verification failed'
-                }),
+                JSON.stringify({ error: 'Invalid Session' }),
                 { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             )
         }
@@ -79,21 +85,15 @@ serve(async (req) => {
             .single()
 
         if (profileError || !profile) {
-            console.error('Requester profile not found:', profileError);
             return new Response(
-                JSON.stringify({ error: 'Permission Denied', details: 'Requester profile not found' }),
+                JSON.stringify({ error: 'Permission Denied' }),
                 { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             )
         }
 
-        console.log('Requester Role:', profile.role);
-
         if (profile.role !== 'CHEFE_OFICINA' && profile.role !== 'GERENTE' && profile.role !== 'CONSULTOR_POS_VENDA') {
             return new Response(
-                JSON.stringify({
-                    error: 'Permission Denied',
-                    details: `User role '${profile.role}' is not allowed to register technicians`
-                }),
+                JSON.stringify({ error: 'Permission Denied' }),
                 { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             )
         }
@@ -109,9 +109,10 @@ serve(async (req) => {
             )
         }
 
-        if (senha.length < 8) {
+        const passwordError = validatePassword(senha);
+        if (passwordError) {
             return new Response(
-                JSON.stringify({ error: 'A senha deve ter no mínimo 8 caracteres' }),
+                JSON.stringify({ error: passwordError }),
                 { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             )
         }
@@ -167,9 +168,7 @@ serve(async (req) => {
             }, { onConflict: 'user_id' })
 
         if (tecnicoInsertError) {
-            console.error('⚠️ [Edge Function] Falha ao sincronizar com tabela tecnicos:', tecnicoInsertError);
-            // Não deletamos o usuário aqui pois o perfil principal (auth + profiles) já foi criado.
-            // O ideal é apenas logar o erro e talvez tentar novamente depois ou via script.
+            console.error('[Edge Function] Falha ao sincronizar com tabela tecnicos:', tecnicoInsertError);
         }
 
         // Retornar sucesso
@@ -187,8 +186,9 @@ serve(async (req) => {
         )
 
     } catch (error: any) {
+        const corsHeaders = getCorsHeaders(req);
         return new Response(
-            JSON.stringify({ error: error.message }),
+            JSON.stringify({ error: 'Internal server error' }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
     }

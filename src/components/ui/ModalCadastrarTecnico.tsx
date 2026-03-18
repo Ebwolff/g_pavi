@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState } from 'react';
 import { X, UserPlus, Mail, Lock, User, Loader2 } from 'lucide-react';
 import { Button } from './Button';
@@ -64,7 +65,7 @@ export function ModalCadastrarTecnico({ isOpen, onClose, onSuccess }: ModalCadas
             onClose();
 
         } catch (err: any) {
-            console.error('❌ [ModalCadastrarTecnico] Erro no cadastro:', err);
+            logger.error('❌ [ModalCadastrarTecnico] Erro no cadastro:', err);
 
             let errorMessage = err.message || 'Erro ao cadastrar técnico';
 

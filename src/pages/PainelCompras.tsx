@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, useEffect, useCallback } from 'react';
 import {
     ShoppingCart,
@@ -114,7 +115,7 @@ export default function PainelCompras() {
 
             setOsAgrupadas(Array.from(osMap.values()));
         } catch (error) {
-            console.error('Erro ao carregar solicitações:', error);
+            logger.error('Erro ao carregar solicitações:', error);
         } finally {
             setLoading(false);
         }

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import React, { useState } from 'react';
 import { UploadCloud, FileText, AlertTriangle, Loader2 } from 'lucide-react';
 
@@ -86,7 +87,7 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             // Normaliza espaços extras E normaliza Unicode (NFC) para resolver encoding de ç, ã, etc.
             const normalizedText = extractedTextStr.replace(/\s+/g, ' ').trim().normalize('NFC');
 
-            console.log('[NBS] Texto completo extraído:', normalizedText);
+            logger.log('[NBS] Texto completo extraído:', normalizedText);
 
             const extraidos: ExtractedNBS = {};
 
@@ -173,7 +174,7 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
                 const servTotal = parseBR(matchComposicao[3]);   // Total Serviços (MdO)
                 const itemTotal = parseBR(matchComposicao[6]);   // Total Itens (Peças)
                 
-                console.log('[NBS] Composição detalhada:', { servicos: servTotal, itens: itemTotal });
+                logger.log('[NBS] Composição detalhada:', { servicos: servTotal, itens: itemTotal });
                 
                 extraidos.valor_mao_de_obra = servTotal.toString();
                 extraidos.valor_pecas = itemTotal.toString();
@@ -188,8 +189,8 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
                         const parsed = todosValores.map(v => parseBR(v));
                         const unicos = [...new Set(parsed)].filter(v => v > 0).sort((a, b) => a - b);
 
-                        console.log('[NBS] Valores após Fechamento:', parsed);
-                        console.log('[NBS] Valores únicos não-zero:', unicos);
+                        logger.log('[NBS] Valores após Fechamento:', parsed);
+                        logger.log('[NBS] Valores únicos não-zero:', unicos);
 
                         if (unicos.length >= 2) {
                             const maior = unicos[unicos.length - 1];
@@ -212,7 +213,7 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
                 }
             }
 
-            console.log('[NBS] Valores finais:', { maoDeObra: extraidos.valor_mao_de_obra, pecas: extraidos.valor_pecas });
+            logger.log('[NBS] Valores finais:', { maoDeObra: extraidos.valor_mao_de_obra, pecas: extraidos.valor_pecas });
 
             // 9. Extração de Itens/Peças do Orçamento
             // Texto real: "...Descrição do Item Qtde Estoque/Res. Preço Unitário Valor Final LD UN H218PB1510421 / 1 0 0 19058,146500 19058,15 VENTILADOR VISCO UN 21.558,15 Itens:..."
@@ -220,7 +221,7 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             const matchItensSection = normalizedText.match(/Descri[çc][ãa]o do Item.*?Valor Final\s+(.*?)\s+(?:\d[\d.,]*\s+Itens:|Total:)/i);
             if (matchItensSection && matchItensSection[1]) {
                 const itensText = matchItensSection[1].trim();
-                console.log('[NBS] Seção de itens:', itensText);
+                logger.log('[NBS] Seção de itens:', itensText);
                 
                 // Encontrar códigos de peça (alfanuméricos com pelo menos 1 letra e 1 número, 6+ chars)
                 const itens: ItemOrcamento[] = [];
@@ -267,7 +268,7 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
                 
                 if (itens.length > 0) {
                     extraidos.itens = itens;
-                    console.log('[NBS] Itens extraídos:', itens);
+                    logger.log('[NBS] Itens extraídos:', itens);
                 }
             }
 
@@ -279,7 +280,7 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
             }
 
         } catch (err: any) {
-            console.error("Erro processando PDF do NBS:", err);
+            logger.error("Erro processando PDF do NBS:", err);
             setError("Falha ao ler o PDF: " + (err.message || 'Verifique se o arquivo não está corrompido.'));
         } finally {
             setIsProcessing(false);

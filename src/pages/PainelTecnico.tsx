@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -125,7 +126,7 @@ export default function PainelTecnico() {
         try {
             await updateStatusMutation.mutateAsync({ osId, status });
         } catch (error) {
-            console.error('Erro ao atualizar status:', error);
+            logger.error('Erro ao atualizar status:', error);
         }
     };
 
@@ -154,7 +155,7 @@ export default function PainelTecnico() {
                     setDespesasTecnico((data || []) as any[]);
                 }
             } catch (err) {
-                console.error('Erro ao buscar despesas:', err);
+                logger.error('Erro ao buscar despesas:', err);
             } finally {
                 setLoadingDespesas(false);
             }

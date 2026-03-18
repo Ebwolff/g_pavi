@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, useEffect, useRef } from 'react';
 import { X, Car, Fuel, Utensils, Hotel, CircleDollarSign, MoreHorizontal, Save, Wrench, Paperclip, Trash2, Camera, Loader2 } from 'lucide-react';
 import { Button } from './Button';
@@ -125,7 +126,7 @@ export function ModalLancarDespesa({ isOpen, onClose, osId, osNumero, onSuccess 
             onSuccess?.();
             onClose();
         } catch (error) {
-            console.error('Erro ao lançar despesa:', error);
+            logger.error('Erro ao lançar despesa:', error);
             alert('Erro ao lançar despesa. Tente novamente.');
         } finally {
             setLoading(false);

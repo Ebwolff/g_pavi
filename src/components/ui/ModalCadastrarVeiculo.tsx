@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Modal para cadastrar/editar veículo da frota
  */
@@ -86,7 +87,7 @@ export function ModalCadastrarVeiculo({ isOpen, onClose, veiculo, onSuccess }: M
             onSuccess?.();
             onClose();
         } catch (error: any) {
-            console.error('Erro ao salvar veículo:', error);
+            logger.error('Erro ao salvar veículo:', error);
             if (error.code === '23505') {
                 alert('Esta placa já está cadastrada');
             } else {

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState } from 'react';
 import { X, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -84,7 +85,7 @@ export function ModalAprovacaoPecas({ os, onClose, onSuccess }: ModalAprovacaoPe
 
             onSuccess();
         } catch (error: any) {
-            console.error('Erro ao salvar aprovações:', error);
+            logger.error('Erro ao salvar aprovações:', error);
             alert(`Erro ao salvar: ${error.message}`);
         } finally {
             setLoading(false);

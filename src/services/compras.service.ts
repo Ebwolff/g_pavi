@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 import { StatusSolicitacaoCompra, UrgenciaCompra } from '@/types/database.types';
 
@@ -91,7 +92,7 @@ class ComprasService {
         const { data, error } = await query;
 
         if (error) {
-            console.error('Erro ao buscar solicitações:', error);
+            logger.error('Erro ao buscar solicitações:', error);
             throw error;
         }
 
@@ -128,7 +129,7 @@ class ComprasService {
             .eq('status', 'PENDENTE');
 
         if (error) {
-            console.error('Erro ao contar pendentes:', error);
+            logger.error('Erro ao contar pendentes:', error);
             return 0;
         }
 
@@ -157,7 +158,7 @@ class ComprasService {
             .single();
 
         if (error) {
-            console.error('Erro ao criar solicitação:', error);
+            logger.error('Erro ao criar solicitação:', error);
             throw error;
         }
 
@@ -183,7 +184,7 @@ class ComprasService {
             .single();
 
         if (error) {
-            console.error('Erro ao atualizar solicitação:', error);
+            logger.error('Erro ao atualizar solicitação:', error);
             throw error;
         }
 
@@ -247,7 +248,7 @@ class ComprasService {
             });
 
             if (estoqueError) {
-                console.error('Erro ao dar entrada no estoque:', estoqueError);
+                logger.error('Erro ao dar entrada no estoque:', estoqueError);
                 throw estoqueError;
             }
         }
@@ -291,7 +292,7 @@ class ComprasService {
             .select('status, valor_total, data_entrega_real');
 
         if (error) {
-            console.error('Erro ao buscar estatísticas:', error);
+            logger.error('Erro ao buscar estatísticas:', error);
             return {
                 pendentes: 0,
                 emCotacao: 0,

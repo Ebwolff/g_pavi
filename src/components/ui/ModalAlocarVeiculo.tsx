@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Modal para alocar veículo a um técnico
  */
@@ -45,7 +46,7 @@ export function ModalAlocarVeiculo({ isOpen, onClose, veiculo, onSuccess }: Moda
 
             setTecnicos((data || []) as Tecnico[]);
         } catch (error) {
-            console.error('Erro ao carregar técnicos:', error);
+            logger.error('Erro ao carregar técnicos:', error);
         } finally {
             setLoadingTecnicos(false);
         }
@@ -62,7 +63,7 @@ export function ModalAlocarVeiculo({ isOpen, onClose, veiculo, onSuccess }: Moda
             onSuccess?.();
             onClose();
         } catch (error) {
-            console.error('Erro ao alocar veículo:', error);
+            logger.error('Erro ao alocar veículo:', error);
             alert('Erro ao alocar veículo. Tente novamente.');
         } finally {
             setLoading(false);

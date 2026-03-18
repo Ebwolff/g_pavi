@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { isTauri } from './core';
 
 // Interfaces para os módulos do Tauri (carregados dinamicamente)
@@ -17,7 +18,7 @@ const loadTauriModules = async () => {
             tauriApp = { getVersion };
             tauriProcess = { exit };
         } catch (e) {
-            console.warn('Falha ao carregar módulos Tauri:', e);
+            logger.warn('Falha ao carregar módulos Tauri:', e);
         }
     }
 };
@@ -55,7 +56,7 @@ export const exitApp = async (): Promise<void> => {
     }
 
     // Web behavior
-    console.log('Aplicação Web: Solicitação de fechamento.');
+    logger.log('Aplicação Web: Solicitação de fechamento.');
     // Tenta fechar (pode não funcionar se não foi aberto por script)
     window.close();
     // Alternativa: Redirecionar para uma página de "Sair" ou Home

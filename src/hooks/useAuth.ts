@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { authService } from '@/services/auth.service';
@@ -34,7 +35,7 @@ export function useAuth() {
 
         try {
             checkInProgress.current = true;
-            console.log('🔐 [useAuth] Verificando sessão...');
+            logger.log('🔐 [useAuth] Verificando sessão...');
 
             // Só ativa loading se não tiver usuário (para evitar flicker se já tiver dados persistidos)
             if (!user) setLoading(true);
@@ -48,7 +49,7 @@ export function useAuth() {
             const session = await Promise.race([sessionPromise, timeoutPromise]);
 
             if (session === null) {
-                console.warn('⚠️ [useAuth] Timeout ou falha ao verificar sessão');
+                logger.warn('⚠️ [useAuth] Timeout ou falha ao verificar sessão');
                 // Não deslogar agressivamente em timeout, manter estado anterior se existir
                 // Mas se não tinha user, confirma que não tem
                 if (!user) {
@@ -71,14 +72,9 @@ export function useAuth() {
                         const userProfile = await getUserProfile();
                         setProfile(userProfile);
                     } catch (error) {
-                        console.warn('Falha ao carregar perfil:', error);
-                        // Fallback temporário
-                        setProfile({
-                            id: session.user.id,
-                            role: 'TECNICO',
-                            first_name: session.user.user_metadata?.first_name || 'Usuário',
-                            last_name: session.user.user_metadata?.last_name || '',
-                        } as any);
+                        logger.warn('Falha ao carregar perfil:', error);
+                        // Sem fallback de role por segurança — perfil null força revalidação
+                        setProfile(null);
                     }
                 }
             } else {
@@ -90,7 +86,7 @@ export function useAuth() {
                 }
             }
         } catch (error) {
-            console.error('Error checking session:', error);
+            logger.error('Error checking session:', error);
         } finally {
             checkInProgress.current = false;
             setLoading(false);
@@ -110,7 +106,7 @@ export function useAuth() {
         // Isso lida com login/logout explícito, não precisa de polling agressivo
         const { data: { subscription } } = authService.onAuthStateChange(
             async (event, session) => {
-                console.log('🔄 [useAuth] Evento de auth:', event);
+                logger.log('🔄 [useAuth] Evento de auth:', event);
 
                 if (event === 'SIGNED_IN' && session?.user) {
                     setUser(session.user);

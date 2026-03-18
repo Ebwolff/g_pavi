@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import React, { useCallback, useState } from 'react';
 import { UploadCloud, FileText, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -111,7 +112,7 @@ export function UploadOrcamentoPDF({ onUploadSuccess }: UploadOrcamentoPDFProps)
             }
 
         } catch (err: any) {
-            console.error("Erro processando PDF:", err);
+            logger.error("Erro processando PDF:", err);
             setError("Ocorreu um erro ao ler o PDF: " + (err.message || 'Erro desconhecido'));
         } finally {
             setIsProcessing(false);

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Service para gerenciamento de frota de veículos
  */
@@ -82,7 +83,7 @@ class FrotaService {
             .order('placa', { ascending: true });
 
         if (error) {
-            console.error('Erro ao buscar veículos:', error);
+            logger.error('Erro ao buscar veículos:', error);
             throw error;
         }
 
@@ -103,7 +104,7 @@ class FrotaService {
             .single();
 
         if (error) {
-            console.error('Erro ao buscar veículo:', error);
+            logger.error('Erro ao buscar veículo:', error);
             return null;
         }
 
@@ -149,7 +150,7 @@ class FrotaService {
             .single();
 
         if (error) {
-            console.error('Erro ao criar veículo:', error);
+            logger.error('Erro ao criar veículo:', error);
             throw error;
         }
 
@@ -173,7 +174,7 @@ class FrotaService {
             .single();
 
         if (error) {
-            console.error('Erro ao atualizar veículo:', error);
+            logger.error('Erro ao atualizar veículo:', error);
             throw error;
         }
 
@@ -212,7 +213,7 @@ class FrotaService {
             });
 
         if (histError) {
-            console.error('Erro ao registrar histórico:', histError);
+            logger.error('Erro ao registrar histórico:', histError);
             // Não lança erro para não impedir a alocação
         }
     }
@@ -236,7 +237,7 @@ class FrotaService {
             .eq('veiculo_id', veiculoId)
             .is('data_fim', null);
 
-        if (histError) console.error('Erro ao fechar histórico:', histError);
+        if (histError) logger.error('Erro ao fechar histórico:', histError);
 
         // Atualizar veículo
         const { error: updateError } = await supabase
@@ -277,7 +278,7 @@ class FrotaService {
             .order('data_inicio', { ascending: false });
 
         if (error) {
-            console.error('Erro ao buscar histórico:', error);
+            logger.error('Erro ao buscar histórico:', error);
             throw error;
         }
 

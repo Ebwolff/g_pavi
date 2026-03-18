@@ -6,3 +6,11 @@ src-tauri/target
 .DS_Store
 .env.local
 .env.*.local
+*.sql
+debug_*.json
+jose_prof.json
+*.html
+!index.html
+dump.sql
+supabase
+.agent

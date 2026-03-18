@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Modal para atribuir técnico a uma OS
  * Usado pelo Chefe de Oficina
@@ -48,7 +49,7 @@ export function AssignTechnicianModal({
             // Manter a data padrão ou resetar se preferir
             // setDataAgendamento(new Date().toISOString().split('T')[0]);
         } catch (error) {
-            console.error('Erro ao atribuir técnico:', error);
+            logger.error('Erro ao atribuir técnico:', error);
             alert('Erro ao atribuir técnico. Tente novamente.');
         } finally {
             setLoading(false);

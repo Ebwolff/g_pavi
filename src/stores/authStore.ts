@@ -56,9 +56,7 @@ export const useAuthStore = create<AuthState>()(
             partialize: (state) => ({
                 user: state.user,
                 profile: state.profile,
-                session: state.session,
-                // Não persistimos isAuthenticated, isLoading, isHydrated, sessionChecked
-                // Eles devem ser recalculados no boot
+                // session NÃO é persistido por segurança — tokens não devem ficar em localStorage
             }),
         }
     )

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Visão 360 - Sistema de Permissões por Role
  * 
@@ -136,7 +137,7 @@ export function hasPermission(role: string | undefined | null, route: string): b
     const permissions = ROLE_PERMISSIONS[normalizedRole];
 
     if (!permissions) {
-        console.warn(`Role desconhecido: ${role}`);
+        logger.warn(`Role desconhecido: ${role}`);
         return false;
     }
 

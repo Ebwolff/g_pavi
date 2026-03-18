@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, useEffect } from 'react';
 import {
     Search,
@@ -38,7 +39,7 @@ export function PedidoPeca() {
             }
             setPedidos(pedidosFiltrados);
         } catch (error) {
-            console.error('Erro ao carregar pedidos:', error);
+            logger.error('Erro ao carregar pedidos:', error);
         } finally {
             setLoading(false);
         }

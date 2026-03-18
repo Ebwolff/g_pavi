@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -80,7 +81,7 @@ export function ModalHistoricoOS({ isOpen, onClose, osId, osNumero }: ModalHisto
             setAnexos(anexosData as Anexo[]);
             setOs(osData);
         } catch (error) {
-            console.error('Erro ao buscar histórico:', error);
+            logger.error('Erro ao buscar histórico:', error);
         } finally {
             setLoading(false);
         }

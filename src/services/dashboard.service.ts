@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 
 export interface DashboardKPIs {
@@ -13,14 +14,14 @@ export interface DashboardKPIs {
 class DashboardService {
     async getKPIs(): Promise<{ kpis: DashboardKPIs; historico: any[] }> {
         const dataFetch = async () => {
-            console.log('📊 [dashboardService] Iniciando getKPIs...');
+            logger.log('📊 [dashboardService] Iniciando getKPIs...');
 
             // Verificar estado de autenticação
             const { data: { session }, error: authError } = await supabase.auth.getSession();
-            console.log('🔐 [dashboardService] Sessão:', session ? 'ATIVA' : 'INATIVA', 'User ID:', session?.user?.id || 'N/A', 'Erro:', authError);
+            logger.log('🔐 [dashboardService] Sessão:', session ? 'ATIVA' : 'INATIVA', 'User ID:', session?.user?.id || 'N/A', 'Erro:', authError);
 
             if (!session) {
-                console.error('❌ [dashboardService] Usuário não autenticado! RLS bloqueará a leitura.');
+                logger.error('❌ [dashboardService] Usuário não autenticado! RLS bloqueará a leitura.');
                 throw new Error('Sessão expirada. Faça login novamente.');
             }
 
@@ -35,7 +36,7 @@ class DashboardService {
                 .select('*', { count: 'exact', head: true })
                 .is('data_faturamento', null);
 
-            console.log('📊 [dashboardService] totalOsAbertas:', totalOsAbertas, 'erro:', err1);
+            logger.log('📊 [dashboardService] totalOsAbertas:', totalOsAbertas, 'erro:', err1);
 
             if (err1) throw err1;
 
@@ -47,7 +48,7 @@ class DashboardService {
                 .eq('tipo_os', 'NORMAL')
                 .is('data_faturamento', null);
 
-            console.log('📊 [dashboardService] osNormal:', osNormal?.length, 'erro:', err2);
+            logger.log('📊 [dashboardService] osNormal:', osNormal?.length, 'erro:', err2);
             if (err2) throw err2;
 
             // 3. OS Garantia (não faturadas)
@@ -115,7 +116,7 @@ class DashboardService {
             return await Promise.race([dataFetch(), timeoutPromise]);
 
         } catch (error) {
-            console.error('Erro no dashboardService.getKPIs:', error);
+            logger.error('Erro no dashboardService.getKPIs:', error);
             throw error; // Propagar erro para a UI tratar
         }
     }

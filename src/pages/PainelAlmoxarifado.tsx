@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, useEffect, useCallback } from 'react';
 import {
     Package,
@@ -128,7 +129,7 @@ export default function PainelAlmoxarifado() {
             setOsChegando(Array.from(osChegMap.values()));
 
         } catch (error) {
-            console.error('Erro ao carregar dados do almoxarifado:', error);
+            logger.error('Erro ao carregar dados do almoxarifado:', error);
         } finally {
             setLoading(false);
         }

@@ -1,4 +1,6 @@
-import { supabase, getUserProfile } from '../lib/supabase';
+import { logger } from '@/lib/logger';
+import { supabase } from '@/lib/supabase';
+import { getUserProfile } from '../lib/supabase';
 export interface DashboardStats {
     // Métricas principais
     totalOS: number;
@@ -84,7 +86,7 @@ export const statsService = {
 
             return null; // Gerente, Chefe de Oficina, etc. veem tudo
         } catch (error) {
-            console.error('Erro ao obter filtro de cargo:', error);
+            logger.error('Erro ao obter filtro de cargo:', error);
             return null;
         }
     },
@@ -94,7 +96,7 @@ export const statsService = {
      */
     async getDashboardStats(): Promise<DashboardStats> {
         const dataFetch = async () => {
-            console.log('📊 [statsService] Iniciando getDashboardStats...');
+            logger.log('📊 [statsService] Iniciando getDashboardStats...');
 
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) throw new Error('Sessão expirada. Faça login novamente.');
@@ -120,13 +122,13 @@ export const statsService = {
             try {
                 const pResp = await supabase.from('pendencias_os').select('status');
                 if (!pResp.error) pendencias = pResp.data || [];
-            } catch (e) { console.warn('pendencias_os não encontrada'); }
+            } catch (e) { logger.warn('pendencias_os não encontrada'); }
 
             let alertas: any[] = [];
             try {
                 const aResp = await supabase.from('alertas').select('lido');
                 if (!aResp.error) alertas = aResp.data || [];
-            } catch (e) { console.warn('alertas não encontrada'); }
+            } catch (e) { logger.warn('alertas não encontrada'); }
 
             const os = (osData.data || []) as any[];
             const osAbertas = os.filter(o => !['CONCLUIDA', 'FATURADA', 'CANCELADA'].includes(o.status_atual));
@@ -332,7 +334,7 @@ export const statsService = {
             if (error) throw error;
             return data;
         } catch (error) {
-            console.error('Erro ao buscar rentabilidade da OS:', error);
+            logger.error('Erro ao buscar rentabilidade da OS:', error);
             return null;
         }
     },
@@ -357,7 +359,7 @@ export const statsService = {
                 margemMedia: stats.receitaTotal > 0 ? (stats.lucroBruto / stats.receitaTotal) * 100 : 0
             };
         } catch (error) {
-            console.error('Erro ao buscar rentabilidade global:', error);
+            logger.error('Erro ao buscar rentabilidade global:', error);
             return null;
         }
     },

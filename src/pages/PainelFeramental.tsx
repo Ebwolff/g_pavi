@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Painel do Departamento Feramental
  * Gestão de frota de veículos e alocação para técnicos
@@ -58,7 +59,7 @@ export default function PainelFeramental() {
             setVeiculos(veiculosData);
             setEstatisticas(stats);
         } catch (error) {
-            console.error('Erro ao carregar dados:', error);
+            logger.error('Erro ao carregar dados:', error);
         } finally {
             setLoading(false);
         }
@@ -90,7 +91,7 @@ export default function PainelFeramental() {
             await frotaService.desalocarVeiculo(veiculo.id);
             await carregarDados();
         } catch (error) {
-            console.error('Erro ao desalocar:', error);
+            logger.error('Erro ao desalocar:', error);
             alert('Erro ao desalocar veículo.');
         }
     };
@@ -102,7 +103,7 @@ export default function PainelFeramental() {
             await frotaService.excluirVeiculo(veiculo.id);
             await carregarDados();
         } catch (error) {
-            console.error('Erro ao excluir:', error);
+            logger.error('Erro ao excluir:', error);
             alert('Erro ao excluir veículo.');
         }
     };
@@ -112,7 +113,7 @@ export default function PainelFeramental() {
             await frotaService.atualizarVeiculo(veiculo.id, { status: novoStatus });
             await carregarDados();
         } catch (error) {
-            console.error('Erro ao alterar status:', error);
+            logger.error('Erro ao alterar status:', error);
             alert('Erro ao alterar status.');
         }
     };

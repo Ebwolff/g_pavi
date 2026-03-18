@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { AppLayout } from '@/components/AppLayout';
 import { FileText, Download, Calendar, BarChart3, TrendingUp, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -12,7 +13,7 @@ export function Relatorios() {
             setLoading(tipo);
             await action();
         } catch (error) {
-            console.error(`Erro ao exportar ${tipo}:`, error);
+            logger.error(`Erro ao exportar ${tipo}:`, error);
             alert('Erro ao gerar relatório. Verifique o console.');
         } finally {
             setLoading(null);

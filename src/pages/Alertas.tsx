@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { alertasService } from '../services/alertasService';
@@ -48,7 +49,7 @@ export function Alertas() {
             const data = await alertasService.getAlertas(user.id);
             setAlertas(data);
         } catch (error) {
-            console.error('Erro ao carregar alertas:', error);
+            logger.error('Erro ao carregar alertas:', error);
         } finally {
             setLoading(false);
         }
@@ -59,7 +60,7 @@ export function Alertas() {
             await alertasService.marcarComoLido(alertaId);
             await carregarAlertas();
         } catch (error) {
-            console.error('Erro ao marcar como lido:', error);
+            logger.error('Erro ao marcar como lido:', error);
         }
     };
 
@@ -73,7 +74,7 @@ export function Alertas() {
             await alertasService.marcarTodosComoLidos(user.id);
             await carregarAlertas();
         } catch (error) {
-            console.error('Erro ao marcar todos como lidos:', error);
+            logger.error('Erro ao marcar todos como lidos:', error);
         }
     };
 
@@ -84,7 +85,7 @@ export function Alertas() {
             await alertasService.deletarAlerta(alertaId);
             await carregarAlertas();
         } catch (error) {
-            console.error('Erro ao deletar alerta:', error);
+            logger.error('Erro ao deletar alerta:', error);
         }
     };
 

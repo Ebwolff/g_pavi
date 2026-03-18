@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
 
@@ -5,7 +6,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.su
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder';
 
 if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-    console.error('⚠️ CRITICAL: Missing Supabase environment variables! App will not work correctly.');
+    logger.error('⚠️ CRITICAL: Missing Supabase environment variables! App will not work correctly.');
 }
 
 // Cliente Supabase com configurações para evitar deadlock de navigator.locks
@@ -43,7 +44,7 @@ export async function getUserProfile() {
         .single();
 
     if (error) {
-        console.error('Erro ao buscar profile:', error);
+        logger.error('Erro ao buscar profile:', error);
         return null; // Retorna null em vez de throw
     }
     return data;

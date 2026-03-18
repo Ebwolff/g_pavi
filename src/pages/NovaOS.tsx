@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, FormEvent, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -44,7 +45,7 @@ export function NovaOS() {
             navigate('/os/lista');
         },
         onError: (error: any) => {
-            console.error('Erro ao criar OS:', error);
+            logger.error('Erro ao criar OS:', error);
             alert(`Erro ao criar OS: ${error.message || 'Ocorreu um erro inesperado'}`);
         },
     });
@@ -58,7 +59,7 @@ export function NovaOS() {
             const nextNumber = await ordemServicoService.getNextOSNumber();
             handleInputChange('numero_os', nextNumber);
         } catch (error) {
-            console.error('Erro ao gerar número:', error);
+            logger.error('Erro ao gerar número:', error);
         }
     };
 
@@ -113,7 +114,7 @@ export function NovaOS() {
             const orc = await orcamentoService.findByNumeroNBS(dados.numero_os);
             if (orc) {
                 setOrcamentoVinculado(orc);
-                console.log('[OS] Orçamento vinculado encontrado:', orc);
+                logger.log('[OS] Orçamento vinculado encontrado:', orc);
             }
         }
     };

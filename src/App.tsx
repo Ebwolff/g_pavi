@@ -31,14 +31,27 @@ class ErrorBoundary extends Component<
 
     render() {
         if (this.state.hasError) {
+            const isDev = import.meta.env.DEV;
             return (
                 <div className="p-10 text-center">
                     <h1 className="text-red-600 text-2xl font-bold mb-4">Erro na aplicação</h1>
-                    <pre className="bg-gray-100 p-5 rounded-lg text-left overflow-auto text-sm">
-                        {this.state.error?.message}
-                        {'\n\n'}
-                        {this.state.error?.stack}
-                    </pre>
+                    {isDev ? (
+                        <pre className="bg-gray-100 p-5 rounded-lg text-left overflow-auto text-sm">
+                            {this.state.error?.message}
+                            {'\n\n'}
+                            {this.state.error?.stack}
+                        </pre>
+                    ) : (
+                        <div>
+                            <p className="text-gray-600 mb-4">Ocorreu um erro inesperado. Por favor, recarregue a página.</p>
+                            <button
+                                onClick={() => window.location.reload()}
+                                className="px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors"
+                            >
+                                Recarregar
+                            </button>
+                        </div>
+                    )}
                 </div>
             );
         }

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database.types';
 
@@ -64,7 +65,7 @@ class OrcamentoService {
             .range(from, to);
 
         if (error) {
-            console.error('Erro ao buscar orçamentos:', error);
+            logger.error('Erro ao buscar orçamentos:', error);
             throw error;
         }
 
@@ -89,7 +90,7 @@ class OrcamentoService {
             .single();
 
         if (error) {
-            console.error('Erro ao buscar orçamento por ID:', error);
+            logger.error('Erro ao buscar orçamento por ID:', error);
             throw error;
         }
 
@@ -107,7 +108,7 @@ class OrcamentoService {
             .single();
 
         if (error) {
-            console.error('Erro ao criar orçamento:', error);
+            logger.error('Erro ao criar orçamento:', error);
             throw error;
         }
 
@@ -131,7 +132,7 @@ class OrcamentoService {
             .single();
 
         if (error) {
-            console.error('Erro ao atualizar orçamento:', error);
+            logger.error('Erro ao atualizar orçamento:', error);
             throw error;
         }
 
@@ -156,7 +157,7 @@ class OrcamentoService {
             .single();
 
         if (error) {
-            console.error('Erro ao atualizar status do orçamento:', error);
+            logger.error('Erro ao atualizar status do orçamento:', error);
             throw error;
         }
 
@@ -205,7 +206,7 @@ class OrcamentoService {
             .single();
 
         if (osError) {
-            console.error('Erro ao gerar OS a partir do Orçamento:', osError);
+            logger.error('Erro ao gerar OS a partir do Orçamento:', osError);
             throw osError;
         }
 
@@ -258,7 +259,7 @@ class OrcamentoService {
             .maybeSingle();
 
         if (error) {
-            console.error('Erro ao buscar orçamento por NBS:', error);
+            logger.error('Erro ao buscar orçamento por NBS:', error);
             return null;
         }
 

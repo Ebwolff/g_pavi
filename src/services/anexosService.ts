@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 
 export interface Anexo {
@@ -22,7 +23,7 @@ class AnexosService {
             .order('created_at', { ascending: false });
 
         if (error) {
-            console.error('Erro ao buscar anexos:', error);
+            logger.error('Erro ao buscar anexos:', error);
             throw error;
         }
 
@@ -41,6 +42,17 @@ class AnexosService {
         const { data: userData } = await supabase.auth.getUser();
         if (!userData.user) throw new Error('Usuário não autenticado');
 
+        // Validação de segurança do arquivo
+        const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
+        const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            throw new Error(`Tipo de arquivo não permitido: ${file.type}. Use imagens (JPEG, PNG, WebP) ou PDF.`);
+        }
+        if (file.size > MAX_SIZE) {
+            throw new Error('Arquivo muito grande. O tamanho máximo é 10MB.');
+        }
+
         // 1. Upload para o Supabase Storage
         const fileExt = file.name.split('.').pop();
         const fileName = `${osId}/${Math.random().toString(36).substring(2)}.${fileExt}`;
@@ -51,7 +63,7 @@ class AnexosService {
             .upload(filePath, file);
 
         if (uploadError) {
-            console.error('Erro no upload Storage:', uploadError);
+            logger.error('Erro no upload Storage:', uploadError);
             throw uploadError;
         }
 
@@ -74,7 +86,7 @@ class AnexosService {
             .single();
 
         if (dbError) {
-            console.error('Erro ao registrar anexo no banco:', dbError);
+            logger.error('Erro ao registrar anexo no banco:', dbError);
             throw dbError;
         }
 
@@ -101,7 +113,7 @@ class AnexosService {
             .eq('id', anexo.id);
 
         if (error) {
-            console.error('Erro ao excluir anexo do banco:', error);
+            logger.error('Erro ao excluir anexo do banco:', error);
             throw error;
         }
     }

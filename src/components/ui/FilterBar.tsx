@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, X, Calendar, User, Tag, ChevronDown } from 'lucide-react';
 import { TipoOS, StatusOS } from '../../types/database.types';
@@ -52,7 +53,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             try {
                 setFilters(JSON.parse(savedFilters));
             } catch (e) {
-                console.error('Erro ao carregar filtros salvos:', e);
+                logger.error('Erro ao carregar filtros salvos:', e);
             }
         }
     }, []);

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Check, CheckCheck, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import { alertasService } from '../../services/alertasService';
@@ -29,7 +30,7 @@ export const AlertNotification: React.FC = () => {
             const count = await alertasService.contarNaoLidos(user.id);
             setNaoLidos(count);
         } catch (error) {
-            console.error('Erro ao carregar alertas:', error);
+            logger.error('Erro ao carregar alertas:', error);
         } finally {
             setLoading(false);
         }
@@ -61,7 +62,7 @@ export const AlertNotification: React.FC = () => {
             await alertasService.marcarComoLido(alertaId);
             await carregarAlertas();
         } catch (error) {
-            console.error('Erro ao marcar alerta como lido:', error);
+            logger.error('Erro ao marcar alerta como lido:', error);
         }
     };
 
@@ -73,7 +74,7 @@ export const AlertNotification: React.FC = () => {
             await alertasService.marcarTodosComoLidos(user.id);
             await carregarAlertas();
         } catch (error) {
-            console.error('Erro ao marcar todos como lidos:', error);
+            logger.error('Erro ao marcar todos como lidos:', error);
         }
     };
 

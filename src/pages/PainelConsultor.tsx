@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, useEffect } from 'react';
 import {
     Users,
@@ -155,7 +156,7 @@ export default function PainelConsultor() {
             });
 
         } catch (error) {
-            console.error('Erro ao carregar dados:', error);
+            logger.error('Erro ao carregar dados:', error);
         } finally {
             setLoading(false);
         }
@@ -210,7 +211,7 @@ export default function PainelConsultor() {
 
             setOsComPecasPendentes(Array.from(osMap.values()));
         } catch (error) {
-            console.error('Erro ao carregar peças pendentes:', error);
+            logger.error('Erro ao carregar peças pendentes:', error);
         }
     };
 
@@ -248,7 +249,7 @@ export default function PainelConsultor() {
 
             setOsComAprovacaoPendente(Array.from(osMap.values()));
         } catch (error) {
-            console.error('Erro ao carregar peças pendentes de aprovação:', error);
+            logger.error('Erro ao carregar peças pendentes de aprovação:', error);
         }
     };
 

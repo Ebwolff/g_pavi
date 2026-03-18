@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -56,13 +57,13 @@ export function DashboardNovo() {
     };
 
     const carregarDados = async () => {
-        console.log('🔄 Iniciando carregamento de dados...');
+        logger.log('🔄 Iniciando carregamento de dados...');
         setErro(null);
         setAtualizando(true);
 
         // Safety timeout: Se demorar mais de 15s, mostrar dados vazios
         const safetyTimeout = setTimeout(() => {
-            console.warn('⚠️ Safety timeout atingido - forçando fim do loading');
+            logger.warn('⚠️ Safety timeout atingido - forçando fim do loading');
             setLoading(false);
             setAtualizando(false);
         }, 15000);
@@ -70,12 +71,12 @@ export function DashboardNovo() {
         try {
             // Carregar cada serviço individualmente para não travar tudo
             try {
-                console.log('📊 Buscando dashboard stats...');
+                logger.log('📊 Buscando dashboard stats...');
                 const statsData = await statsService.getDashboardStats();
-                console.log('✅ Stats recebidos:', statsData);
+                logger.log('✅ Stats recebidos:', statsData);
                 setStats(statsData);
             } catch (e: any) {
-                console.error('❌ Erro em getDashboardStats:', e);
+                logger.error('❌ Erro em getDashboardStats:', e);
                 setErro(e.message || 'Erro ao carregar estatísticas');
                 setLoading(false);
                 setAtualizando(false);
@@ -83,36 +84,36 @@ export function DashboardNovo() {
             }
 
             try {
-                console.log('📈 Buscando tendência...');
+                logger.log('📈 Buscando tendência...');
                 const tendenciaData = await statsService.getTendenciaOS(30);
-                console.log('✅ Tendência recebida');
+                logger.log('✅ Tendência recebida');
                 setTendencia(tendenciaData);
             } catch (e) {
-                console.error('❌ Erro em getTendenciaOS:', e);
+                logger.error('❌ Erro em getTendenciaOS:', e);
             }
 
             try {
-                console.log('📊 Buscando distribuição...');
+                logger.log('📊 Buscando distribuição...');
                 const distribuicaoData = await statsService.getDistribuicaoStatus();
-                console.log('✅ Distribuição recebida');
+                logger.log('✅ Distribuição recebida');
                 setDistribuicao(distribuicaoData);
             } catch (e) {
-                console.error('❌ Erro em getDistribuicaoStatus:', e);
+                logger.error('❌ Erro em getDistribuicaoStatus:', e);
             }
 
 
 
             try {
-                console.log('🏆 Buscando top clientes...');
+                logger.log('🏆 Buscando top clientes...');
                 const clientesData = await statsService.getTopClientes(10);
-                console.log('✅ Clientes recebidos');
+                logger.log('✅ Clientes recebidos');
                 setTopClientes(clientesData);
             } catch (e) {
-                console.error('❌ Erro em getTopClientes:', e);
+                logger.error('❌ Erro em getTopClientes:', e);
             }
 
             try {
-                console.log('💰 Buscando rentabilidade global...');
+                logger.log('💰 Buscando rentabilidade global...');
                 let dataInicio = new Date();
                 if (dateRange === 'hoje') dataInicio.setHours(0, 0, 0, 0);
                 else if (dateRange === 'semana') dataInicio.setDate(dataInicio.getDate() - 7);
@@ -120,20 +121,20 @@ export function DashboardNovo() {
 
                 const profitData = await statsService.getGlobalProfitabilityStats(dataInicio.toISOString());
                 setProfitStats(profitData);
-                console.log('✅ Rentabilidade recebida');
+                logger.log('✅ Rentabilidade recebida');
             } catch (e) {
-                console.error('❌ Erro em getGlobalProfitabilityStats:', e);
+                logger.error('❌ Erro em getGlobalProfitabilityStats:', e);
             }
 
-            console.log('✅ Todos os dados processados!');
+            logger.log('✅ Todos os dados processados!');
         } catch (error: any) {
-            console.error('❌ Erro geral ao carregar dashboard:', error);
+            logger.error('❌ Erro geral ao carregar dashboard:', error);
             setErro('generico');
         } finally {
             clearTimeout(safetyTimeout);
             setLoading(false);
             setAtualizando(false);
-            console.log('🏁 Carregamento finalizado');
+            logger.log('🏁 Carregamento finalizado');
         }
     };
 

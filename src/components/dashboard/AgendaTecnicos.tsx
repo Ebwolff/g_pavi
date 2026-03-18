@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Componente que mostra a agenda/OS de cada técnico
  * Visão para gerente acompanhar carga de trabalho
@@ -98,7 +99,7 @@ export function AgendaTecnicos() {
 
             setTecnicos(tecnicosComOS);
         } catch (error) {
-            console.error('Erro ao carregar agenda:', error);
+            logger.error('Erro ao carregar agenda:', error);
         } finally {
             setLoading(false);
         }

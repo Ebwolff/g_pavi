@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * RoleGuard - Componente de proteção de rotas por role
  * 
@@ -68,7 +69,7 @@ export function RoleGuard({ children, showForbidden = false }: RoleGuardProps) {
 
         // Redireciona para página padrão do role
         const defaultRoute = getDefaultRoute(userRole);
-        console.warn(`[RoleGuard] Acesso negado a ${currentPath} para role ${userRole}. Redirecionando para ${defaultRoute}`);
+        logger.warn(`[RoleGuard] Acesso negado a ${currentPath} para role ${userRole}. Redirecionando para ${defaultRoute}`);
         return <Navigate to={defaultRoute} replace />;
     }
 

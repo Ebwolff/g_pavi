@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, useEffect, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -40,7 +41,7 @@ export function Login() {
             }, 50);
 
         } catch (err: any) {
-            console.error('❌ [Login] Erro:', err);
+            logger.error('❌ [Login] Erro:', err);
             let msg = err.message || 'Erro ao realizar login.';
             if (msg.includes('Invalid login credentials')) {
                 msg = 'E-mail ou senha incorretos.';

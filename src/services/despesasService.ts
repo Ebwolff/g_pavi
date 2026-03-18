@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Service para gerenciar despesas de OS (km e despesas de viagem)
  */
@@ -80,7 +81,7 @@ class DespesasService {
             .order('data_despesa', { ascending: false });
 
         if (error) {
-            console.error('Erro ao buscar despesas:', error);
+            logger.error('Erro ao buscar despesas:', error);
             throw error;
         }
 
@@ -110,7 +111,7 @@ class DespesasService {
             .single();
 
         if (error) {
-            console.error('Erro ao criar despesa:', error);
+            logger.error('Erro ao criar despesa:', error);
             throw error;
         }
 
@@ -129,7 +130,7 @@ class DespesasService {
             .single();
 
         if (error) {
-            console.error('Erro ao atualizar despesa:', error);
+            logger.error('Erro ao atualizar despesa:', error);
             throw error;
         }
 
@@ -146,7 +147,7 @@ class DespesasService {
             .eq('id', id);
 
         if (error) {
-            console.error('Erro ao excluir despesa:', error);
+            logger.error('Erro ao excluir despesa:', error);
             throw error;
         }
     }
@@ -218,16 +219,27 @@ class DespesasService {
         const { data: userData } = await supabase.auth.getUser();
         if (!userData.user) throw new Error('Usuário não autenticado');
 
+        // Validação de segurança do arquivo
+        const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
+        const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            throw new Error(`Tipo de arquivo não permitido: ${file.type}. Use imagens (JPEG, PNG, WebP) ou PDF.`);
+        }
+        if (file.size > MAX_SIZE) {
+            throw new Error('Arquivo muito grande. O tamanho máximo é 10MB.');
+        }
+
         const fileExt = file.name.split('.').pop();
         const fileName = `despesas/${osId}/${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const filePath = fileName; // No bucket anexos_os
+        const filePath = fileName;
 
         const { error: uploadError } = await supabase.storage
             .from('anexos_os')
             .upload(filePath, file);
 
         if (uploadError) {
-            console.error('Erro no upload do comprovante:', uploadError);
+            logger.error('Erro no upload do comprovante:', uploadError);
             throw uploadError;
         }
         // 3. Obter URL pública

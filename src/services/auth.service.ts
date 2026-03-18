@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 import type { UserRole } from '@/types/database.types';
 
@@ -30,7 +31,7 @@ class AuthService {
             .single();
 
         if (profileError) {
-            console.warn('⚠️ [AuthService] Perfil não encontrado ou erro:', profileError.message);
+            logger.warn('⚠️ [AuthService] Perfil não encontrado ou erro:', profileError.message);
         }
 
         return {

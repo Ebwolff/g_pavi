@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, FormEvent, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -46,7 +47,7 @@ export function OrcamentoForm() {
             navigate(`/orcamentos/${data.id}`);
         },
         onError: (error: any) => {
-            console.error('Erro ao criar Orçamento:', error);
+            logger.error('Erro ao criar Orçamento:', error);
             alert(`Erro ao criar Orçamento: ${error.message || 'Ocorreu um erro'}`);
         },
     });
@@ -89,6 +90,16 @@ export function OrcamentoForm() {
 
         // Upload do PDF NBS ao Supabase Storage (se houver)
         if (pdfFile) {
+            // Validação de segurança
+            if (pdfFile.type !== 'application/pdf') {
+                alert('Apenas arquivos PDF são permitidos para NBS.');
+                return;
+            }
+            if (pdfFile.size > 10 * 1024 * 1024) {
+                alert('Arquivo muito grande. O tamanho máximo é 10MB.');
+                return;
+            }
+
             try {
                 const fileExt = pdfFile.name.split('.').pop() || 'pdf';
                 const fileName = `orcamentos/${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
@@ -98,7 +109,7 @@ export function OrcamentoForm() {
                     .upload(fileName, pdfFile);
 
                 if (uploadError) {
-                    console.error('Erro upload PDF NBS:', uploadError);
+                    logger.error('Erro upload PDF NBS:', uploadError);
                 } else {
                     const { data: { publicUrl } } = supabase.storage
                         .from('anexos_os')
@@ -106,7 +117,7 @@ export function OrcamentoForm() {
                     pdfNbsUrl = publicUrl;
                 }
             } catch (err) {
-                console.error('Erro ao enviar PDF NBS:', err);
+                logger.error('Erro ao enviar PDF NBS:', err);
             }
         }
         

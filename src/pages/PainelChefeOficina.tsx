@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 // Trigger deploy: 2026-02-18 15:53
 import React, { useState, useMemo } from 'react';
 import {
@@ -291,7 +292,7 @@ const PainelChefeOficina: React.FC = () => {
                 setModalOpen(false);
                 setSelectedOS(null);
             } catch (error) {
-                console.error('Erro ao atribuir:', error);
+                logger.error('Erro ao atribuir:', error);
             }
         }
     };
@@ -670,7 +671,7 @@ const PainelChefeOficina: React.FC = () => {
                                                                 await tecnicoService.setAvailability(tecnico.id, e.target.value as any);
                                                                 queryClient.invalidateQueries({ queryKey: ['tecnicos-stats'] });
                                                             } catch (err) {
-                                                                console.error('Erro ao atualizar status:', err);
+                                                                logger.error('Erro ao atualizar status:', err);
                                                             }
                                                         }}
                                                         onClick={(e) => e.stopPropagation()}

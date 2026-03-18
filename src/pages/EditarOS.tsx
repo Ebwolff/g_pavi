@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -121,7 +122,7 @@ export function EditarOS() {
             const data = await statsService.getOSProfitability(id);
             setProfitabilityData(data);
         } catch (error) {
-            console.error('Erro ao carregar rentabilidade:', error);
+            logger.error('Erro ao carregar rentabilidade:', error);
         } finally {
             setLoadingProfit(false);
         }
@@ -134,7 +135,7 @@ export function EditarOS() {
             const data = await anexosService.getAnexosByOS(id);
             setAnexos(data);
         } catch (error) {
-            console.error('Erro ao carregar anexos:', error);
+            logger.error('Erro ao carregar anexos:', error);
         } finally {
             setLoadingAnexos(false);
         }
@@ -149,7 +150,7 @@ export function EditarOS() {
             await anexosService.uploadAnexo(id, file);
             await carregarAnexos();
         } catch (error) {
-            console.error('Erro ao fazer upload:', error);
+            logger.error('Erro ao fazer upload:', error);
             alert('Falha ao enviar arquivo. Verifique o tamanho ou tente novamente.');
         } finally {
             setUploadingAnexo(false);
@@ -162,7 +163,7 @@ export function EditarOS() {
             await anexosService.excluirAnexo(anexo);
             await carregarAnexos();
         } catch (error) {
-            console.error('Erro ao excluir anexo:', error);
+            logger.error('Erro ao excluir anexo:', error);
         }
     };
 
@@ -173,7 +174,7 @@ export function EditarOS() {
             const data = await despesasService.getDespesasPorOS(id);
             setDespesas(data);
         } catch (error) {
-            console.error('Erro ao carregar despesas:', error);
+            logger.error('Erro ao carregar despesas:', error);
         } finally {
             setLoadingDespesas(false);
         }
@@ -185,7 +186,7 @@ export function EditarOS() {
             await despesasService.excluirDespesa(despesaId);
             await carregarDespesas();
         } catch (error) {
-            console.error('Erro ao excluir despesa:', error);
+            logger.error('Erro ao excluir despesa:', error);
         }
     };
 
@@ -204,13 +205,13 @@ export function EditarOS() {
     const updateOSMutation = useMutation({
         mutationFn: (data: any) => ordemServicoService.update(id!, data),
         onSuccess: () => navigate('/os/lista'),
-        onError: (error: any) => console.error('Erro ao atualizar OS:', error),
+        onError: (error: any) => logger.error('Erro ao atualizar OS:', error),
     });
 
     const deleteOSMutation = useMutation({
         mutationFn: () => ordemServicoService.delete(id!),
         onSuccess: () => navigate('/os/lista'),
-        onError: (error: any) => console.error('Erro ao deletar OS:', error),
+        onError: (error: any) => logger.error('Erro ao deletar OS:', error),
     });
 
     const handleInputChange = (field: string, value: any) => {

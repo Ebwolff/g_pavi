@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Settings as SettingsIcon, User, Database, Bell, Shield, LogOut, Save, Edit2, X, Check } from 'lucide-react';
@@ -62,7 +63,7 @@ export function Configuracoes() {
 
             setTimeout(() => setSaveMessage(null), 3000);
         } catch (error: any) {
-            console.error('Erro ao salvar perfil:', error);
+            logger.error('Erro ao salvar perfil:', error);
             setSaveMessage({ type: 'error', text: error.message || 'Erro ao salvar alterações.' });
         } finally {
             setIsSaving(false);

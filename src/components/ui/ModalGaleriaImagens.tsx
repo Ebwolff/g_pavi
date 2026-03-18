@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { anexosService, Anexo } from '@/services/anexosService';
@@ -25,7 +26,7 @@ export function ModalGaleriaImagens({ isOpen, onClose, osId, osNumero, canUpload
             setAnexos(data);
             if (currentIndex >= data.length) setCurrentIndex(Math.max(0, data.length - 1));
         } catch (err) {
-            console.error('Erro ao buscar anexos:', err);
+            logger.error('Erro ao buscar anexos:', err);
         } finally {
             setLoading(false);
         }
@@ -47,7 +48,7 @@ export function ModalGaleriaImagens({ isOpen, onClose, osId, osNumero, canUpload
             }
             await fetchAnexos();
         } catch (error) {
-            console.error('Erro ao fazer upload das imagens:', error);
+            logger.error('Erro ao fazer upload das imagens:', error);
             alert('Erro ao enviar imagens. Tente novamente.');
         } finally {
             setIsUploading(false);

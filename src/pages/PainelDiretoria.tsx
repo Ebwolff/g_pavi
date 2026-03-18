@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, useEffect } from 'react';
 import {
     BarChart3,
@@ -211,7 +212,7 @@ export default function PainelDiretoria() {
             }
 
         } catch (error) {
-            console.error('Erro ao carregar KPIs:', error);
+            logger.error('Erro ao carregar KPIs:', error);
         } finally {
             setLoading(false);
         }

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -61,7 +62,7 @@ export function DetalhesOrcamento() {
             navigate(`/os/editar/${novaOS.id}`);
         },
         onError: (e: any) => {
-            console.error('Erro ao converter:', e);
+            logger.error('Erro ao converter:', e);
             alert(`Erro ao converter: ${e.message}`);
         }
     });
