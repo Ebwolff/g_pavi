@@ -1,7 +1,9 @@
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { hasPermission } from '@/utils/permissions';
+import { OfflineStatusBar } from '@/components/ui/OfflineStatusBar';
+import { startAutoSync, stopAutoSync } from '@/lib/syncEngine';
 import {
     LayoutDashboard,
     FileText,
@@ -51,7 +53,15 @@ function ThemeToggleMini() {
 export function AppLayout({ children }: AppLayoutProps) {
     const navigate = useNavigate();
     const location = useLocation();
-    const { profile, logout } = useAuth();
+    const { profile, logout, user } = useAuth();
+
+    // Iniciar auto-sync quando o usuário estiver logado
+    useEffect(() => {
+        if (user?.id) {
+            startAutoSync(user.id)
+            return () => stopAutoSync()
+        }
+    }, [user?.id])
 
     const allMenuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
@@ -183,6 +193,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
             {/* Main Content Area */}
             <main className="flex-1 overflow-auto ml-64 bg-[var(--bg-primary)] scrollbar-visao360">
+                <OfflineStatusBar />
                 {children}
             </main>
         </div>
