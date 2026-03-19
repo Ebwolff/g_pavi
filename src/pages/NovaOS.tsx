@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 
 import { ordemServicoService } from '@/services/ordemServico.service';
+import { supabase } from '@/lib/supabase';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -63,6 +64,9 @@ export function NovaOS() {
         }
     };
 
+    // PDF file para upload ao Storage
+    const [pdfFile, setPdfFile] = useState<File | null>(null);
+
     // Orçamento vinculado
     const [orcamentoVinculado, setOrcamentoVinculado] = useState<any>(null);
     const [itensOrcamento, setItensOrcamento] = useState<ItemOrcamento[]>([]);
@@ -90,6 +94,11 @@ export function NovaOS() {
     };
 
     const handleNBSUploadSuccess = async (dados: ExtractedNBS) => {
+        // Guardar o PDF original para upload posterior
+        if (dados.pdfFile) {
+            setPdfFile(dados.pdfFile);
+        }
+
         setFormData(prev => ({
             ...prev,
             ...(dados.numero_os && { numero_os: dados.numero_os }),
@@ -119,9 +128,43 @@ export function NovaOS() {
         }
     };
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         if (!formData.numero_os.trim()) return;
+
+        let pdfNbsUrl: string | null = null;
+
+        // Upload do PDF NBS ao Supabase Storage (se houver)
+        if (pdfFile) {
+            if (pdfFile.type !== 'application/pdf') {
+                alert('Apenas arquivos PDF são permitidos para NBS.');
+                return;
+            }
+            if (pdfFile.size > 10 * 1024 * 1024) {
+                alert('Arquivo muito grande. O tamanho máximo é 10MB.');
+                return;
+            }
+
+            try {
+                const fileExt = pdfFile.name.split('.').pop() || 'pdf';
+                const fileName = `ordens_servico/${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('anexos_os')
+                    .upload(fileName, pdfFile);
+
+                if (uploadError) {
+                    logger.error('Erro upload PDF NBS:', uploadError);
+                } else {
+                    const { data: { publicUrl } } = supabase.storage
+                        .from('anexos_os')
+                        .getPublicUrl(fileName);
+                    pdfNbsUrl = publicUrl;
+                }
+            } catch (err) {
+                logger.error('Erro ao enviar PDF NBS:', err);
+            }
+        }
 
         createOSMutation.mutate({
             ...formData,
@@ -138,6 +181,7 @@ export function NovaOS() {
             aol: formData.aol || null,
             orcamento_id: orcamentoVinculado?.id || null,
             itens_orcamento: itensOrcamento.length > 0 ? itensOrcamento : null,
+            pdf_nbs_url: pdfNbsUrl,
         });
     };
 
