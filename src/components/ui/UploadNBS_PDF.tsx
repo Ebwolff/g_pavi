@@ -1,33 +1,12 @@
 import { logger } from '@/lib/logger';
 import React, { useState } from 'react';
 import { UploadCloud, FileText, AlertTriangle, Loader2 } from 'lucide-react';
+import * as pdfjsLib from 'pdfjs-dist';
 
-// Carregar pdfjs via CDN para evitar quebra de minificação do Rollup/Vite
-const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174';
+// Configurar o worker do pdfjs-dist (mesma abordagem do UploadOrcamentoPDF)
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url';
 
-let pdfjsLibCache: any = null;
-
-async function loadPdfJs(): Promise<any> {
-    if (pdfjsLibCache) return pdfjsLibCache;
-
-    return new Promise((resolve, reject) => {
-        // Carregar o script principal
-        const script = document.createElement('script');
-        script.src = `${PDFJS_CDN}/pdf.min.js`;
-        script.onload = () => {
-            const pdfjsLib = (window as any).pdfjsLib;
-            if (!pdfjsLib) {
-                reject(new Error('pdfjsLib não carregou corretamente'));
-                return;
-            }
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `${PDFJS_CDN}/pdf.worker.min.js`;
-            pdfjsLibCache = pdfjsLib;
-            resolve(pdfjsLib);
-        };
-        script.onerror = () => reject(new Error('Falha ao carregar biblioteca PDF do CDN'));
-        document.head.appendChild(script);
-    });
-}
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 export interface ItemOrcamento {
     codigo: string;
@@ -65,9 +44,6 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
         setError(null);
 
         try {
-            // Carregar pdfjs dinamicamente do CDN (evita minificação do Rollup)
-            const pdfjsLib = await loadPdfJs();
-            
             const arrayBuffer = await file.arrayBuffer();
             const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
             const pdf = await loadingTask.promise;
