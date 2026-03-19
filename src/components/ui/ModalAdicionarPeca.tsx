@@ -4,6 +4,7 @@ import { X, Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Button } from './Button';
 import { UploadOrcamentoPDF, ExtractedPeca } from './UploadOrcamentoPDF';
+import { notifyPartsRequested } from '@/lib/notificationHelper';
 
 interface ModalAdicionarPecaProps {
     isOpen: boolean;
@@ -84,6 +85,10 @@ export function ModalAdicionarPeca({ isOpen, onClose, osId, onSuccess }: ModalAd
                 );
 
             if (error) throw error;
+
+            // Fire-and-forget: notify consultor about parts request
+            const descricoes = pecasValidas.map(p => p.descricao).join(', ');
+            notifyPartsRequested(osId, descricoes).catch(() => {});
 
             // Atualizar status da OS para AGUARDANDO_PECAS
             await supabase

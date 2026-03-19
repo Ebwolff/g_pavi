@@ -15,7 +15,7 @@ export type TipoDiagnostico = 'SIMPLES' | 'COMPLEXO' | 'ESPECIALIZADO';
 // Novos tipos para melhorias
 export type TipoPendencia = 'PECAS' | 'SERVICO' | 'TERCEIROS' | 'GARANTIA' | 'CLIENTE' | 'OUTROS';
 export type StatusPendencia = 'PENDENTE' | 'EM_ANDAMENTO' | 'RESOLVIDO' | 'CANCELADO';
-export type TipoAlerta = 'OS_VENCIDA' | 'GARANTIA_PENDENTE' | 'PECAS_CHEGANDO' | 'PREVISAO_ENTREGA' | 'META_FATURAMENTO' | 'OUTROS';
+export type TipoAlerta = 'OS_VENCIDA' | 'GARANTIA_PENDENTE' | 'PECAS_CHEGANDO' | 'PREVISAO_ENTREGA' | 'META_FATURAMENTO' | 'OUTROS' | 'NOVA_OS' | 'OS_ATRIBUIDA' | 'PECAS_SOLICITADAS' | 'COMPRA_NECESSARIA' | 'STATUS_ALTERADO';
 export type PrioridadeAlerta = 'BAIXA' | 'NORMAL' | 'ALTA' | 'URGENTE';
 export type AcaoAuditoria = 'CRIACAO' | 'EDICAO' | 'EXCLUSAO' | 'MUDANCA_STATUS' | 'OUTROS';
 export type TipoMeta = 'FATURAMENTO' | 'QUANTIDADE_OS' | 'TEMPO_RESOLUCAO' | 'SATISFACAO' | 'BACKLOG' | 'OUTROS';

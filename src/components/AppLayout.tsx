@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { hasPermission } from '@/utils/permissions';
 import { OfflineStatusBar } from '@/components/ui/OfflineStatusBar';
 import { startAutoSync, stopAutoSync } from '@/lib/syncEngine';
+import { requestNotificationPermission, startPushListener, stopPushListener } from '@/services/pushNotificationService';
 import {
     LayoutDashboard,
     FileText,
@@ -65,6 +66,18 @@ export function AppLayout({ children }: AppLayoutProps) {
             return () => stopAutoSync()
         }
     }, [user?.id])
+
+    // Iniciar push notifications quando o usuário estiver logado
+    useEffect(() => {
+        if (user?.id) {
+            requestNotificationPermission().then((granted) => {
+                if (granted) {
+                    startPushListener(user.id);
+                }
+            });
+            return () => stopPushListener();
+        }
+    }, [user?.id]);
 
     // Fechar drawer ao mudar de rota
     useEffect(() => {

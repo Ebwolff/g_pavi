@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database.types';
+import { notifyOSCreated, notifyTecnicoAssigned, notifyOSStatusChanged } from '@/lib/notificationHelper';
 
 export type OrdemServico = Database['public']['Tables']['ordens_servico']['Row'] & {
     tecnico?: any;
@@ -151,6 +152,12 @@ class OrdemServicoService {
             .single();
 
         if (error) throw error;
+
+        // Fire-and-forget: notify CHEFE_OFICINA about new OS
+        if ((data as any)?.numero_os) {
+            notifyOSCreated((data as any).id, (data as any).numero_os).catch(() => {});
+        }
+
         return data;
     }
 
@@ -177,6 +184,17 @@ class OrdemServicoService {
             .single();
 
         if (error) throw error;
+
+        // Fire-and-forget: notify when tecnico is assigned
+        if (updates.tecnico_id && (data as any)?.id) {
+            notifyTecnicoAssigned((data as any).id, updates.tecnico_id as string).catch(() => {});
+        }
+
+        // Fire-and-forget: notify when status changes
+        if (updates.status_atual && (data as any)?.id) {
+            notifyOSStatusChanged((data as any).id, updates.status_atual as string).catch(() => {});
+        }
+
         return data;
     }
 

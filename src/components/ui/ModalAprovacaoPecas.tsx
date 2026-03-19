@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { X, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Button } from './Button';
+import { notifyAlmoxarifado } from '@/lib/notificationHelper';
 
 interface ItemAprovacao {
     id: string;
@@ -84,6 +85,13 @@ export function ModalAprovacaoPecas({ os, onClose, onSuccess }: ModalAprovacaoPe
                 } as any);
 
             onSuccess();
+
+            // Fire-and-forget: notify ALMOXARIFADO about approved parts
+            const pecasAprovadas = os.itens.filter(i => decisoes[i.id] === 'APROVADO');
+            if (pecasAprovadas.length > 0) {
+                const descricoes = pecasAprovadas.map(p => p.descricao).join(', ');
+                notifyAlmoxarifado(os.id, descricoes).catch(() => {});
+            }
         } catch (error: any) {
             logger.error('Erro ao salvar aprovações:', error);
             alert(`Erro ao salvar: ${error.message}`);
