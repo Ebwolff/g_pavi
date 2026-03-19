@@ -353,29 +353,29 @@ export default function PainelTecnico() {
                         </div>
 
                         {/* KPIs */}
-                        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                             {/* Card: OS Concluídas */}
-                            <div className="glass-card-enterprise p-4 md:p-6 rounded-2xl md:rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
-                                <span className="text-[9px] md:text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] md:tracking-[0.2em] mb-1 md:mb-2">OS Concluídas</span>
-                                <span className="text-2xl md:text-3xl font-black text-blue-400 tracking-tight">{osFechadasPeriodo.length}</span>
+                            <div className="glass-card-enterprise p-3 md:p-6 rounded-2xl md:rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center min-w-0 overflow-hidden">
+                                <span className="text-[8px] md:text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.1em] md:tracking-[0.2em] mb-1 md:mb-2 truncate">OS Concluídas</span>
+                                <span className="text-lg md:text-3xl font-black text-blue-400 tracking-tight truncate">{osFechadasPeriodo.length}</span>
                             </div>
 
                             {/* Card: Faturamento */}
-                            <div className="glass-card-enterprise p-4 md:p-6 rounded-2xl md:rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
-                                <span className="text-[9px] md:text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] md:tracking-[0.2em] mb-1 md:mb-2">Faturamento</span>
-                                <span className="text-xl md:text-3xl font-black text-emerald-400 tracking-tight">{formatCurrency(faturamentoPeriodo)}</span>
+                            <div className="glass-card-enterprise p-3 md:p-6 rounded-2xl md:rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center min-w-0 overflow-hidden">
+                                <span className="text-[8px] md:text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.1em] md:tracking-[0.2em] mb-1 md:mb-2 truncate">Faturamento</span>
+                                <span className="text-sm md:text-3xl font-black text-emerald-400 tracking-tight truncate">{formatCurrency(faturamentoPeriodo)}</span>
                             </div>
 
                             {/* Card: Despesas */}
-                            <div className="glass-card-enterprise p-4 md:p-6 rounded-2xl md:rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
-                                <span className="text-[9px] md:text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] md:tracking-[0.2em] mb-1 md:mb-2">Despesas</span>
-                                <span className="text-xl md:text-3xl font-black text-rose-400 tracking-tight">{formatCurrency(totalDespesasPeriodo)}</span>
+                            <div className="glass-card-enterprise p-3 md:p-6 rounded-2xl md:rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center min-w-0 overflow-hidden">
+                                <span className="text-[8px] md:text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.1em] md:tracking-[0.2em] mb-1 md:mb-2 truncate">Despesas</span>
+                                <span className="text-sm md:text-3xl font-black text-rose-400 tracking-tight truncate">{formatCurrency(totalDespesasPeriodo)}</span>
                             </div>
 
                             {/* Card: Saldo */}
-                            <div className="glass-card-enterprise p-4 md:p-6 rounded-2xl md:rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
-                                <span className="text-[9px] md:text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] md:tracking-[0.2em] mb-1 md:mb-2">Saldo Líquido</span>
-                                <span className={`text-xl md:text-3xl font-black tracking-tight ${saldoPeriodo >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>{formatCurrency(saldoPeriodo)}</span>
+                            <div className="glass-card-enterprise p-3 md:p-6 rounded-2xl md:rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center min-w-0 overflow-hidden">
+                                <span className="text-[8px] md:text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.1em] md:tracking-[0.2em] mb-1 md:mb-2 truncate">Saldo Líquido</span>
+                                <span className={`text-sm md:text-3xl font-black tracking-tight truncate ${saldoPeriodo >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>{formatCurrency(saldoPeriodo)}</span>
                             </div>
                         </div>
 
