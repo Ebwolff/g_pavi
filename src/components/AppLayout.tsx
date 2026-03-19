@@ -226,7 +226,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     );
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)]">
+        <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)] max-w-[100vw]">
             {/* ===== DESKTOP SIDEBAR (lg+) ===== */}
             <aside className="hidden lg:flex fixed left-0 top-0 h-full w-64 flex-col z-50 bg-[var(--bg-secondary)] border-r border-[var(--border-subtle)] shadow-2xl">
                 {menuContent}
@@ -253,7 +253,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </aside>
 
             {/* ===== MAIN CONTENT ===== */}
-            <div className="flex-1 flex flex-col lg:ml-64 min-h-screen">
+            <div className="flex-1 flex flex-col lg:ml-64 min-h-screen w-full min-w-0 overflow-x-hidden">
                 {/* Mobile Top Header */}
                 <header className="lg:hidden sticky top-0 z-40 flex items-center gap-3 px-4 py-3 bg-[var(--bg-secondary)] border-b border-[var(--border-subtle)] shadow-md">
                     <button
@@ -276,7 +276,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <OfflineStatusBar />
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-auto bg-[var(--bg-primary)] scrollbar-visao360">
+                <main className="flex-1 overflow-y-auto overflow-x-hidden bg-[var(--bg-primary)] scrollbar-visao360 w-full">
                     {children}
                 </main>
             </div>
