@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { comprasService } from '@/services/compras.service';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from './Button';
+import { notifyCompras } from '@/lib/notificationHelper';
 
 interface ItemOS {
     id: string;
@@ -102,6 +103,9 @@ export function ModalTriagemPecas({ isOpen, onClose, os, onSuccess }: ModalTriag
 
             setProcessados(prev => [...prev, item.id]);
             setDecisoes(prev => ({ ...prev, [item.id]: 'compra' }));
+
+            // Fire-and-forget: notify COMPRAS about purchase request
+            notifyCompras(os.id, item.descricao).catch(() => {});
         } catch (error: any) {
             alert(`Erro ao solicitar compra: ${error.message}`);
         } finally {
