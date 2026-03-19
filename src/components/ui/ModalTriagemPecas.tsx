@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { comprasService } from '@/services/compras.service';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from './Button';
-import { notifyCompras } from '@/lib/notificationHelper';
+import { notifyCompras, notifyAlmoxarifado } from '@/lib/notificationHelper';
 
 interface ItemOS {
     id: string;
@@ -71,6 +71,9 @@ export function ModalTriagemPecas({ isOpen, onClose, os, onSuccess }: ModalTriag
 
             setProcessados(prev => [...prev, item.id]);
             setDecisoes(prev => ({ ...prev, [item.id]: 'estoque' }));
+
+            // Fire-and-forget: notify ALMOXARIFADO to separate the part
+            notifyAlmoxarifado(os.id, item.descricao).catch(() => {});
         } catch (error: any) {
             alert(`Erro ao solicitar do estoque: ${error.message}`);
         } finally {
