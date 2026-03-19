@@ -1,4 +1,4 @@
-import { ReactNode, useMemo, useEffect } from 'react';
+import { ReactNode, useMemo, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { hasPermission } from '@/utils/permissions';
@@ -23,7 +23,9 @@ import {
     Package,
     Sun,
     Moon,
-    CheckCircle
+    CheckCircle,
+    Menu,
+    X
 } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
 
@@ -54,6 +56,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     const navigate = useNavigate();
     const location = useLocation();
     const { profile, logout, user } = useAuth();
+    const [drawerOpen, setDrawerOpen] = useState(false);
 
     // Iniciar auto-sync quando o usuário estiver logado
     useEffect(() => {
@@ -62,6 +65,30 @@ export function AppLayout({ children }: AppLayoutProps) {
             return () => stopAutoSync()
         }
     }, [user?.id])
+
+    // Fechar drawer ao mudar de rota
+    useEffect(() => {
+        setDrawerOpen(false);
+    }, [location.pathname]);
+
+    // Fechar drawer com ESC
+    useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setDrawerOpen(false);
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, []);
+
+    // Bloquear scroll do body quando drawer está aberto
+    useEffect(() => {
+        if (drawerOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => { document.body.style.overflow = ''; };
+    }, [drawerOpen]);
 
     const allMenuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
@@ -88,114 +115,171 @@ export function AppLayout({ children }: AppLayoutProps) {
 
     const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
+    // Conteúdo do menu (reutilizado no sidebar desktop e drawer mobile)
+    const menuContent = (
+        <>
+            {/* Logo & Branding */}
+            <div className="p-5 border-b border-[var(--border-subtle)]">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-600 shadow-lg shadow-blue-500/20">
+                        <FileText className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="font-bold text-lg text-[var(--text-primary)] tracking-tight">
+                            Visão 360
+                        </h1>
+                        <p className="text-xs text-[var(--text-muted)] font-medium tracking-wide">
+                            Agro System
+                        </p>
+                    </div>
+                    {/* Botão fechar — só mobile */}
+                    <button
+                        onClick={() => setDrawerOpen(false)}
+                        className="lg:hidden ml-auto p-2 rounded-lg hover:bg-[var(--surface-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Navigation Menu */}
+            <nav className="flex-1 py-4 px-3 overflow-y-auto scrollbar-visao360">
+                <div className="space-y-1">
+                    {menuItems.map((item) => {
+                        const Icon = item.icon;
+                        const active = isActive(item.path);
+
+                        return (
+                            <button
+                                key={item.path}
+                                onClick={() => navigate(item.path)}
+                                className={`
+                                    w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative overflow-hidden
+                                    ${active
+                                        ? 'bg-blue-600/10 text-blue-400 border border-blue-600/20 shadow-lg shadow-blue-900/10'
+                                        : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] border border-transparent'}
+                                `}
+                            >
+                                {/* Active Indicator Line */}
+                                {active && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                                )}
+
+                                <Icon className={`w-5 h-5 flex-shrink-0 transition-colors duration-200 ${active ? 'text-blue-400' : 'group-hover:text-[var(--text-primary)]'}`} />
+                                <span className="text-sm font-medium flex-1 text-left tracking-wide">{item.label}</span>
+
+                                {active && <ChevronRight className="w-4 h-4 text-blue-500/50 animate-pulse" />}
+                            </button>
+                        );
+                    })}
+                </div>
+            </nav>
+
+            {/* User Profile & Logout */}
+            <div className="p-4 border-t border-[var(--border-subtle)] bg-[var(--bg-secondary)]">
+                <div className="flex items-center gap-3 p-3 rounded-xl mb-3 bg-[var(--surface)] border border-[var(--border-subtle)] hover:border-[var(--border-hover)] transition-colors duration-200">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md">
+                        {(profile?.first_name?.[0] || 'U').toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate text-[var(--text-primary)]">
+                            {(() => {
+                                const first = profile?.first_name || 'Usuário';
+                                const last = profile?.last_name || '';
+                                if (first === 'Usuário' && (last === 'Usuário' || !last)) return 'Usuário';
+                                return `${first} ${last}`;
+                            })()}
+                        </p>
+                        <p className="text-xs capitalize truncate text-[var(--text-muted)]">
+                            {profile?.role?.toLowerCase().replace('_', ' ') || 'Usuário'}
+                        </p>
+                    </div>
+                </div>
+
+                <button
+                    onClick={async () => {
+                        await logout();
+                        navigate('/login');
+                    }}
+                    className="
+                        w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg transition-all duration-200
+                        text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 border border-transparent
+                        group
+                    "
+                >
+                    <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                    <span className="text-sm font-medium">Sair do Sistema</span>
+                </button>
+
+                {/* Theme Toggle Mini */}
+                <div className="flex justify-center mt-3">
+                    <ThemeToggleMini />
+                </div>
+
+                <div className="mt-2 text-center">
+                    <span className="text-[10px] text-[var(--text-muted)] opacity-50 font-mono">
+                        v1.2.0 • Pro Max
+                    </span>
+                </div>
+            </div>
+        </>
+    );
+
     return (
         <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)]">
-            {/* MARDISA Premium Dark Sidebar */}
-            <aside className="fixed left-0 top-0 h-full w-64 flex flex-col z-50 bg-[var(--bg-secondary)] border-r border-[var(--border-subtle)] transition-all duration-300 shadow-2xl">
-                {/* Logo & Branding */}
-                <div className="p-6 border-b border-[var(--border-subtle)]">
-                    <div className="flex items-center gap-3 group cursor-pointer">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-600 shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300">
-                            <FileText className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                            <h1 className="font-bold text-lg text-[var(--text-primary)] tracking-tight">
-                                Visão 360
-                            </h1>
-                            <p className="text-xs text-[var(--text-muted)] font-medium tracking-wide">
-                                Agro System
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Navigation Menu */}
-                <nav className="flex-1 py-6 px-3 overflow-y-auto scrollbar-visao360">
-                    <div className="space-y-1">
-                        {menuItems.map((item) => {
-                            const Icon = item.icon;
-                            const active = isActive(item.path);
-
-                            return (
-                                <button
-                                    key={item.path}
-                                    onClick={() => navigate(item.path)}
-                                    className={`
-                                        w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative overflow-hidden
-                                        ${active
-                                            ? 'bg-blue-600/10 text-blue-400 border border-blue-600/20 shadow-lg shadow-blue-900/10'
-                                            : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] border border-transparent'}
-                                    `}
-                                >
-                                    {/* Active Indicator Line */}
-                                    {active && (
-                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
-                                    )}
-
-                                    <Icon className={`w-5 h-5 flex-shrink-0 transition-colors duration-200 ${active ? 'text-blue-400' : 'group-hover:text-[var(--text-primary)]'}`} />
-                                    <span className="text-sm font-medium flex-1 text-left tracking-wide">{item.label}</span>
-
-                                    {active && <ChevronRight className="w-4 h-4 text-blue-500/50 animate-pulse" />}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </nav>
-
-                {/* User Profile & Logout */}
-                <div className="p-4 border-t border-[var(--border-subtle)] bg-[var(--bg-secondary)]">
-                    <div className="flex items-center gap-3 p-3 rounded-xl mb-3 bg-[var(--surface)] border border-[var(--border-subtle)] hover:border-[var(--border-hover)] transition-colors duration-200">
-                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md">
-                            {(profile?.first_name?.[0] || 'U').toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold truncate text-[var(--text-primary)]">
-                                {(() => {
-                                    const first = profile?.first_name || 'Usuário';
-                                    const last = profile?.last_name || '';
-                                    if (first === 'Usuário' && (last === 'Usuário' || !last)) return 'Usuário';
-                                    return `${first} ${last}`;
-                                })()}
-                            </p>
-                            <p className="text-xs capitalize truncate text-[var(--text-muted)]">
-                                {profile?.role?.toLowerCase().replace('_', ' ') || 'Usuário'}
-                            </p>
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={async () => {
-                            await logout();
-                            navigate('/login');
-                        }}
-                        className="
-                            w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg transition-all duration-200
-                            text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 border border-transparent
-                            group
-                        "
-                    >
-                        <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                        <span className="text-sm font-medium">Sair do Sistema</span>
-                    </button>
-
-                    {/* Theme Toggle Mini */}
-                    <div className="flex justify-center mt-3">
-                        <ThemeToggleMini />
-                    </div>
-
-                    <div className="mt-2 text-center">
-                        <span className="text-[10px] text-[var(--text-muted)] opacity-50 font-mono">
-                            v1.2.0 • Pro Max
-                        </span>
-                    </div>
-                </div>
+            {/* ===== DESKTOP SIDEBAR (lg+) ===== */}
+            <aside className="hidden lg:flex fixed left-0 top-0 h-full w-64 flex-col z-50 bg-[var(--bg-secondary)] border-r border-[var(--border-subtle)] shadow-2xl">
+                {menuContent}
             </aside>
 
-            {/* Main Content Area */}
-            <main className="flex-1 overflow-auto ml-64 bg-[var(--bg-primary)] scrollbar-visao360">
+            {/* ===== MOBILE DRAWER OVERLAY ===== */}
+            {drawerOpen && (
+                <div
+                    className="lg:hidden fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+                    onClick={() => setDrawerOpen(false)}
+                />
+            )}
+
+            {/* ===== MOBILE DRAWER ===== */}
+            <aside
+                className={`
+                    lg:hidden fixed left-0 top-0 h-full w-72 flex flex-col z-[70]
+                    bg-[var(--bg-secondary)] border-r border-[var(--border-subtle)] shadow-2xl
+                    transform transition-transform duration-300 ease-in-out
+                    ${drawerOpen ? 'translate-x-0' : '-translate-x-full'}
+                `}
+            >
+                {menuContent}
+            </aside>
+
+            {/* ===== MAIN CONTENT ===== */}
+            <div className="flex-1 flex flex-col lg:ml-64 min-h-screen">
+                {/* Mobile Top Header */}
+                <header className="lg:hidden sticky top-0 z-40 flex items-center gap-3 px-4 py-3 bg-[var(--bg-secondary)] border-b border-[var(--border-subtle)] shadow-md">
+                    <button
+                        onClick={() => setDrawerOpen(true)}
+                        className="p-2 rounded-lg hover:bg-[var(--surface-hover)] text-[var(--text-primary)] transition-colors"
+                        aria-label="Abrir menu"
+                    >
+                        <Menu className="w-6 h-6" />
+                    </button>
+                    <div className="flex items-center gap-2 flex-1">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-600 shadow-md">
+                            <FileText className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="font-bold text-[var(--text-primary)] tracking-tight">Visão 360</span>
+                    </div>
+                    <ThemeToggleMini />
+                </header>
+
+                {/* Offline Status */}
                 <OfflineStatusBar />
-                {children}
-            </main>
+
+                {/* Page Content */}
+                <main className="flex-1 overflow-auto bg-[var(--bg-primary)] scrollbar-visao360">
+                    {children}
+                </main>
+            </div>
         </div>
     );
 }
