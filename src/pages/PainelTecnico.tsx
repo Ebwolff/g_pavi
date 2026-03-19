@@ -272,13 +272,13 @@ export default function PainelTecnico() {
 
     return (
         <AppLayout>
-            <div className="p-8 space-y-8 animate-fadeIn max-w-[1600px] mx-auto">
+            <div className="p-4 md:p-8 space-y-6 md:space-y-8 animate-fadeIn max-w-[1600px] mx-auto overflow-x-hidden">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-black text-[var(--text-primary)] flex items-center gap-3 tracking-tight">
-                            <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20">
-                                <Wrench className="w-8 h-8 text-blue-500" />
+                        <h1 className="text-xl md:text-3xl font-black text-[var(--text-primary)] flex items-center gap-3 tracking-tight">
+                            <div className="p-2 md:p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+                                <Wrench className="w-6 h-6 md:w-8 md:h-8 text-blue-500" />
                             </div>
                             Painel do Técnico
                         </h1>
@@ -300,7 +300,7 @@ export default function PainelTecnico() {
 
                 {/* Tab Navigation */}
                 {!isGerente && (
-                    <div className="flex items-center gap-1 p-1 bg-[var(--surface-light)] rounded-xl border border-white/5 w-fit">
+                    <div className="flex items-center gap-1 p-1 bg-[var(--surface-light)] rounded-xl border border-white/5 w-full sm:w-fit overflow-x-auto scrollbar-hide">
                         <button
                             onClick={() => setActiveTab('dashboard')}
                             className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'dashboard'
@@ -328,9 +328,9 @@ export default function PainelTecnico() {
                 {(!isGerente && activeTab === 'dashboard') && (
                     <div className="space-y-8 animate-fadeIn">
                         {/* Filtro de Período */}
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tight">Desempenho e Financeiro</h2>
-                            <div className="flex bg-[var(--surface-light)] rounded-xl p-1 border border-[var(--border-subtle)] overflow-x-auto scrollbar-hide">
+                            <div className="flex bg-[var(--surface-light)] rounded-xl p-1 border border-[var(--border-subtle)] overflow-x-auto scrollbar-hide w-full sm:w-auto">
                                 {(
                                     [
                                         { id: 'SEMANA', title: '7 Dias' },
@@ -353,34 +353,34 @@ export default function PainelTecnico() {
                         </div>
 
                         {/* KPIs */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                             {/* Card: OS Concluídas */}
-                            <div className="glass-card-enterprise p-6 rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
-                                <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2">OS Concluídas</span>
-                                <span className="text-3xl font-black text-blue-400 tracking-tight">{osFechadasPeriodo.length}</span>
+                            <div className="glass-card-enterprise p-4 md:p-6 rounded-2xl md:rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
+                                <span className="text-[9px] md:text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] md:tracking-[0.2em] mb-1 md:mb-2">OS Concluídas</span>
+                                <span className="text-2xl md:text-3xl font-black text-blue-400 tracking-tight">{osFechadasPeriodo.length}</span>
                             </div>
 
                             {/* Card: Faturamento */}
-                            <div className="glass-card-enterprise p-6 rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
-                                <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2">Faturamento</span>
-                                <span className="text-3xl font-black text-emerald-400 tracking-tight">{formatCurrency(faturamentoPeriodo)}</span>
+                            <div className="glass-card-enterprise p-4 md:p-6 rounded-2xl md:rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
+                                <span className="text-[9px] md:text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] md:tracking-[0.2em] mb-1 md:mb-2">Faturamento</span>
+                                <span className="text-xl md:text-3xl font-black text-emerald-400 tracking-tight">{formatCurrency(faturamentoPeriodo)}</span>
                             </div>
 
                             {/* Card: Despesas */}
-                            <div className="glass-card-enterprise p-6 rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
-                                <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2">Despesas</span>
-                                <span className="text-3xl font-black text-rose-400 tracking-tight">{formatCurrency(totalDespesasPeriodo)}</span>
+                            <div className="glass-card-enterprise p-4 md:p-6 rounded-2xl md:rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
+                                <span className="text-[9px] md:text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] md:tracking-[0.2em] mb-1 md:mb-2">Despesas</span>
+                                <span className="text-xl md:text-3xl font-black text-rose-400 tracking-tight">{formatCurrency(totalDespesasPeriodo)}</span>
                             </div>
 
                             {/* Card: Saldo */}
-                            <div className="glass-card-enterprise p-6 rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
-                                <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2">Saldo Líquido</span>
-                                <span className={`text-3xl font-black tracking-tight ${saldoPeriodo >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>{formatCurrency(saldoPeriodo)}</span>
+                            <div className="glass-card-enterprise p-4 md:p-6 rounded-2xl md:rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] flex flex-col justify-center">
+                                <span className="text-[9px] md:text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] md:tracking-[0.2em] mb-1 md:mb-2">Saldo Líquido</span>
+                                <span className={`text-xl md:text-3xl font-black tracking-tight ${saldoPeriodo >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>{formatCurrency(saldoPeriodo)}</span>
                             </div>
                         </div>
 
                         {/* Minhas Despesas */}
-                        <div className="glass-card-enterprise p-8 rounded-3xl shadow-2xl border border-[var(--border-subtle)] bg-[var(--surface)]">
+                        <div className="glass-card-enterprise p-4 md:p-8 rounded-2xl md:rounded-3xl shadow-2xl border border-[var(--border-subtle)] bg-[var(--surface)]">
                             <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
                                 <CreditCard className="w-5 h-5 text-blue-500" />
                                 Minhas Despesas
@@ -447,7 +447,7 @@ export default function PainelTecnico() {
 
                         {/* Últimas despesas */}
                         {despesasTecnico.length > 0 && (
-                            <div className="glass-card-enterprise p-8 rounded-3xl shadow-2xl border border-[var(--border-subtle)] bg-[var(--surface)]">
+                            <div className="glass-card-enterprise p-4 md:p-8 rounded-2xl md:rounded-3xl shadow-2xl border border-[var(--border-subtle)] bg-[var(--surface)]">
                                 <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
                                     <Clock className="w-5 h-5 text-blue-500" />
                                     Últimas Despesas Registradas
@@ -492,7 +492,7 @@ export default function PainelTecnico() {
                     <div className="space-y-8 animate-fadeIn">
 
                         {/* KPIs */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                             <Card title="Total Ativo" value={estatisticas.totalOS} icon={Wrench} color="blue" priority={1} />
                             <Card title="Em Andamento" value={estatisticas.emAndamento} icon={Clock} color="blue" priority={2} />
                             <Card title="Aguardando Peças" value={estatisticas.aguardandoPecas} icon={Box} color="amber" priority={3} />
@@ -521,7 +521,7 @@ export default function PainelTecnico() {
                                     {osAtribuidas.map((os: any) => (
                                         <div
                                             key={os.id}
-                                            className="glass-card-enterprise p-6 rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] hover:bg-[var(--surface-hover)] transition-all duration-group relative overflow-hidden"
+                                            className="glass-card-enterprise p-4 md:p-6 rounded-2xl md:rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] hover:bg-[var(--surface-hover)] transition-all duration-group relative overflow-hidden"
                                         >
                                             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
                                                 <div className="flex-1 space-y-4 w-full">
