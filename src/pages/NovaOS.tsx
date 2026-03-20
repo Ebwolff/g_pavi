@@ -47,7 +47,11 @@ export function NovaOS() {
         },
         onError: (error: any) => {
             logger.error('Erro ao criar OS:', error);
-            alert(`Erro ao criar OS: ${error.message || 'Ocorreu um erro inesperado'}`);
+            if (error.message?.includes('numero_os_key') || error.message?.includes('duplicate key')) {
+                alert(`O número de OS "${formData.numero_os}" já existe no sistema. Use outro número ou clique em "Gerar Próximo Disponível".`);
+            } else {
+                alert(`Erro ao criar OS: ${error.message || 'Ocorreu um erro inesperado'}`);
+            }
         },
     });
 
@@ -131,6 +135,18 @@ export function NovaOS() {
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         if (!formData.numero_os.trim()) return;
+
+        // Check if numero_os already exists before attempting to create
+        const { data: existing } = await supabase
+            .from('ordens_servico')
+            .select('id')
+            .eq('numero_os', formData.numero_os.trim())
+            .maybeSingle();
+
+        if (existing) {
+            alert(`O número de OS "${formData.numero_os}" já existe no sistema. Use outro número ou clique em "Gerar Próximo Disponível".`);
+            return;
+        }
 
         let pdfNbsUrl: string | null = null;
 
