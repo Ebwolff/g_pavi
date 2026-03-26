@@ -317,6 +317,98 @@ class FrotaService {
             inativos: veiculos.filter(v => v.status === 'INATIVO').length,
         };
     }
+
+    /**
+     * Busca movimentações recentes (histórico de alocações)
+     */
+    async getMovimentacoesRecentes(limit = 10): Promise<MovimentacaoFrota[]> {
+        const { data, error } = await supabase
+            .from('historico_alocacao_veiculos' as any)
+            .select(`
+                *,
+                tecnico:tecnico_id (id, nome_completo),
+                veiculo:veiculo_id (id, placa, modelo, marca)
+            `)
+            .order('data_inicio', { ascending: false })
+            .limit(limit);
+
+        if (error) {
+            logger.error('Erro ao buscar movimentações:', error);
+            return [];
+        }
+
+        return (data || []) as MovimentacaoFrota[];
+    }
+
+    /**
+     * Busca estatísticas completas para o dashboard
+     */
+    async getEstatisticasDashboard(): Promise<EstatisticasDashboard> {
+        const veiculos = await this.getVeiculos();
+        const movimentacoes = await this.getMovimentacoesRecentes(50);
+
+        // Veículos por status
+        const porStatus = {
+            total: veiculos.length,
+            disponiveis: veiculos.filter(v => v.status === 'DISPONIVEL').length,
+            emUso: veiculos.filter(v => v.status === 'EM_USO').length,
+            manutencao: veiculos.filter(v => v.status === 'MANUTENCAO').length,
+            inativos: veiculos.filter(v => v.status === 'INATIVO').length,
+        };
+
+        // Movimentações de hoje
+        const hoje = new Date().toISOString().split('T')[0];
+        const movHoje = movimentacoes.filter(m => m.data_inicio?.startsWith(hoje)).length;
+
+        // Km total rodado (soma da diferença km_fim - km_inicio onde disponível)
+        const kmRodado = movimentacoes.reduce((sum, m) => {
+            if (m.km_fim && m.km_inicio) return sum + (m.km_fim - m.km_inicio);
+            return sum;
+        }, 0);
+
+        return {
+            porStatus,
+            movHoje,
+            kmRodado,
+            movimentacoes: movimentacoes.slice(0, 10),
+        };
+    }
+}
+
+export interface MovimentacaoFrota {
+    id: string;
+    veiculo_id: string;
+    tecnico_id: string | null;
+    data_inicio: string;
+    data_fim: string | null;
+    km_inicio: number | null;
+    km_fim: number | null;
+    motivo: string | null;
+    alocado_por: string | null;
+    created_at: string;
+    tecnico?: {
+        id: string;
+        nome_completo: string;
+    };
+    veiculo?: {
+        id: string;
+        placa: string;
+        modelo: string;
+        marca: string;
+    };
+}
+
+export interface EstatisticasDashboard {
+    porStatus: {
+        total: number;
+        disponiveis: number;
+        emUso: number;
+        manutencao: number;
+        inativos: number;
+    };
+    movHoje: number;
+    kmRodado: number;
+    movimentacoes: MovimentacaoFrota[];
 }
 
 export const frotaService = new FrotaService();
