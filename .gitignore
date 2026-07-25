@@ -33,3 +33,6 @@ dist-ssr
 debug_*.json
 jose_prof.json
 dump.sql
+
+# Supabase CLI local cache/state (não deve ser versionado)
+supabase/.temp/
