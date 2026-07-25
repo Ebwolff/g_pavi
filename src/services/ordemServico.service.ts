@@ -4,9 +4,9 @@ import { notifyOSCreated, notifyTecnicoAssigned, notifyOSStatusChanged } from '@
 import { sanitizePostgrestFilterValue } from '@/lib/utils';
 
 export type OrdemServico = Database['public']['Tables']['ordens_servico']['Row'] & {
-    tecnico?: any;
+    tecnico?: Database['public']['Tables']['tecnicos']['Row'] | null;
     cliente?: Database['public']['Tables']['clientes']['Row'] | null;
-    maquina?: any;
+    maquina?: Database['public']['Tables']['maquinas']['Row'] | null;
     consultor?: Database['public']['Tables']['profiles']['Row'] | null;
     itens?: Database['public']['Tables']['itens_os']['Row'][] | null;
 };

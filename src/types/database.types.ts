@@ -178,6 +178,47 @@ export interface Database {
                 };
                 Relationships: [];
             };
+            maquinas: {
+                Row: {
+                    id: string;
+                    chassi: string;
+                    modelo: string;
+                    cliente_id: string;
+                    ano: number | null;
+                    horas_uso: number | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    chassi: string;
+                    modelo: string;
+                    cliente_id: string;
+                    ano?: number | null;
+                    horas_uso?: number | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    chassi?: string;
+                    modelo?: string;
+                    cliente_id?: string;
+                    ano?: number | null;
+                    horas_uso?: number | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "maquinas_cliente_id_fkey";
+                        columns: ["cliente_id"];
+                        isOneToOne: false;
+                        referencedRelation: "clientes";
+                        referencedColumns: ["id"];
+                    }
+                ];
+            };
             ordens_servico: {
                 Row: {
                     id: string;
@@ -337,6 +378,13 @@ export interface Database {
                         columns: ["consultor_id"];
                         isOneToOne: false;
                         referencedRelation: "profiles";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "ordens_servico_maquina_id_fkey";
+                        columns: ["maquina_id"];
+                        isOneToOne: false;
+                        referencedRelation: "maquinas";
                         referencedColumns: ["id"];
                     },
                     {
