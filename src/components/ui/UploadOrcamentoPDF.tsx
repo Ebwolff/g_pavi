@@ -5,7 +5,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 
 // Configurar o worker do pdfjs-dist para rodar no Vite
 // A versão importada abaixo é apenas para fins de configuração do GlobalWorkerOptions
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 

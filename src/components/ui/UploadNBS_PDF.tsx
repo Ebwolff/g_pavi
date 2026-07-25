@@ -4,7 +4,7 @@ import { UploadCloud, FileText, AlertTriangle, Loader2 } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Configurar o worker do pdfjs-dist (mesma abordagem do UploadOrcamentoPDF)
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
