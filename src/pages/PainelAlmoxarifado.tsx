@@ -197,8 +197,7 @@ export default function PainelAlmoxarifado() {
     const liberarParaRetirada = async () => {
         if (!selectedOS) return;
         try {
-            const { error } = await ordemServicoService.update(selectedOS.id, { status_atual: 'AGUARDANDO_ATRIBUICAO' } as any);
-            if (error) throw error;
+            await ordemServicoService.update(selectedOS.id, { status_atual: 'AGUARDANDO_ATRIBUICAO' } as any);
             setSelectedOS(null);
             carregarDados();
         } catch (error: any) {

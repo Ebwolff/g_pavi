@@ -28,3 +28,8 @@ dist-ssr
 .env.development
 .env.local
 .env*.local
+
+# Debug dumps (podem conter dados reais de usuários)
+debug_*.json
+jose_prof.json
+dump.sql

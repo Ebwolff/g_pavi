@@ -26,6 +26,9 @@ export type StatusOrcamento = 'EM_ELABORACAO' | 'ENVIADO_CLIENTE' | 'APROVADO' |
 export type StatusAprovacaoPeca = 'PENDENTE_CONSULTOR' | 'APROVADO' | 'REPROVADO';
 
 export interface Database {
+    __InternalSupabase: {
+        PostgrestVersion: '12';
+    };
     public: {
         Tables: {
             profiles: {
@@ -59,6 +62,7 @@ export interface Database {
                     created_at?: string;
                     updated_at?: string;
                 };
+                Relationships: [];
             };
             orcamentos_servico: {
                 Row: {
@@ -124,6 +128,7 @@ export interface Database {
                     updated_at?: string;
                     observacoes?: string | null;
                 };
+                Relationships: [];
             };
             clientes: {
                 Row: {
@@ -156,6 +161,7 @@ export interface Database {
                     created_at?: string;
                     updated_at?: string;
                 };
+                Relationships: [];
             };
             ordens_servico: {
                 Row: {
@@ -296,6 +302,7 @@ export interface Database {
                     roteiro?: string | null;
                     orcamento_id?: string | null;
                 };
+                Relationships: [];
             };
             historico_status_os: {
                 Row: {
@@ -340,6 +347,7 @@ export interface Database {
                     localizacao_atual?: string | null;
                     motivo_pausa?: string | null;
                 };
+                Relationships: [];
             };
             pendencias_os: {
                 Row: {
@@ -384,6 +392,7 @@ export interface Database {
                     created_at?: string;
                     updated_at?: string;
                 };
+                Relationships: [];
             };
             alertas: {
                 Row: {
@@ -422,6 +431,7 @@ export interface Database {
                     usuario_id?: string | null;
                     created_at?: string;
                 };
+                Relationships: [];
             };
             auditoria_os: {
                 Row: {
@@ -460,6 +470,7 @@ export interface Database {
                     ip_address?: string | null;
                     timestamp?: string;
                 };
+                Relationships: [];
             };
             metas: {
                 Row: {
@@ -507,6 +518,7 @@ export interface Database {
                     created_at?: string;
                     updated_at?: string;
                 };
+                Relationships: [];
             };
             importacoes_log: {
                 Row: {
@@ -557,6 +569,7 @@ export interface Database {
                     data_fim?: string | null;
                     duracao_segundos?: number | null;
                 };
+                Relationships: [];
             };
             itens_os: {
                 Row: {
@@ -595,6 +608,7 @@ export interface Database {
                     status_aprovacao?: StatusAprovacaoPeca | string;
                     created_at?: string;
                 };
+                Relationships: [];
             };
             solicitacoes_compra: {
                 Row: {
@@ -674,6 +688,7 @@ export interface Database {
                     motivo_cancelamento?: string | null;
                     created_at?: string;
                 };
+                Relationships: [];
             };
             anexos_os: {
                 Row: {
@@ -703,6 +718,7 @@ export interface Database {
                     usuario_id?: string | null;
                     created_at?: string;
                 };
+                Relationships: [];
             };
             tecnicos: {
                 Row: {
@@ -738,6 +754,7 @@ export interface Database {
                     created_at?: string;
                     updated_at?: string;
                 };
+                Relationships: [];
             };
         };
         Views: {
@@ -756,6 +773,7 @@ export interface Database {
                     consultor_nome: string | null;
                     pendencias_ativas: number;
                 };
+                Relationships: [];
             };
             vw_os_motivos_abertura: {
                 Row: {
@@ -782,6 +800,7 @@ export interface Database {
                     nome_cliente_digitavel: string | null;
                     modelo_maquina: string | null;
                 };
+                Relationships: [];
             };
             vw_pecas_pendentes_separacao: {
                 Row: {
@@ -799,6 +818,7 @@ export interface Database {
                     tecnico_responsavel: string;
                     data_solicitacao: string;
                 };
+                Relationships: [];
             };
         };
         Functions: {
