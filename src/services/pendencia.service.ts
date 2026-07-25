@@ -1,8 +1,8 @@
 import { supabase } from '../lib/supabase';
-import { Database, StatusPendencia } from '../types/database.types';
+import { Database, StatusPendencia, TipoPendencia } from '../types/database.types';
 
 export type Pendencia = Database['public']['Tables']['pendencias_os']['Row'];
-export type { StatusPendencia };
+export type { StatusPendencia, TipoPendencia };
 
 export interface PendenciaComOS extends Pendencia {
     ordens_servico?: {
@@ -12,8 +12,8 @@ export interface PendenciaComOS extends Pendencia {
 }
 
 export interface PendenciaFilters {
-    tipo?: string;
-    status?: string;
+    tipo?: TipoPendencia | 'TODOS';
+    status?: StatusPendencia | 'TODOS';
     search?: string;
 }
 

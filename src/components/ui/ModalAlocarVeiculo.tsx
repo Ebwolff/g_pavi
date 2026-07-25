@@ -40,7 +40,7 @@ export function ModalAlocarVeiculo({ isOpen, onClose, veiculo, onSuccess }: Moda
         setLoadingTecnicos(true);
         try {
             const { data } = await supabase
-                .from('tecnicos' as any)
+                .from('tecnicos')
                 .select('id, nome_completo')
                 .order('nome_completo');
 

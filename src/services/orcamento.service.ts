@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
-import type { Database } from '@/types/database.types';
+import { sanitizePostgrestFilterValue } from '@/lib/utils';
+import type { Database, StatusOrcamento } from '@/types/database.types';
 
 export type OrcamentoServico = Database['public']['Tables']['orcamentos_servico']['Row'] & {
     cliente?: Database['public']['Tables']['clientes']['Row'] | null;
@@ -8,7 +9,7 @@ export type OrcamentoServico = Database['public']['Tables']['orcamentos_servico'
 };
 
 export interface OrcamentoFilters {
-    status?: string;
+    status?: StatusOrcamento | '';
     search?: string;
     dataInicio?: string;
     dataFim?: string;
@@ -54,7 +55,10 @@ class OrcamentoService {
         }
 
         if (filters.search) {
-            query = query.or(`numero_orcamento.ilike.%${filters.search}%,nome_cliente_digitavel.ilike.%${filters.search}%,chassi.ilike.%${filters.search}%`);
+            const term = sanitizePostgrestFilterValue(filters.search);
+            if (term) {
+                query = query.or(`numero_orcamento.ilike.%${term}%,nome_cliente_digitavel.ilike.%${term}%,chassi.ilike.%${term}%`);
+            }
         }
 
         const from = (page - 1) * limit;

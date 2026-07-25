@@ -63,14 +63,14 @@ async function executeSyncAction(action: SyncAction): Promise<void> {
     switch (tipo) {
         case 'create': {
             const { error } = await (supabase
-                .from(table) as any)
+                .from(table as any) as any)
                 .insert(payload)
             if (error) throw error
             break
         }
         case 'update': {
             const { error } = await (supabase
-                .from(table) as any)
+                .from(table as any) as any)
                 .update(payload)
                 .eq('id', recordId)
             if (error) throw error
@@ -78,7 +78,7 @@ async function executeSyncAction(action: SyncAction): Promise<void> {
         }
         case 'delete': {
             const { error } = await (supabase
-                .from(table) as any)
+                .from(table as any) as any)
                 .delete()
                 .eq('id', recordId)
             if (error) throw error

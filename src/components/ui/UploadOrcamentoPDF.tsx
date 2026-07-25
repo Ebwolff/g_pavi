@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
-import React, { useCallback, useState } from 'react';
-import { UploadCloud, FileText, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { UploadCloud, FileText, AlertTriangle, Loader2 } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Configurar o worker do pdfjs-dist para rodar no Vite
@@ -59,7 +59,6 @@ export function UploadOrcamentoPDF({ onUploadSuccess }: UploadOrcamentoPDFProps)
             for (let i = 0; i < tokens.length - 2; i++) {
                 const current = tokens[i];
                 const next1 = tokens[i + 1];
-                const next2 = tokens[i + 2];
 
                 // Heurística de Código de Peça: pelo menos 6 caracteres alfanuméricos contendo números, com possível traço
                 const isCodigo = /^[A-Z0-9-]{6,25}$/i.test(current) && /\d/.test(current);

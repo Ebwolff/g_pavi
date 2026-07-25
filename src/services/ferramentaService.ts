@@ -54,7 +54,7 @@ export interface CreateFerramentaInput {
 class FerramentaService {
     async getAll(): Promise<Ferramenta[]> {
         const { data, error } = await supabase
-            .from('ferramentas' as any)
+            .from('ferramentas')
             .select(`*, tecnico:tecnico_id (id, nome_completo)`)
             .order('nome', { ascending: true });
 
@@ -67,7 +67,7 @@ class FerramentaService {
 
     async criar(dados: CreateFerramentaInput): Promise<Ferramenta> {
         const { data, error } = await supabase
-            .from('ferramentas' as any)
+            .from('ferramentas')
             .insert({
                 nome: dados.nome,
                 codigo_patrimonio: dados.codigo_patrimonio || null,
@@ -86,7 +86,7 @@ class FerramentaService {
 
     async atualizar(id: string, dados: Partial<CreateFerramentaInput>): Promise<Ferramenta> {
         const { data, error } = await supabase
-            .from('ferramentas' as any)
+            .from('ferramentas')
             .update(dados)
             .eq('id', id)
             .select()
@@ -98,7 +98,7 @@ class FerramentaService {
 
     async excluir(id: string): Promise<void> {
         const { error } = await supabase
-            .from('ferramentas' as any)
+            .from('ferramentas')
             .delete()
             .eq('id', id);
 
@@ -108,7 +108,7 @@ class FerramentaService {
     async retirar(ferramentaId: string, tecnicoId: string, registradoPor?: string, obs?: string): Promise<void> {
         // Atualizar a ferramenta
         const { error: upErr } = await supabase
-            .from('ferramentas' as any)
+            .from('ferramentas')
             .update({
                 tecnico_id: tecnicoId,
                 data_retirada: new Date().toISOString(),
@@ -119,7 +119,7 @@ class FerramentaService {
 
         // Registrar movimentação
         const { error: movErr } = await supabase
-            .from('movimentacoes_ferramentas' as any)
+            .from('movimentacoes_ferramentas')
             .insert({
                 ferramenta_id: ferramentaId,
                 tecnico_id: tecnicoId,
@@ -135,14 +135,14 @@ class FerramentaService {
     async devolver(ferramentaId: string, registradoPor?: string, obs?: string): Promise<void> {
         // Buscar técnico atual antes de limpar
         const { data: ferramenta } = await supabase
-            .from('ferramentas' as any)
+            .from('ferramentas')
             .select('tecnico_id')
             .eq('id', ferramentaId)
             .single();
 
         // Atualizar a ferramenta
         const { error: upErr } = await supabase
-            .from('ferramentas' as any)
+            .from('ferramentas')
             .update({
                 tecnico_id: null,
                 data_retirada: null,
@@ -153,7 +153,7 @@ class FerramentaService {
 
         // Registrar movimentação
         const { error: movErr } = await supabase
-            .from('movimentacoes_ferramentas' as any)
+            .from('movimentacoes_ferramentas')
             .insert({
                 ferramenta_id: ferramentaId,
                 tecnico_id: (ferramenta as any)?.tecnico_id || null,
@@ -168,7 +168,7 @@ class FerramentaService {
 
     async getMovimentacoes(ferramentaId?: string, limit = 20): Promise<MovimentacaoFerramenta[]> {
         let query = supabase
-            .from('movimentacoes_ferramentas' as any)
+            .from('movimentacoes_ferramentas')
             .select(`
                 *,
                 tecnico:tecnico_id (nome_completo),

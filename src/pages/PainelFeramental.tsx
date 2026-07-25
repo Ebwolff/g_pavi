@@ -118,6 +118,8 @@ export default function PainelFeramental() {
     const [vistoriaVeiculo, setVistoriaVeiculo] = useState<string>('');
     const [vistoriaChecks, setVistoriaChecks] = useState<Record<string, boolean>>({});
     const [vistoriaObs, setVistoriaObs] = useState('');
+    const [salvandoVistoria, setSalvandoVistoria] = useState(false);
+    const [vistoriasNoMes, setVistoriasNoMes] = useState(0);
 
     // Ferramentas tab state
     const [ferramentas, setFerramentas] = useState<Ferramenta[]>([]);
@@ -139,16 +141,29 @@ export default function PainelFeramental() {
     const carregarDados = async () => {
         setLoading(true);
         try {
-            const [veiculosData, dashboard, ferramentasData, movData] = await Promise.all([
+            const inicioMes = new Date();
+            inicioMes.setDate(1);
+            inicioMes.setHours(0, 0, 0, 0);
+
+            const [veiculosData, dashboard, ferramentasData, movData, vistoriasResult] = await Promise.all([
                 frotaService.getVeiculos(),
                 frotaService.getEstatisticasDashboard(),
                 ferramentaService.getAll().catch(() => [] as Ferramenta[]),
                 ferramentaService.getMovimentacoes(undefined, 30).catch(() => [] as MovimentacaoFerramenta[]),
+                supabase
+                    .from('vistorias_veiculos')
+                    .select('id', { count: 'exact', head: true })
+                    .gte('data_vistoria', inicioMes.toISOString())
+                    .then(
+                        (res) => res,
+                        () => ({ count: 0 })
+                    ),
             ]);
             setVeiculos(veiculosData);
             setDashData(dashboard);
             setFerramentas(ferramentasData);
             setMovFerramentas(movData);
+            setVistoriasNoMes(vistoriasResult.count || 0);
         } catch (error) {
             logger.error('Erro ao carregar dados:', error);
         } finally {
@@ -156,8 +171,39 @@ export default function PainelFeramental() {
         }
     };
 
+    const handleRegistrarVistoria = async () => {
+        if (!vistoriaVeiculo) { alert('Selecione um veículo.'); return; }
+        setSalvandoVistoria(true);
+        try {
+            const totalChecados = Object.values(vistoriaChecks).filter(Boolean).length;
+            const status = totalChecados === CHECKLIST_ITEMS.length ? 'APROVADA' : 'PENDENTE';
+
+            const { error } = await supabase
+                .from('vistorias_veiculos')
+                .insert({
+                    veiculo_id: vistoriaVeiculo,
+                    itens: vistoriaChecks,
+                    observacoes: vistoriaObs || null,
+                    status,
+                });
+
+            if (error) throw error;
+
+            alert('Vistoria registrada com sucesso!');
+            setVistoriaChecks({});
+            setVistoriaObs('');
+            setVistoriaVeiculo('');
+            await carregarDados();
+        } catch (err) {
+            logger.error('Erro ao registrar vistoria:', err);
+            alert('Erro ao registrar vistoria. Tente novamente.');
+        } finally {
+            setSalvandoVistoria(false);
+        }
+    };
+
     const carregarTecnicos = async () => {
-        const { data } = await supabase.from('tecnicos' as any).select('id, nome_completo').order('nome_completo');
+        const { data } = await supabase.from('tecnicos').select('id, nome_completo').order('nome_completo');
         setTecnicos((data || []) as { id: string; nome_completo: string }[]);
     };
 
@@ -818,15 +864,10 @@ export default function PainelFeramental() {
                                     variant="primary"
                                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20"
                                     leftIcon={<ClipboardCheck className="w-4 h-4" />}
-                                    disabled={!vistoriaVeiculo || Object.values(vistoriaChecks).filter(Boolean).length === 0}
-                                    onClick={() => {
-                                        alert('Vistoria registrada com sucesso! (integração com banco será adicionada em breve)');
-                                        setVistoriaChecks({});
-                                        setVistoriaObs('');
-                                        setVistoriaVeiculo('');
-                                    }}
+                                    disabled={!vistoriaVeiculo || Object.values(vistoriaChecks).filter(Boolean).length === 0 || salvandoVistoria}
+                                    onClick={handleRegistrarVistoria}
                                 >
-                                    Registrar Vistoria
+                                    {salvandoVistoria ? 'Salvando...' : 'Registrar Vistoria'}
                                 </Button>
                             </div>
 
@@ -854,7 +895,7 @@ export default function PainelFeramental() {
                                         <div className="p-4 bg-emerald-500/5 border border-emerald-500/15 rounded-xl">
                                             <div className="flex items-center justify-between mb-2">
                                                 <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Concluídas (Mês)</span>
-                                                <span className="text-2xl font-black text-emerald-400">0</span>
+                                                <span className="text-2xl font-black text-emerald-400">{vistoriasNoMes}</span>
                                             </div>
                                             <p className="text-[10px] text-[var(--text-muted)]">
                                                 Vistorias realizadas neste mês

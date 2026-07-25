@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 import { alertasService } from '@/services/alertasService';
+import type { UserRole } from '@/types/database.types';
 
 /**
  * Helper to create workflow-handoff alerts that trigger push notifications.
@@ -9,7 +10,7 @@ import { alertasService } from '@/services/alertasService';
  */
 
 // Lookup: find user IDs by role (same tenant)
-async function getUserIdsByRole(role: string): Promise<string[]> {
+async function getUserIdsByRole(role: UserRole): Promise<string[]> {
     const { data } = await supabase
         .from('profiles')
         .select('id')
@@ -29,12 +30,16 @@ async function getTecnicoUserId(tecnicoId: string): Promise<string | null> {
 
 // Lookup: find the consultor (creator) of an OS
 async function getOSConsultorId(osId: string): Promise<string | null> {
-    const { data } = await supabase
+    const { data, error } = await supabase
         .from('ordens_servico')
-        .select('created_by')
+        .select('consultor_id')
         .eq('id', osId)
         .maybeSingle();
-    return (data as { created_by: string } | null)?.created_by || null;
+    if (error) {
+        logger.error('[notificationHelper] Erro ao buscar consultor da OS:', error);
+        return null;
+    }
+    return data?.consultor_id || null;
 }
 
 // Get OS numero for display

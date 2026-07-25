@@ -75,7 +75,7 @@ class FrotaService {
      */
     async getVeiculos(): Promise<Veiculo[]> {
         const { data, error } = await supabase
-            .from('veiculos' as any)
+            .from('veiculos')
             .select(`
                 *,
                 tecnico:tecnico_id (id, nome_completo)
@@ -95,7 +95,7 @@ class FrotaService {
      */
     async getVeiculoById(id: string): Promise<Veiculo | null> {
         const { data, error } = await supabase
-            .from('veiculos' as any)
+            .from('veiculos')
             .select(`
                 *,
                 tecnico:tecnico_id (id, nome_completo)
@@ -116,7 +116,7 @@ class FrotaService {
      */
     async getVeiculoDoTecnico(tecnicoId: string): Promise<Veiculo | null> {
         const { data, error } = await supabase
-            .from('veiculos' as any)
+            .from('veiculos')
             .select('*')
             .eq('tecnico_id', tecnicoId)
             .eq('status', 'EM_USO')
@@ -135,7 +135,7 @@ class FrotaService {
      */
     async criarVeiculo(dados: CreateVeiculoInput): Promise<Veiculo> {
         const { data, error } = await supabase
-            .from('veiculos' as any)
+            .from('veiculos')
             .insert({
                 placa: dados.placa.toUpperCase().replace(/[^A-Z0-9]/g, ''),
                 modelo: dados.modelo,
@@ -167,7 +167,7 @@ class FrotaService {
         }
 
         const { data, error } = await supabase
-            .from('veiculos' as any)
+            .from('veiculos')
             .update(updateData)
             .eq('id', id)
             .select()
@@ -191,7 +191,7 @@ class FrotaService {
 
         // Atualizar veículo
         const { error: updateError } = await supabase
-            .from('veiculos' as any)
+            .from('veiculos')
             .update({
                 tecnico_id: tecnicoId,
                 status: 'EM_USO',
@@ -203,7 +203,7 @@ class FrotaService {
 
         // Registrar histórico
         const { error: histError } = await supabase
-            .from('historico_alocacao_veiculos' as any)
+            .from('historico_alocacao_veiculos')
             .insert({
                 veiculo_id: veiculoId,
                 tecnico_id: tecnicoId,
@@ -228,7 +228,7 @@ class FrotaService {
 
         // Fechar histórico de alocação atual
         const { error: histError } = await supabase
-            .from('historico_alocacao_veiculos' as any)
+            .from('historico_alocacao_veiculos')
             .update({
                 data_fim: new Date().toISOString(),
                 km_fim: veiculo.km_atual,
@@ -241,7 +241,7 @@ class FrotaService {
 
         // Atualizar veículo
         const { error: updateError } = await supabase
-            .from('veiculos' as any)
+            .from('veiculos')
             .update({
                 tecnico_id: null,
                 status: 'DISPONIVEL',
@@ -257,7 +257,7 @@ class FrotaService {
      */
     async atualizarKm(veiculoId: string, kmAtual: number): Promise<void> {
         const { error } = await supabase
-            .from('veiculos' as any)
+            .from('veiculos')
             .update({ km_atual: kmAtual })
             .eq('id', veiculoId);
 
@@ -269,7 +269,7 @@ class FrotaService {
      */
     async getHistoricoVeiculo(veiculoId: string): Promise<HistoricoAlocacao[]> {
         const { data, error } = await supabase
-            .from('historico_alocacao_veiculos' as any)
+            .from('historico_alocacao_veiculos')
             .select(`
                 *,
                 tecnico:tecnico_id (nome_completo)
@@ -290,7 +290,7 @@ class FrotaService {
      */
     async excluirVeiculo(id: string): Promise<void> {
         const { error } = await supabase
-            .from('veiculos' as any)
+            .from('veiculos')
             .delete()
             .eq('id', id);
 
@@ -323,7 +323,7 @@ class FrotaService {
      */
     async getMovimentacoesRecentes(limit = 10): Promise<MovimentacaoFrota[]> {
         const { data, error } = await supabase
-            .from('historico_alocacao_veiculos' as any)
+            .from('historico_alocacao_veiculos')
             .select(`
                 *,
                 tecnico:tecnico_id (id, nome_completo),

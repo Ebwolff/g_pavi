@@ -12,11 +12,9 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { CustomBadge } from '@/components/ui/StatusBadge';
 import { formatarValor, formatarData } from '@/utils/osHelpers';
+import type { StatusOrcamento } from '@/types/database.types';
 
-// Tipo helper temporário
-type StatusOrcamentoType = 'EM_ELABORACAO' | 'ENVIADO_CLIENTE' | 'APROVADO' | 'REPROVADO' | 'CONVERTIDO_OS';
-
-const statusConfig: Record<StatusOrcamentoType, { label: string, color: 'blue' | 'yellow' | 'green' | 'red' | 'gray' }> = {
+const statusConfig: Record<StatusOrcamento, { label: string, color: 'blue' | 'yellow' | 'green' | 'red' | 'gray' }> = {
     EM_ELABORACAO: { label: 'Em Elaboração', color: 'gray' },
     ENVIADO_CLIENTE: { label: 'Enviado ao Cliente', color: 'blue' },
     APROVADO: { label: 'Aprovado', color: 'green' },
@@ -29,7 +27,7 @@ export function ListaOrcamentos() {
     const { profile } = useAuth();
     
     const [search, setSearch] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('');
+    const [statusFilter, setStatusFilter] = useState<StatusOrcamento | ''>('');
     const [page, setPage] = useState(1);
 
     const isGerente = ['GERENTE', 'DIRETORIA'].includes(profile?.role || '');
@@ -98,7 +96,7 @@ export function ListaOrcamentos() {
                             className="w-full h-11 px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded-xl text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
                             value={statusFilter}
                             onChange={(e) => {
-                                setStatusFilter(e.target.value);
+                                setStatusFilter(e.target.value as StatusOrcamento | '');
                                 setPage(1);
                             }}
                         >
@@ -141,7 +139,7 @@ export function ListaOrcamentos() {
                                     </tr>
                                 ) : data?.data && data.data.length > 0 ? (
                                     data.data.map((orc: any) => {
-                                        const stat = statusConfig[orc.status_orcamento as StatusOrcamentoType] || { label: orc.status_orcamento, color: 'gray' };
+                                        const stat = statusConfig[orc.status_orcamento as StatusOrcamento] || { label: orc.status_orcamento, color: 'gray' };
                                         
                                         return (
                                             <tr 

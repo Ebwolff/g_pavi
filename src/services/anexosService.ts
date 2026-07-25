@@ -74,14 +74,14 @@ class AnexosService {
 
         // 3. Registrar no banco de dados
         const { data, error: dbError } = await supabase
-            .from('anexos_os' as any)
+            .from('anexos_os')
             .insert({
                 ordem_servico_id: osId,
                 url_anexo: publicUrl,
                 tipo_anexo: tipo,
                 descricao: descricao || null,
                 usuario_id: userData.user.id
-            } as any)
+            })
             .select()
             .single();
 

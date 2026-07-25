@@ -6,7 +6,7 @@ export type Json =
     | { [key: string]: Json | undefined }
     | Json[];
 
-export type UserRole = 'GERENTE' | 'CONSULTOR_GARANTIA' | 'CONSULTOR_POS_VENDA' | 'TECNICO';
+export type UserRole = 'GERENTE' | 'CONSULTOR_GARANTIA' | 'CONSULTOR_POS_VENDA' | 'CHEFE_OFICINA' | 'TECNICO' | 'ALMOXARIFADO' | 'COMPRAS' | 'FERAMENTAL';
 export type TipoOS = 'NORMAL' | 'GARANTIA';
 export type StatusOS = 'AGUARDANDO_ATRIBUICAO' | 'EM_EXECUCAO' | 'AGUARDANDO_PECAS' | 'PAUSADA' | 'CONCLUIDA' | 'FATURADA' | 'CANCELADA' | 'AGUARDANDO_APROVACAO_ORCAMENTO' | 'AGUARDANDO_PAGAMENTO' | 'EM_DIAGNOSTICO' | 'EM_TRANSITO';
 export type StatusDisponibilidadeTecnico = 'DISPONIVEL' | 'EM_TREINAMENTO' | 'AUSENTE' | 'FERIAS';
@@ -128,7 +128,22 @@ export interface Database {
                     updated_at?: string;
                     observacoes?: string | null;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: "orcamentos_servico_cliente_id_fkey";
+                        columns: ["cliente_id"];
+                        isOneToOne: false;
+                        referencedRelation: "clientes";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "orcamentos_servico_consultor_id_fkey";
+                        columns: ["consultor_id"];
+                        isOneToOne: false;
+                        referencedRelation: "profiles";
+                        referencedColumns: ["id"];
+                    }
+                ];
             };
             clientes: {
                 Row: {
@@ -302,7 +317,43 @@ export interface Database {
                     roteiro?: string | null;
                     orcamento_id?: string | null;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: "ordens_servico_tecnico_id_fkey";
+                        columns: ["tecnico_id"];
+                        isOneToOne: false;
+                        referencedRelation: "tecnicos";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "ordens_servico_cliente_id_fkey";
+                        columns: ["cliente_id"];
+                        isOneToOne: false;
+                        referencedRelation: "clientes";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "ordens_servico_consultor_id_fkey";
+                        columns: ["consultor_id"];
+                        isOneToOne: false;
+                        referencedRelation: "profiles";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "itens_os_ordem_servico_id_fkey";
+                        columns: ["ordem_servico_id"];
+                        isOneToOne: false;
+                        referencedRelation: "itens_os";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "despesas_os_ordem_servico_id_fkey";
+                        columns: ["ordem_servico_id"];
+                        isOneToOne: false;
+                        referencedRelation: "despesas_os";
+                        referencedColumns: ["id"];
+                    }
+                ];
             };
             historico_status_os: {
                 Row: {
@@ -392,7 +443,15 @@ export interface Database {
                     created_at?: string;
                     updated_at?: string;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: "pendencias_os_os_id_fkey";
+                        columns: ["os_id"];
+                        isOneToOne: false;
+                        referencedRelation: "ordens_servico";
+                        referencedColumns: ["id"];
+                    }
+                ];
             };
             alertas: {
                 Row: {
@@ -608,7 +667,15 @@ export interface Database {
                     status_aprovacao?: StatusAprovacaoPeca | string;
                     created_at?: string;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: "itens_os_ordem_servico_id_fkey";
+                        columns: ["ordem_servico_id"];
+                        isOneToOne: false;
+                        referencedRelation: "ordens_servico";
+                        referencedColumns: ["id"];
+                    }
+                ];
             };
             solicitacoes_compra: {
                 Row: {
@@ -688,7 +755,15 @@ export interface Database {
                     motivo_cancelamento?: string | null;
                     created_at?: string;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: "solicitacoes_compra_ordem_servico_id_fkey";
+                        columns: ["ordem_servico_id"];
+                        isOneToOne: false;
+                        referencedRelation: "ordens_servico";
+                        referencedColumns: ["id"];
+                    }
+                ];
             };
             anexos_os: {
                 Row: {
@@ -718,7 +793,15 @@ export interface Database {
                     usuario_id?: string | null;
                     created_at?: string;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: "anexos_os_ordem_servico_id_fkey";
+                        columns: ["ordem_servico_id"];
+                        isOneToOne: false;
+                        referencedRelation: "ordens_servico";
+                        referencedColumns: ["id"];
+                    }
+                ];
             };
             tecnicos: {
                 Row: {
@@ -755,6 +838,337 @@ export interface Database {
                     updated_at?: string;
                 };
                 Relationships: [];
+            };
+            veiculos: {
+                Row: {
+                    id: string;
+                    placa: string;
+                    modelo: string;
+                    marca: string | null;
+                    ano: number | null;
+                    cor: string | null;
+                    km_atual: number;
+                    status: string;
+                    tecnico_id: string | null;
+                    data_alocacao: string | null;
+                    observacoes: string | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    placa: string;
+                    modelo: string;
+                    marca?: string | null;
+                    ano?: number | null;
+                    cor?: string | null;
+                    km_atual?: number;
+                    status?: string;
+                    tecnico_id?: string | null;
+                    data_alocacao?: string | null;
+                    observacoes?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    placa?: string;
+                    modelo?: string;
+                    marca?: string | null;
+                    ano?: number | null;
+                    cor?: string | null;
+                    km_atual?: number;
+                    status?: string;
+                    tecnico_id?: string | null;
+                    data_alocacao?: string | null;
+                    observacoes?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "veiculos_tecnico_id_fkey";
+                        columns: ["tecnico_id"];
+                        isOneToOne: false;
+                        referencedRelation: "tecnicos";
+                        referencedColumns: ["id"];
+                    }
+                ];
+            };
+            historico_alocacao_veiculos: {
+                Row: {
+                    id: string;
+                    veiculo_id: string;
+                    tecnico_id: string | null;
+                    data_inicio: string;
+                    data_fim: string | null;
+                    km_inicio: number | null;
+                    km_fim: number | null;
+                    motivo: string | null;
+                    alocado_por: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    veiculo_id: string;
+                    tecnico_id?: string | null;
+                    data_inicio?: string;
+                    data_fim?: string | null;
+                    km_inicio?: number | null;
+                    km_fim?: number | null;
+                    motivo?: string | null;
+                    alocado_por?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    veiculo_id?: string;
+                    tecnico_id?: string | null;
+                    data_inicio?: string;
+                    data_fim?: string | null;
+                    km_inicio?: number | null;
+                    km_fim?: number | null;
+                    motivo?: string | null;
+                    alocado_por?: string | null;
+                    created_at?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "historico_alocacao_veiculos_veiculo_id_fkey";
+                        columns: ["veiculo_id"];
+                        isOneToOne: false;
+                        referencedRelation: "veiculos";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "historico_alocacao_veiculos_tecnico_id_fkey";
+                        columns: ["tecnico_id"];
+                        isOneToOne: false;
+                        referencedRelation: "tecnicos";
+                        referencedColumns: ["id"];
+                    }
+                ];
+            };
+            despesas_os: {
+                Row: {
+                    id: string;
+                    ordem_servico_id: string;
+                    tipo: string;
+                    descricao: string | null;
+                    quantidade: number | null;
+                    valor_unitario: number | null;
+                    valor_total: number;
+                    data_despesa: string;
+                    comprovante_url: string | null;
+                    responsavel_id: string | null;
+                    km_inicial: number | null;
+                    km_final: number | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    ordem_servico_id: string;
+                    tipo: string;
+                    descricao?: string | null;
+                    quantidade?: number | null;
+                    valor_unitario?: number | null;
+                    valor_total: number;
+                    data_despesa?: string;
+                    comprovante_url?: string | null;
+                    responsavel_id?: string | null;
+                    km_inicial?: number | null;
+                    km_final?: number | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    ordem_servico_id?: string;
+                    tipo?: string;
+                    descricao?: string | null;
+                    quantidade?: number | null;
+                    valor_unitario?: number | null;
+                    valor_total?: number;
+                    data_despesa?: string;
+                    comprovante_url?: string | null;
+                    responsavel_id?: string | null;
+                    km_inicial?: number | null;
+                    km_final?: number | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "despesas_os_ordem_servico_id_fkey";
+                        columns: ["ordem_servico_id"];
+                        isOneToOne: false;
+                        referencedRelation: "ordens_servico";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "despesas_os_responsavel_id_fkey";
+                        columns: ["responsavel_id"];
+                        isOneToOne: false;
+                        referencedRelation: "profiles";
+                        referencedColumns: ["id"];
+                    }
+                ];
+            };
+            ferramentas: {
+                Row: {
+                    id: string;
+                    nome: string;
+                    codigo_patrimonio: string | null;
+                    numero_serie: string | null;
+                    categoria: string;
+                    estado: string;
+                    quantidade: number;
+                    tecnico_id: string | null;
+                    data_retirada: string | null;
+                    observacoes: string | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    nome: string;
+                    codigo_patrimonio?: string | null;
+                    numero_serie?: string | null;
+                    categoria?: string;
+                    estado?: string;
+                    quantidade?: number;
+                    tecnico_id?: string | null;
+                    data_retirada?: string | null;
+                    observacoes?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    nome?: string;
+                    codigo_patrimonio?: string | null;
+                    numero_serie?: string | null;
+                    categoria?: string;
+                    estado?: string;
+                    quantidade?: number;
+                    tecnico_id?: string | null;
+                    data_retirada?: string | null;
+                    observacoes?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "ferramentas_tecnico_id_fkey";
+                        columns: ["tecnico_id"];
+                        isOneToOne: false;
+                        referencedRelation: "tecnicos";
+                        referencedColumns: ["id"];
+                    }
+                ];
+            };
+            movimentacoes_ferramentas: {
+                Row: {
+                    id: string;
+                    ferramenta_id: string;
+                    tecnico_id: string | null;
+                    tipo: string;
+                    data_movimentacao: string;
+                    observacoes: string | null;
+                    registrado_por: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    ferramenta_id: string;
+                    tecnico_id?: string | null;
+                    tipo: string;
+                    data_movimentacao?: string;
+                    observacoes?: string | null;
+                    registrado_por?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    ferramenta_id?: string;
+                    tecnico_id?: string | null;
+                    tipo?: string;
+                    data_movimentacao?: string;
+                    observacoes?: string | null;
+                    registrado_por?: string | null;
+                    created_at?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "movimentacoes_ferramentas_ferramenta_id_fkey";
+                        columns: ["ferramenta_id"];
+                        isOneToOne: false;
+                        referencedRelation: "ferramentas";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "movimentacoes_ferramentas_tecnico_id_fkey";
+                        columns: ["tecnico_id"];
+                        isOneToOne: false;
+                        referencedRelation: "tecnicos";
+                        referencedColumns: ["id"];
+                    }
+                ];
+            };
+            vistorias_veiculos: {
+                Row: {
+                    id: string;
+                    veiculo_id: string | null;
+                    tecnico_id: string | null;
+                    data_vistoria: string;
+                    km_vistoria: number | null;
+                    itens: Json;
+                    observacoes: string | null;
+                    status: string;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    veiculo_id?: string | null;
+                    tecnico_id?: string | null;
+                    data_vistoria?: string;
+                    km_vistoria?: number | null;
+                    itens?: Json;
+                    observacoes?: string | null;
+                    status?: string;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    veiculo_id?: string | null;
+                    tecnico_id?: string | null;
+                    data_vistoria?: string;
+                    km_vistoria?: number | null;
+                    itens?: Json;
+                    observacoes?: string | null;
+                    status?: string;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "vistorias_veiculos_veiculo_id_fkey";
+                        columns: ["veiculo_id"];
+                        isOneToOne: false;
+                        referencedRelation: "veiculos";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "vistorias_veiculos_tecnico_id_fkey";
+                        columns: ["tecnico_id"];
+                        isOneToOne: false;
+                        referencedRelation: "tecnicos";
+                        referencedColumns: ["id"];
+                    }
+                ];
             };
         };
         Views: {
@@ -819,6 +1233,37 @@ export interface Database {
                     data_solicitacao: string;
                 };
                 Relationships: [];
+            };
+            vw_os_profitability: {
+                Row: {
+                    os_id: string;
+                    data_abertura: string;
+                    status_atual: StatusOS;
+                    receita_mao_de_obra: number;
+                    receita_pecas: number;
+                    receita_deslocamento: number;
+                    receita_total: number;
+                    custo_deslocamento: number;
+                    custo_combustivel: number;
+                    custo_alimentacao: number;
+                    custo_hospedagem: number;
+                    custo_pedagio: number;
+                    custo_mao_de_obra: number;
+                    custo_outros: number;
+                    custo_pecas: number;
+                    custo_total: number;
+                    lucro_bruto: number;
+                    margem_percentual: number;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "vw_os_profitability_os_id_fkey";
+                        columns: ["os_id"];
+                        isOneToOne: true;
+                        referencedRelation: "ordens_servico";
+                        referencedColumns: ["id"];
+                    }
+                ];
             };
         };
         Functions: {

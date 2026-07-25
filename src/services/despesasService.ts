@@ -72,7 +72,7 @@ class DespesasService {
      */
     async getDespesasPorOS(ordemServicoId: string): Promise<DespesaOS[]> {
         const { data, error } = await supabase
-            .from('despesas_os' as any)
+            .from('despesas_os')
             .select(`
                 *,
                 responsavel:responsavel_id (first_name, last_name)
@@ -92,7 +92,7 @@ class DespesasService {
      * Cria uma nova despesa
      */
     async criarDespesa(dados: CreateDespesaInput): Promise<DespesaOS> {
-        const { data, error } = await (supabase as any)
+        const { data, error } = await supabase
             .from('despesas_os')
             .insert({
                 ordem_servico_id: dados.ordem_servico_id,
@@ -122,7 +122,7 @@ class DespesasService {
      * Atualiza uma despesa existente
      */
     async atualizarDespesa(id: string, dados: UpdateDespesaInput): Promise<DespesaOS> {
-        const { data, error } = await (supabase as any)
+        const { data, error } = await supabase
             .from('despesas_os')
             .update(dados)
             .eq('id', id)
@@ -142,7 +142,7 @@ class DespesasService {
      */
     async excluirDespesa(id: string): Promise<void> {
         const { error } = await supabase
-            .from('despesas_os' as any)
+            .from('despesas_os')
             .delete()
             .eq('id', id);
 
@@ -249,13 +249,13 @@ class DespesasService {
 
         // 4. Também registrar na tabela de anexos_os para aparecer na galeria geral
         await supabase
-            .from('anexos_os' as any)
+            .from('anexos_os')
             .insert({
                 ordem_servico_id: osId,
                 url_anexo: publicUrl,
                 tipo_anexo: 'COMPROVANTE',
                 descricao: `Comprovante de Despesa (${file.name})`
-            } as any);
+            });
 
         return publicUrl;
     }

@@ -4,7 +4,6 @@ import {
     Wrench,
     Clock,
     CheckCircle,
-    AlertTriangle,
     ChevronRight,
     User
 } from 'lucide-react';

@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     ArrowLeft, Save, X, Wrench, User,
     DollarSign, Activity, Hash, Tag,
-    FileText, UserCheck, Settings, Info, Clock, AlertTriangle, Link2, Package, Search
+    FileText, UserCheck, Settings, Info, Clock, AlertTriangle, Link2, Search
 } from 'lucide-react';
 
 import { ordemServicoService } from '@/services/ordemServico.service';

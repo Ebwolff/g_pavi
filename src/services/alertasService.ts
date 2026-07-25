@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { Database } from '../types/database.types';
+import { Database, TipoAlerta, PrioridadeAlerta } from '../types/database.types';
 
 type Alerta = Database['public']['Tables']['alertas']['Row'];
 type AlertaInsert = Database['public']['Tables']['alertas']['Insert'];
@@ -117,7 +117,7 @@ export const alertasService = {
     /**
      * Buscar alertas por tipo
      */
-    async getAlertasPorTipo(usuarioId: string, tipo: string) {
+    async getAlertasPorTipo(usuarioId: string, tipo: TipoAlerta) {
         const { data, error } = await supabase
             .from('alertas')
             .select('*')
@@ -132,7 +132,7 @@ export const alertasService = {
     /**
      * Buscar alertas por prioridade
      */
-    async getAlertasPorPrioridade(usuarioId: string, prioridade: string) {
+    async getAlertasPorPrioridade(usuarioId: string, prioridade: PrioridadeAlerta) {
         const { data, error } = await supabase
             .from('alertas')
             .select('*')

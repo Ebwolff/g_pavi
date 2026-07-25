@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
-import type { Database } from '@/types/database.types';
+import type { Database, StatusOS } from '@/types/database.types';
 import { notifyOSCreated, notifyTecnicoAssigned, notifyOSStatusChanged } from '@/lib/notificationHelper';
+import { sanitizePostgrestFilterValue } from '@/lib/utils';
 
 export type OrdemServico = Database['public']['Tables']['ordens_servico']['Row'] & {
     tecnico?: any;
@@ -16,8 +17,8 @@ type OrdemServicoUpdate = Database['public']['Tables']['ordens_servico']['Update
 
 export interface OSFilters {
     tipo?: 'NORMAL' | 'GARANTIA';
-    status?: string;
-    excludeStatus?: string[];
+    status?: StatusOS;
+    excludeStatus?: StatusOS[];
     search?: string;
     dataInicio?: string;
     dataFim?: string;
@@ -83,11 +84,14 @@ class OrdemServicoService {
 
         // Busca textual
         if (filters.search) {
-            query = query.or(
-                `numero_os.ilike.%${filters.search}%,` +
-                `nome_cliente_digitavel.ilike.%${filters.search}%,` +
-                `chassi.ilike.%${filters.search}%`
-            );
+            const term = sanitizePostgrestFilterValue(filters.search);
+            if (term) {
+                query = query.or(
+                    `numero_os.ilike.%${term}%,` +
+                    `nome_cliente_digitavel.ilike.%${term}%,` +
+                    `chassi.ilike.%${term}%`
+                );
+            }
         }
 
         // Paginação
@@ -350,7 +354,10 @@ class OrdemServicoService {
         let query = supabase.from('vw_os_motivos_abertura').select('*');
         if (filters.status) query = query.eq('status_atual', filters.status);
         if (filters.search) {
-            query = query.or(`numero_os.ilike.%${filters.search}%,nome_cliente_digitavel.ilike.%${filters.search}%`);
+            const term = sanitizePostgrestFilterValue(filters.search);
+            if (term) {
+                query = query.or(`numero_os.ilike.%${term}%,nome_cliente_digitavel.ilike.%${term}%`);
+            }
         }
         query = query.order('dias_aberta', { ascending: false });
         const { data, error } = await query;

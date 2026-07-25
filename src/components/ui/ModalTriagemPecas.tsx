@@ -42,7 +42,7 @@ interface ModalTriagemPecasProps {
 export function ModalTriagemPecas({ isOpen, onClose, os, onSuccess }: ModalTriagemPecasProps) {
     const { profile } = useAuth();
     const [loading, setLoading] = useState<Record<string, boolean>>({});
-    const [decisoes, setDecisoes] = useState<Record<string, 'estoque' | 'compra' | null>>({});
+    const [, setDecisoes] = useState<Record<string, 'estoque' | 'compra' | null>>({});
     const [processados, setProcessados] = useState<string[]>([]);
 
     useEffect(() => {

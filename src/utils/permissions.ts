@@ -1,19 +1,12 @@
 import { logger } from '@/lib/logger';
+import type { UserRole } from '@/types/database.types';
 /**
  * Visão 360 - Sistema de Permissões por Role
- * 
+ *
  * Define quais páginas/funcionalidades cada role pode acessar
  */
 
-export type UserRole =
-    | 'GERENTE'
-    | 'CONSULTOR_GARANTIA'
-    | 'CONSULTOR_POS_VENDA'
-    | 'CHEFE_OFICINA'
-    | 'TECNICO'
-    | 'ALMOXARIFADO'
-    | 'COMPRAS'
-    | 'FERAMENTAL';
+export type { UserRole };
 
 // Definição de todas as rotas do sistema
 export type AppRoute =

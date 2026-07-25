@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 
 import { orcamentoService } from '@/services/orcamento.service';
-import { useAuth } from '@/hooks/useAuth';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { CustomBadge } from '@/components/ui/StatusBadge';

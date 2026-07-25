@@ -5,7 +5,7 @@ import { StatusDisponibilidadeTecnico } from '@/types/database.types';
 export interface Tecnico {
     id: string; // ID da tabela tecnicos ou profiles (fallback)
     nome: string;
-    userId?: string; // ID do usuário no Auth/Profiles
+    userId?: string | null; // ID do usuário no Auth/Profiles
     isRegistered: boolean; // Se está na tabela tecnicos
     status_disponibilidade: StatusDisponibilidadeTecnico;
     stats?: {

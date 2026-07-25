@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { pendenciaService } from '@/services/pendencia.service';
 import { formatarData } from '@/utils/osHelpers';
+import type { TipoPendencia, StatusPendencia } from '@/types/database.types';
 import {
     AlertCircle,
     Clock,
@@ -24,7 +25,11 @@ import {
 
 export function PendenciasOS() {
     const navigate = useNavigate();
-    const [uiFilters, setUiFilters] = useState({
+    const [uiFilters, setUiFilters] = useState<{
+        busca: string;
+        tipo: TipoPendencia | 'TODOS';
+        status: StatusPendencia | 'TODOS';
+    }>({
         busca: '',
         tipo: 'TODOS',
         status: 'TODOS'
@@ -153,7 +158,7 @@ export function PendenciasOS() {
                             </label>
                             <select
                                 value={uiFilters.tipo}
-                                onChange={(e) => setUiFilters(prev => ({ ...prev, tipo: e.target.value }))}
+                                onChange={(e) => setUiFilters(prev => ({ ...prev, tipo: e.target.value as TipoPendencia | 'TODOS' }))}
                                 className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none appearance-none cursor-pointer"
                             >
                                 <option value="TODOS">Todos os Tipos</option>
@@ -172,7 +177,7 @@ export function PendenciasOS() {
                             </label>
                             <select
                                 value={uiFilters.status}
-                                onChange={(e) => setUiFilters(prev => ({ ...prev, status: e.target.value }))}
+                                onChange={(e) => setUiFilters(prev => ({ ...prev, status: e.target.value as StatusPendencia | 'TODOS' }))}
                                 className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none appearance-none cursor-pointer"
                             >
                                 <option value="TODOS">Todos os Status</option>
