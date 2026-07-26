@@ -25,9 +25,10 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { tecnicoService } from '@/services/tecnico.service';
-import { ordemServicoService } from '@/services/ordemServico.service';
+import { ordemServicoService, type OSFilters } from '@/services/ordemServico.service';
 import { frotaService } from '@/services/frotaService';
 import { supabase } from '@/lib/supabase';
+import type { Database, StatusOS } from '@/types/database.types';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -38,6 +39,22 @@ import { ModalAdicionarPeca } from '@/components/ui/ModalAdicionarPeca';
 import { ModalLancarDespesa } from '@/components/ui/ModalLancarDespesa';
 import { ModalGaleriaImagens } from '@/components/ui/ModalGaleriaImagens';
 import { AgendaTecnicos } from '@/components/dashboard/AgendaTecnicos';
+
+type DespesaOSRow = Database['public']['Tables']['despesas_os']['Row'];
+
+interface OSTecnicoView {
+    id: string;
+    numero_os: string;
+    nome_cliente_digitavel: string | null;
+    modelo_maquina: string | null;
+    status: StatusOS;
+    data_abertura: string;
+    descricao_problema: string;
+    pecas_lancadas: number;
+    temPecasPendentes: boolean;
+    todasPecasEntregues: boolean;
+    nome_tecnico?: string;
+}
 
 export default function PainelTecnico() {
     const navigate = useNavigate();
@@ -52,7 +69,7 @@ export default function PainelTecnico() {
     const [modalPecaOpen, setModalPecaOpen] = useState(false);
     const [modalDespesaOpen, setModalDespesaOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'dashboard' | 'os'>('dashboard');
-    const [despesasTecnico, setDespesasTecnico] = useState<any[]>([]);
+    const [despesasTecnico, setDespesasTecnico] = useState<DespesaOSRow[]>([]);
     const [loadingDespesas, setLoadingDespesas] = useState(false);
     const [periodoFiltro, setPeriodoFiltro] = useState<'SEMANA' | 'MES' | 'TRIMESTRE' | 'SEMESTRE' | 'ANO' | 'TUDO'>('MES');
 
@@ -79,8 +96,8 @@ export default function PainelTecnico() {
     // 3. Buscar OS do Técnico
     const { data: osAtribuidas = [], isLoading: isLoadingOS } = useQuery({
         queryKey: ['os-tecnico', tecnico?.id, isGerente],
-        queryFn: async () => {
-            const filters: any = {};
+        queryFn: async (): Promise<OSTecnicoView[]> => {
+            const filters: OSFilters = {};
             if (!isGerente) {
                 if (!tecnico?.id) return [];
                 filters.tecnicoId = tecnico.id;
@@ -90,9 +107,9 @@ export default function PainelTecnico() {
 
             return result.data
                 .filter(os => !['FATURADA', 'CANCELADA', 'CONCLUIDA', 'AGUARDANDO_PAGAMENTO'].includes(os.status_atual) && !!os.tecnico_id)
-                .map((os: any) => {
-                    const temPecasPendentes = os.itens?.some((i: any) => i.status_separacao === 'PENDENTE' || i.status_separacao === 'AGUARDANDO_COMPRA');
-                    const todasPecasEntregues = os.itens?.length > 0 && !temPecasPendentes;
+                .map((os) => {
+                    const temPecasPendentes = !!os.itens?.some((i) => i.status_separacao === 'PENDENTE' || i.status_separacao === 'AGUARDANDO_COMPRA');
+                    const todasPecasEntregues = !!os.itens?.length && !temPecasPendentes;
 
                     return {
                         id: os.id,
@@ -113,8 +130,8 @@ export default function PainelTecnico() {
     });
 
     const updateStatusMutation = useMutation({
-        mutationFn: async ({ osId, status }: { osId: string, status: string }) => {
-            return ordemServicoService.update(osId, { status_atual: status } as any);
+        mutationFn: async ({ osId, status }: { osId: string, status: StatusOS }) => {
+            return ordemServicoService.update(osId, { status_atual: status });
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['os-tecnico'] });
@@ -122,7 +139,7 @@ export default function PainelTecnico() {
         }
     });
 
-    const handleUpdateStatus = async (osId: string, status: string) => {
+    const handleUpdateStatus = async (osId: string, status: StatusOS) => {
         try {
             await updateStatusMutation.mutateAsync({ osId, status });
         } catch (error) {
@@ -136,7 +153,7 @@ export default function PainelTecnico() {
             if (osAtribuidas.length === 0 && !isGerente) return;
             setLoadingDespesas(true);
             try {
-                const osIds = osAtribuidas.map((os: any) => os.id);
+                const osIds = osAtribuidas.map((os) => os.id);
                 // Buscar também OS faturadas/concluídas do técnico
                 let allOsIds = [...osIds];
                 if (tecnico?.id) {
@@ -144,15 +161,15 @@ export default function PainelTecnico() {
                         .from('ordens_servico')
                         .select('id')
                         .eq('tecnico_id', tecnico.id);
-                    if (allOs) allOsIds = allOs.map((o: any) => o.id);
+                    if (allOs) allOsIds = allOs.map((o) => o.id);
                 }
                 if (allOsIds.length > 0) {
                     const { data } = await supabase
-                        .from('despesas_os' as any)
+                        .from('despesas_os')
                         .select('*')
                         .in('ordem_servico_id', allOsIds)
                         .order('data_despesa', { ascending: false });
-                    setDespesasTecnico((data || []) as any[]);
+                    setDespesasTecnico(data || []);
                 }
             } catch (err) {
                 logger.error('Erro ao buscar despesas:', err);
@@ -181,9 +198,9 @@ export default function PainelTecnico() {
     // Estatísticas
     const estatisticas = {
         totalOS: osAtribuidas.length,
-        emAndamento: osAtribuidas.filter((os: any) => os.status === 'EM_EXECUCAO').length,
-        aguardandoPecas: osAtribuidas.filter((os: any) => os.status === 'AGUARDANDO_PECAS').length,
-        concluidas: osAtribuidas.filter((os: any) => os.status === 'CONCLUIDA').length
+        emAndamento: osAtribuidas.filter((os) => os.status === 'EM_EXECUCAO').length,
+        aguardandoPecas: osAtribuidas.filter((os) => os.status === 'AGUARDANDO_PECAS').length,
+        concluidas: osAtribuidas.filter((os) => os.status === 'CONCLUIDA').length
     };
 
     // Filtros de tempo
@@ -220,30 +237,30 @@ export default function PainelTecnico() {
     // Dashboard KPIs (Gerais)
 
     // KPIs do Período
-    const osFechadasPeriodo = todasOsTecnico.filter((os: any) =>
+    const osFechadasPeriodo = todasOsTecnico.filter((os) =>
         ['FATURADA', 'CONCLUIDA', 'AGUARDANDO_PAGAMENTO'].includes(os.status_atual) &&
         filterByDate(os.data_faturamento || os.data_fechamento || os.data_conclusao_servico || os.updated_at || os.data_abertura)
     );
 
     let faturamentoPeriodo = 0;
-    osFechadasPeriodo.forEach((os: any) => {
+    osFechadasPeriodo.forEach((os) => {
         faturamentoPeriodo += Number(os.valor_liquido_total) || Number(os.valor_servico) || 0;
     });
 
     const despesasPeriodo = despesasTecnico.filter(d => filterByDate(d.data_despesa));
-    const totalDespesasPeriodo = despesasPeriodo.reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0);
+    const totalDespesasPeriodo = despesasPeriodo.reduce((sum, d) => sum + (Number(d.valor_total) || 0), 0);
     const saldoPeriodo = faturamentoPeriodo - totalDespesasPeriodo;
 
     // Despesas por categoria no período
     const despesasPorCategoria = {
-        km: despesasPeriodo.filter(d => d.tipo === 'KM').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
-        abastecimento: despesasPeriodo.filter(d => d.tipo === 'ABASTECIMENTO').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
-        alimentacao: despesasPeriodo.filter(d => d.tipo === 'ALIMENTACAO').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
-        hospedagem: despesasPeriodo.filter(d => d.tipo === 'HOSPEDAGEM').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
-        pedagio: despesasPeriodo.filter(d => d.tipo === 'PEDAGIO').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
-        outros: despesasPeriodo.filter(d => d.tipo === 'OUTROS').reduce((sum: number, d: any) => sum + (Number(d.valor_total) || 0), 0),
+        km: despesasPeriodo.filter(d => d.tipo === 'KM').reduce((sum, d) => sum + (Number(d.valor_total) || 0), 0),
+        abastecimento: despesasPeriodo.filter(d => d.tipo === 'ABASTECIMENTO').reduce((sum, d) => sum + (Number(d.valor_total) || 0), 0),
+        alimentacao: despesasPeriodo.filter(d => d.tipo === 'ALIMENTACAO').reduce((sum, d) => sum + (Number(d.valor_total) || 0), 0),
+        hospedagem: despesasPeriodo.filter(d => d.tipo === 'HOSPEDAGEM').reduce((sum, d) => sum + (Number(d.valor_total) || 0), 0),
+        pedagio: despesasPeriodo.filter(d => d.tipo === 'PEDAGIO').reduce((sum, d) => sum + (Number(d.valor_total) || 0), 0),
+        outros: despesasPeriodo.filter(d => d.tipo === 'OUTROS').reduce((sum, d) => sum + (Number(d.valor_total) || 0), 0),
     };
-    const totalKmRodados = despesasPeriodo.filter(d => d.tipo === 'KM').reduce((sum: number, d: any) => sum + (Number(d.quantidade) || 0), 0);
+    const totalKmRodados = despesasPeriodo.filter(d => d.tipo === 'KM').reduce((sum, d) => sum + (Number(d.quantidade) || 0), 0);
 
     const formatCurrency = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -343,7 +360,7 @@ export default function PainelTecnico() {
                                 ).map(op => (
                                     <button
                                         key={op.id}
-                                        onClick={() => setPeriodoFiltro(op.id as any)}
+                                        onClick={() => setPeriodoFiltro(op.id)}
                                         className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all whitespace-nowrap ${periodoFiltro === op.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text-primary)]'}`}
                                     >
                                         {op.title}
@@ -434,7 +451,7 @@ export default function PainelTecnico() {
                                     Últimas Despesas Registradas
                                 </h3>
                                 <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 scrollbar-visao360">
-                                    {despesasPeriodo.slice(0, 10).map((desp: any) => (
+                                    {despesasPeriodo.slice(0, 10).map((desp) => (
                                         <div key={desp.id} className="flex items-center justify-between p-4 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-xl">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-2 h-2 rounded-full bg-blue-500" />
@@ -499,7 +516,7 @@ export default function PainelTecnico() {
                                 />
                             ) : (
                                 <div className="grid grid-cols-1 gap-6">
-                                    {osAtribuidas.map((os: any) => (
+                                    {osAtribuidas.map((os) => (
                                         <div
                                             key={os.id}
                                             className="glass-card-enterprise p-4 md:p-6 rounded-2xl md:rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-light)] hover:bg-[var(--surface-hover)] transition-all duration-group relative overflow-hidden"
@@ -510,7 +527,7 @@ export default function PainelTecnico() {
                                                         <span className="text-[10px] font-black text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded border border-blue-500/20 shadow-sm uppercase tracking-tighter">
                                                             #{os.numero_os}
                                                         </span>
-                                                        <StatusBadge status={os.status as any} size="sm" />
+                                                        <StatusBadge status={os.status} size="sm" />
                                                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)] flex items-center gap-1.5 bg-[var(--surface)] px-2 py-1.5 rounded-lg border border-[var(--border-subtle)]">
                                                             <RefreshCw className="w-3 h-3" />
                                                             {new Date(os.data_abertura).toLocaleDateString('pt-BR')}
