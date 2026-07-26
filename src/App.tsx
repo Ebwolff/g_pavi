@@ -1,8 +1,9 @@
-import { Component, ReactNode, useEffect } from 'react';
+import { Component, ReactNode, ErrorInfo, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppRoutes } from './components/AppRoutes';
 import { useThemeStore } from '@/stores/themeStore';
+import { logError } from '@/services/errorLogService';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -27,6 +28,15 @@ class ErrorBoundary extends Component<
 
     static getDerivedStateFromError(error: Error) {
         return { hasError: true, error };
+    }
+
+    componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+        logError({
+            message: error.message,
+            stack: error.stack,
+            componentStack: errorInfo.componentStack,
+            context: 'error_boundary',
+        });
     }
 
     render() {

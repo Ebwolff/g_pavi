@@ -31,6 +31,42 @@ export interface Database {
     };
     public: {
         Tables: {
+            error_logs: {
+                Row: {
+                    id: string;
+                    message: string;
+                    stack: string | null;
+                    component_stack: string | null;
+                    context: string;
+                    url: string | null;
+                    user_agent: string | null;
+                    user_id: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    message: string;
+                    stack?: string | null;
+                    component_stack?: string | null;
+                    context?: string;
+                    url?: string | null;
+                    user_agent?: string | null;
+                    user_id?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    message?: string;
+                    stack?: string | null;
+                    component_stack?: string | null;
+                    context?: string;
+                    url?: string | null;
+                    user_agent?: string | null;
+                    user_id?: string | null;
+                    created_at?: string;
+                };
+                Relationships: [];
+            };
             profiles: {
                 Row: {
                     id: string;
