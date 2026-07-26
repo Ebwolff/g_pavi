@@ -25,25 +25,41 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
-import { tecnicoService } from '@/services/tecnico.service';
+import { tecnicoService, type Tecnico } from '@/services/tecnico.service';
 import { ordemServicoService } from '@/services/ordemServico.service';
+import type { Database, StatusDisponibilidadeTecnico, StatusOS } from '@/types/database.types';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
-import { StatusBadge } from '@/components/ui/StatusBadge';
+import { StatusBadge, TipoBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { AssignTechnicianModal } from '@/components/ui/AssignTechnicianModal';
 import { ModalCadastrarTecnico } from '@/components/ui/ModalCadastrarTecnico';
 import { Card } from '@/components/ui/Card';
 import { ModalDetalhesTecnico } from '@/components/ui/ModalDetalhesTecnico';
-import { CalendarWidget } from '@/components/dashboard/CalendarWidget';
+import { CalendarWidget, type CalendarEvent } from '@/components/dashboard/CalendarWidget';
 import { ModalHistoricoOS } from '@/components/ui/ModalHistoricoOS';
 
+// Shape mínimo necessário para abrir o modal de atribuição (usado tanto pelas OS
+// não atribuídas quanto pelas OS com peças prontas, que têm campos diferentes entre si)
+interface OSParaAtribuir {
+    id: string;
+    numero_os: string;
+    nome_cliente_digitavel: string | null;
+}
+
+interface OSPecaPronta extends OSParaAtribuir {
+    modelo_maquina: string | null;
+    pecas: number;
+}
+
+type TecnicoComOS = Tecnico & { ordens_servico: Database['public']['Tables']['ordens_servico']['Row'][] };
+
 // Sub-componente: OS com pepas prontas para retirada
-function OsPecasProntas({ onAssignClick }: { onAssignClick?: (os: any) => void }) {
+function OsPecasProntas({ onAssignClick }: { onAssignClick?: (os: OSPecaPronta) => void }) {
     const { data: osProntas = [], isLoading } = useQuery({
         queryKey: ['os-pecas-prontas'],
-        queryFn: async () => {
+        queryFn: async (): Promise<OSPecaPronta[]> => {
             const { data, error } = await supabase
                 .from('itens_os')
                 .select('*, ordens_servico:ordem_servico_id(id, numero_os, nome_cliente_digitavel, modelo_maquina, tecnico_id, status_atual)')
@@ -51,16 +67,16 @@ function OsPecasProntas({ onAssignClick }: { onAssignClick?: (os: any) => void }
 
             if (error || !data) return [];
 
-            const osMap = new Map<string, any>();
-            data.forEach((item: any) => {
-                const os = item.ordens_servico;
+            const osMap = new Map<string, OSPecaPronta>();
+            data.forEach((item) => {
+                const os = Array.isArray(item.ordens_servico) ? item.ordens_servico[0] : item.ordens_servico;
                 // Mostrar se NÃO tiver técnico atribuído OU se o status for AGUARDANDO_ATRIBUICAO (peças chegaram/separadas)
                 if (!os || (os.tecnico_id && os.status_atual !== 'AGUARDANDO_ATRIBUICAO')) return;
 
                 if (!osMap.has(os.id)) {
                     osMap.set(os.id, { id: os.id, numero_os: os.numero_os, nome_cliente_digitavel: os.nome_cliente_digitavel, modelo_maquina: os.modelo_maquina, pecas: 0 });
                 }
-                osMap.get(os.id).pecas++;
+                osMap.get(os.id)!.pecas++;
             });
             return Array.from(osMap.values());
         }
@@ -76,7 +92,7 @@ function OsPecasProntas({ onAssignClick }: { onAssignClick?: (os: any) => void }
                 OS com Peças Prontas para Retirada ({osProntas.length})
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {osProntas.map((os: any) => (
+                {osProntas.map((os) => (
                     <div
                         key={os.id}
                         onClick={() => onAssignClick && onAssignClick(os)}
@@ -108,16 +124,17 @@ interface OSNaoAtribuida {
     dias_em_aberto: number;
     descricao_problema: string | null;
     nivel_urgencia?: string;
+    despesas?: Pick<Database['public']['Tables']['despesas_os']['Row'], 'comprovante_url'>[] | null;
 }
 
 const PainelChefeOficina: React.FC = () => {
     const queryClient = useQueryClient();
     const [modalOpen, setModalOpen] = useState(false);
-    const [selectedOS, setSelectedOS] = useState<OSNaoAtribuida | null>(null);
+    const [selectedOS, setSelectedOS] = useState<OSParaAtribuir | null>(null);
     const [modalCadastroOpen, setModalCadastroOpen] = useState(false);
     const [modalDetalhesOpen, setModalDetalhesOpen] = useState(false);
     const navigate = useNavigate();
-    const [selectedTecnico, setSelectedTecnico] = useState<any | null>(null);
+    const [selectedTecnico, setSelectedTecnico] = useState<TecnicoComOS | null>(null);
     const [selectedOSForHistorico, setSelectedOSForHistorico] = useState<{ id: string, numero: string } | null>(null);
     const [expandedOS, setExpandedOS] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'dashboard' | 'gestao'>('dashboard');
@@ -135,7 +152,7 @@ const PainelChefeOficina: React.FC = () => {
 
     const { data: tecnicos = [], isLoading: isLoadingTecnicos } = useQuery({
         queryKey: ['tecnicos-stats'],
-        queryFn: async () => {
+        queryFn: async (): Promise<TecnicoComOS[]> => {
             const allTecnicos = await tecnicoService.getAll(true);
 
             // Buscar OS para popular o modal de detalhes
@@ -146,7 +163,7 @@ const PainelChefeOficina: React.FC = () => {
 
             return allTecnicos.map(t => ({
                 ...t,
-                ordens_servico: (osData || []).filter((os: any) => os.tecnico_id === t.id)
+                ordens_servico: (osData || []).filter((os) => os.tecnico_id === t.id)
             }));
         }
     });
@@ -160,36 +177,36 @@ const PainelChefeOficina: React.FC = () => {
         }
     });
 
-    const openTecnicoDetails = (tecnico: any) => {
+    const openTecnicoDetails = (tecnico: TecnicoComOS) => {
         setSelectedTecnico(tecnico);
         setModalDetalhesOpen(true);
     };
 
     // Cálculos derivados
-    const osAtivas = todasOS.filter((os: any) => !['FATURADA', 'CANCELADA'].includes(os.status_atual));
+    const osAtivas = todasOS.filter((os) => !['FATURADA', 'CANCELADA'].includes(os.status_atual));
     const limite60Dias = new Date();
     limite60Dias.setDate(limite60Dias.getDate() - 60);
 
-    const osSemTecnico = osAtivas.filter((o: any) => !o.tecnico_id || o.status_atual === 'AGUARDANDO_ATRIBUICAO');
-    const totalHorasSemTecnico = osSemTecnico.reduce((acc: number, o: any) => {
+    const osSemTecnico = osAtivas.filter((o) => !o.tecnico_id || o.status_atual === 'AGUARDANDO_ATRIBUICAO');
+    const totalHorasSemTecnico = osSemTecnico.reduce((acc, o) => {
         const horas = (Date.now() - new Date(o.data_abertura).getTime()) / (1000 * 60 * 60);
         return acc + horas;
     }, 0);
 
     const estatisticas = {
         totalTecnicos: tecnicos.length,
-        tecnicosDisponiveis: tecnicos.filter((t: any) => t.status_disponibilidade === 'DISPONIVEL').length,
-        tecnicosIndisponiveis: tecnicos.filter((t: any) => t.status_disponibilidade !== 'DISPONIVEL').length,
-        osEmAndamento: osAtivas.filter((o: any) => o.status_atual === 'EM_EXECUCAO').length,
-        osAguardandoPecas: osAtivas.filter((o: any) => o.status_atual === 'AGUARDANDO_PECAS').length,
+        tecnicosDisponiveis: tecnicos.filter((t) => t.status_disponibilidade === 'DISPONIVEL').length,
+        tecnicosIndisponiveis: tecnicos.filter((t) => t.status_disponibilidade !== 'DISPONIVEL').length,
+        osEmAndamento: osAtivas.filter((o) => o.status_atual === 'EM_EXECUCAO').length,
+        osAguardandoPecas: osAtivas.filter((o) => o.status_atual === 'AGUARDANDO_PECAS').length,
         osSemTecnico: osSemTecnico.length,
-        osCriticas: osAtivas.filter((o: any) => new Date(o.data_abertura) < limite60Dias).length,
+        osCriticas: osAtivas.filter((o) => new Date(o.data_abertura) < limite60Dias).length,
         leadTimeTriagem: osSemTecnico.length > 0 ? (totalHorasSemTecnico / osSemTecnico.length).toFixed(1) : 0,
     };
 
     const osNaoAtribuidas: OSNaoAtribuida[] = osAtivas
-        .filter((o: any) => !o.tecnico_id || o.status_atual === 'AGUARDANDO_ATRIBUICAO')
-        .map((o: any) => ({
+        .filter((o) => !o.tecnico_id || o.status_atual === 'AGUARDANDO_ATRIBUICAO')
+        .map((o) => ({
             id: o.id,
             numero_os: o.numero_os,
             tipo_os: o.tipo_os,
@@ -199,6 +216,7 @@ const PainelChefeOficina: React.FC = () => {
             dias_em_aberto: Math.floor((Date.now() - new Date(o.data_abertura).getTime()) / (1000 * 60 * 60 * 24)),
             descricao_problema: o.descricao_problema || 'Nenhuma descrição detalhada fornecida.',
             nivel_urgencia: o.nivel_urgencia || 'NORMAL',
+            despesas: o.despesas,
         }))
         .sort((a, b) => {
             const urgencyWeight: Record<string, number> = { 'CRITICO': 4, 'ALTO': 3, 'MEDIO': 2, 'NORMAL': 1 };
@@ -208,20 +226,20 @@ const PainelChefeOficina: React.FC = () => {
             return b.dias_em_aberto - a.dias_em_aberto;
         });
 
-    const statusCounts = osAtivas.reduce((acc: any, os: any) => {
+    const statusCounts = osAtivas.reduce<Record<string, number>>((acc, os) => {
         acc[os.status_atual] = (acc[os.status_atual] || 0) + 1;
         return acc;
     }, {});
 
     const distribuicaoStatus = Object.entries(statusCounts).map(([status, count]) => ({
-        status,
+        status: status as StatusOS,
         quantidade: Number(count),
         percentual: Math.round((Number(count) / (osAtivas.length || 1)) * 100)
     })).sort((a, b) => b.quantidade - a.quantidade);
 
     const calendarEvents = useMemo(() => {
-        const events: any[] = [];
-        osAtivas.forEach((os: any) => {
+        const events: CalendarEvent[] = [];
+        osAtivas.forEach((os) => {
             if (os.tecnico_id && (os.data_agendamento || os.data_abertura)) {
                 // Se tiver data_agendamento a gente usa, senão fallback pra data_abertura
                 const dateRaw = os.data_agendamento || os.data_abertura;
@@ -229,7 +247,7 @@ const PainelChefeOficina: React.FC = () => {
                 // Extrai o YYYY-MM-DD direto do começo da string ISO, evitando shift de fuso horário
                 const date = dateRaw.split('T')[0];
 
-                const tecnicoNome = tecnicos.find((t: any) => t.id === os.tecnico_id)?.nome || 'Sem técnico';
+                const tecnicoNome = tecnicos.find((t) => t.id === os.tecnico_id)?.nome || 'Sem técnico';
 
                 const isAgendamento = !!os.data_agendamento;
 
@@ -245,10 +263,10 @@ const PainelChefeOficina: React.FC = () => {
     }, [osAtivas, tecnicos]);
 
     // === Dashboard KPIs ===
-    const osFaturadas = todasOS.filter((os: any) => os.status_atual === 'FATURADA');
-    const valorEmAberto = osAtivas.reduce((sum: number, os: any) => sum + (Number(os.valor_liquido_total) || 0), 0);
-    const valorFaturado = osFaturadas.reduce((sum: number, os: any) => sum + (Number(os.valor_liquido_total) || 0), 0);
-    const osPrazoExcedido = osAtivas.filter((o: any) => {
+    const osFaturadas = todasOS.filter((os) => os.status_atual === 'FATURADA');
+    const valorEmAberto = osAtivas.reduce((sum, os) => sum + (Number(os.valor_liquido_total) || 0), 0);
+    const valorFaturado = osFaturadas.reduce((sum, os) => sum + (Number(os.valor_liquido_total) || 0), 0);
+    const osPrazoExcedido = osAtivas.filter((o) => {
         const dias = Math.floor((Date.now() - new Date(o.data_abertura).getTime()) / (1000 * 60 * 60 * 24));
         return dias > 30;
     });
@@ -257,26 +275,26 @@ const PainelChefeOficina: React.FC = () => {
         value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
     // === Desempenho Operacional dos Técnicos ===
-    const desempenhoTecnicos = tecnicos.map((t: any) => {
-        const osDoTecnico = todasOS.filter((os: any) => os.tecnico_id === t.id);
-        const concluidas = osDoTecnico.filter((os: any) => ['CONCLUIDA', 'FATURADA', 'AGUARDANDO_PAGAMENTO'].includes(os.status_atual)).length;
-        const emExecucao = osDoTecnico.filter((os: any) => os.status_atual === 'EM_EXECUCAO').length;
-        const aguardando = osDoTecnico.filter((os: any) => os.status_atual === 'AGUARDANDO_PECAS').length;
-        const totalAtivas = osDoTecnico.filter((os: any) => !['FATURADA', 'CANCELADA'].includes(os.status_atual)).length;
+    const desempenhoTecnicos = tecnicos.map((t) => {
+        const osDoTecnico = todasOS.filter((os) => os.tecnico_id === t.id);
+        const concluidas = osDoTecnico.filter((os) => ['CONCLUIDA', 'FATURADA', 'AGUARDANDO_PAGAMENTO'].includes(os.status_atual)).length;
+        const emExecucao = osDoTecnico.filter((os) => os.status_atual === 'EM_EXECUCAO').length;
+        const aguardando = osDoTecnico.filter((os) => os.status_atual === 'AGUARDANDO_PECAS').length;
+        const totalAtivas = osDoTecnico.filter((os) => !['FATURADA', 'CANCELADA'].includes(os.status_atual)).length;
         const faturamentoTotal = osDoTecnico
-            .filter((os: any) => os.status_atual === 'FATURADA')
-            .reduce((sum: number, os: any) => sum + (Number(os.valor_liquido_total) || 0), 0);
+            .filter((os) => os.status_atual === 'FATURADA')
+            .reduce((sum, os) => sum + (Number(os.valor_liquido_total) || 0), 0);
 
         return {
             id: t.id,
-            nome: t.nome || t.nome_completo,
+            nome: t.nome,
             concluidas,
             emExecucao,
             aguardando,
             totalAtivas,
             faturamentoTotal,
         };
-    }).sort((a: any, b: any) => b.concluidas - a.concluidas);
+    }).sort((a, b) => b.concluidas - a.concluidas);
 
     const handleAtribuir = async (tecnicoId: string, dataAgendamento: string) => {
         if (selectedOS) {
@@ -285,7 +303,7 @@ const PainelChefeOficina: React.FC = () => {
                     tecnico_id: tecnicoId,
                     data_agendamento: dataAgendamento,
                     status_atual: 'EM_EXECUCAO'
-                } as any);
+                });
                 queryClient.invalidateQueries({ queryKey: ['os-ativas'] });
                 queryClient.invalidateQueries({ queryKey: ['tecnicos-stats'] });
                 queryClient.invalidateQueries({ queryKey: ['os-pecas-prontas'] });
@@ -297,7 +315,7 @@ const PainelChefeOficina: React.FC = () => {
         }
     };
 
-    const openAssignModal = (os: OSNaoAtribuida) => {
+    const openAssignModal = (os: OSParaAtribuir) => {
         setSelectedOS(os);
         setModalOpen(true);
     };
@@ -423,7 +441,7 @@ const PainelChefeOficina: React.FC = () => {
                                         <div className="text-right">Faturamento</div>
                                     </div>
 
-                                    {desempenhoTecnicos.map((tec: any, idx: number) => (
+                                    {desempenhoTecnicos.map((tec, idx) => (
                                         <div
                                             key={tec.id}
                                             className="grid grid-cols-7 gap-4 items-center p-5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-2xl hover:bg-[var(--surface-hover)] transition-all group"
@@ -492,7 +510,7 @@ const PainelChefeOficina: React.FC = () => {
                                         distribuicaoStatus.map((item) => (
                                             <div key={item.status} className="space-y-2">
                                                 <div className="flex justify-between items-end px-1">
-                                                    <StatusBadge status={item.status as any} size="sm" />
+                                                    <StatusBadge status={item.status} size="sm" />
                                                     <div className="text-right">
                                                         <span className="text-sm font-black text-[var(--text-primary)]">{item.quantidade}</span>
                                                         <span className="text-[10px] font-black text-blue-400 ml-2">{item.percentual}%</span>
@@ -520,7 +538,7 @@ const PainelChefeOficina: React.FC = () => {
                                             <p className="text-sm font-bold uppercase tracking-widest">Nenhuma OS com prazo excedido</p>
                                         </div>
                                     ) : (
-                                        osPrazoExcedido.map((os: any) => {
+                                        osPrazoExcedido.map((os) => {
                                             const dias = Math.floor((Date.now() - new Date(os.data_abertura).getTime()) / (1000 * 60 * 60 * 24));
                                             return (
                                                 <div key={os.id} className="flex items-center justify-between p-4 bg-rose-500/5 border border-rose-500/15 rounded-xl hover:bg-rose-500/10 transition-all">
@@ -611,7 +629,7 @@ const PainelChefeOficina: React.FC = () => {
                                         distribuicaoStatus.map((item) => (
                                             <div key={item.status} className="space-y-2.5 group">
                                                 <div className="flex justify-between items-end px-1">
-                                                    <StatusBadge status={item.status as any} size="sm" />
+                                                    <StatusBadge status={item.status} size="sm" />
                                                     <div className="text-right">
                                                         <span className="text-sm font-black text-[var(--text-primary)]">{item.quantidade}</span>
                                                         <span className="text-[10px] font-black text-blue-400 ml-2 bg-blue-500/5 px-1.5 py-0.5 rounded border border-blue-500/10">{item.percentual}%</span>
@@ -638,7 +656,7 @@ const PainelChefeOficina: React.FC = () => {
                                     {isLoading ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl" />) : tecnicos.length === 0 ? (
                                         <p className="text-center py-12 text-[var(--text-muted)] text-sm italic border border-dashed border-[var(--border-subtle)] rounded-2xl">Nenhum técnico disponível na base</p>
                                     ) : (
-                                        (tecnicos || []).map((tecnico: any) => (
+                                        (tecnicos || []).map((tecnico) => (
                                             <div
                                                 key={tecnico.id}
                                                 className="p-5 bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-2xl flex items-center justify-between hover:bg-[var(--surface-hover)] transition-all group cursor-pointer"
@@ -668,7 +686,7 @@ const PainelChefeOficina: React.FC = () => {
                                                         value={tecnico.status_disponibilidade}
                                                         onChange={async (e) => {
                                                             try {
-                                                                await tecnicoService.setAvailability(tecnico.id, e.target.value as any);
+                                                                await tecnicoService.setAvailability(tecnico.id, e.target.value as StatusDisponibilidadeTecnico);
                                                                 queryClient.invalidateQueries({ queryKey: ['tecnicos-stats'] });
                                                             } catch (err) {
                                                                 logger.error('Erro ao atualizar status:', err);
@@ -717,12 +735,12 @@ const PainelChefeOficina: React.FC = () => {
                                             <div className="space-y-4 relative z-10">
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-[10px] font-black text-orange-400 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 shadow-sm">#{os.numero_os}</span>
-                                                    {(os as any).despesas?.some((d: any) => d.comprovante_url) && (
+                                                    {os.despesas?.some((d) => d.comprovante_url) && (
                                                         <span title="Possui comprovantes de despesa">
                                                             <Paperclip className="w-3 h-3 text-blue-400 opacity-60 ml-1" />
                                                         </span>
                                                     )}
-                                                    <StatusBadge status={os.tipo_os as any} size="sm" />
+                                                    <TipoBadge tipo={os.tipo_os} />
                                                     <span className={`text-[9px] font-black px-2 py-0.5 rounded border uppercase tracking-widest ${os.nivel_urgencia === 'CRITICO' ? 'bg-red-500/10 border-red-500/30 text-red-500' :
                                                         os.nivel_urgencia === 'ALTO' ? 'bg-orange-500/10 border-orange-500/30 text-orange-500' :
                                                             os.nivel_urgencia === 'MEDIO' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' :
@@ -806,7 +824,7 @@ const PainelChefeOficina: React.FC = () => {
                 isOpen={modalOpen}
                 onClose={() => { setModalOpen(false); setSelectedOS(null); }}
                 onAssign={handleAtribuir}
-                tecnicos={tecnicos.map((t: any) => ({
+                tecnicos={tecnicos.map((t) => ({
                     ...t,
                     osAtribuidas: t.stats?.osAtribuidas || 0,
                     osEmExecucao: t.stats?.osEmExecucao || 0,

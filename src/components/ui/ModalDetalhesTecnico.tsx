@@ -14,8 +14,8 @@ import { useNavigate } from 'react-router-dom';
 interface OSShort {
     id: string;
     numero_os: string;
-    nome_cliente_digitavel: string;
-    modelo_maquina: string;
+    nome_cliente_digitavel: string | null;
+    modelo_maquina: string | null;
     status_atual: string;
     data_abertura: string;
 }

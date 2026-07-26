@@ -10,6 +10,8 @@ export type OrdemServico = Database['public']['Tables']['ordens_servico']['Row']
     maquina?: Database['public']['Tables']['maquinas']['Row'] | null;
     consultor?: Database['public']['Tables']['profiles']['Row'] | null;
     itens?: Database['public']['Tables']['itens_os']['Row'][] | null;
+    // Só presente no retorno de list() (select inclui despesas:despesas_os(comprovante_url))
+    despesas?: Pick<Database['public']['Tables']['despesas_os']['Row'], 'comprovante_url'>[] | null;
 };
 
 
