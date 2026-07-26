@@ -32,7 +32,14 @@ export const MotivoBadge: React.FC<MotivoBadgeProps> = ({
     showDays = true,
     compact = false
 }) => {
-    const getStatusConfig = () => {
+    const getStatusConfig = (): {
+        label: string;
+        detail: string | null;
+        subDetail?: string | null;
+        color: string;
+        iconColor: string;
+        icon: string;
+    } => {
         switch (status) {
             case 'AGUARDANDO_APROVACAO_ORCAMENTO':
                 return {
@@ -184,9 +191,9 @@ export const MotivoBadge: React.FC<MotivoBadgeProps> = ({
                     </span>
                 )}
             </div>
-            {(config as any).subDetail && (
+            {config.subDetail && (
                 <span className="text-xs mt-1 opacity-70">
-                    {(config as any).subDetail}
+                    {config.subDetail}
                 </span>
             )}
             {roteiro && status === 'EM_TRANSITO' && (

@@ -58,7 +58,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         }
     }, []);
 
-    const handleFilterChange = (key: keyof OSFilters, value: any) => {
+    const handleFilterChange = <K extends keyof OSFilters>(key: K, value: OSFilters[K]) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
     };
 
@@ -148,7 +148,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     <div className="relative">
                         <select
                             value={filters.tipo}
-                            onChange={(e) => handleFilterChange('tipo', e.target.value)}
+                            onChange={(e) => handleFilterChange('tipo', e.target.value as OSFilters['tipo'])}
                             className={selectClassName}
                         >
                             <option value="TODOS">Todas as Modalidades</option>
@@ -168,7 +168,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         <div className="relative">
                             <select
                                 value={filters.status}
-                                onChange={(e) => handleFilterChange('status', e.target.value)}
+                                onChange={(e) => handleFilterChange('status', e.target.value as OSFilters['status'])}
                                 className={selectClassName}
                             >
                                 <option value="TODOS">Todos os Status</option>
@@ -197,7 +197,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     <div className="relative">
                         <select
                             value={filters.diasCategoria}
-                            onChange={(e) => handleFilterChange('diasCategoria', e.target.value)}
+                            onChange={(e) => handleFilterChange('diasCategoria', e.target.value as OSFilters['diasCategoria'])}
                             className={selectClassName}
                         >
                             <option value="TODOS">Qualquer Período</option>
@@ -298,9 +298,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 };
 
 // Adicionei os ícones que faltavam para evitar erros de lint (Activity, Clock)
-const Activity = (props: any) => (
+const Activity = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-activity"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
 );
-const Clock = (props: any) => (
+const Clock = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
 );

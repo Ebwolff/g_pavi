@@ -33,7 +33,21 @@ const THEME = {
 const CHART_COLORS = [THEME.primary, THEME.success, THEME.warning, THEME.danger, THEME.violet, THEME.indigo];
 
 // --- Premium Tooltip ---
-const CustomTooltip = ({ active, payload, label, formatter }: any) => {
+interface CustomTooltipEntry {
+    color?: string;
+    fill?: string;
+    name?: string;
+    value?: number | string;
+}
+
+interface CustomTooltipProps {
+    active?: boolean;
+    payload?: CustomTooltipEntry[];
+    label?: string | number;
+    formatter?: (value: number | string) => React.ReactNode;
+}
+
+const CustomTooltip = ({ active, payload, label, formatter }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-[#0B0F14]/90 backdrop-blur-xl border border-white/10 p-4 rounded-xl shadow-2xl min-w-[180px]">
@@ -41,7 +55,7 @@ const CustomTooltip = ({ active, payload, label, formatter }: any) => {
                     {label}
                 </p>
                 <div className="space-y-2">
-                    {payload.map((entry: any, index: number) => (
+                    {payload.map((entry, index) => (
                         <div key={index} className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-2">
                                 <div
@@ -54,7 +68,7 @@ const CustomTooltip = ({ active, payload, label, formatter }: any) => {
                                 <span className="text-sm font-medium text-gray-300">{entry.name}</span>
                             </div>
                             <span className="text-sm font-bold text-white font-mono">
-                                {formatter ? formatter(entry.value) : entry.value}
+                                {formatter ? formatter(entry.value ?? 0) : entry.value}
                             </span>
                         </div>
                     ))}
@@ -331,13 +345,13 @@ interface TopClientesChartProps {
 }
 
 export const TopClientesChart: React.FC<TopClientesChartProps> = ({ data }) => {
-    const formatCurrency = (value: number) => {
+    const formatCurrency = (value: number | string) => {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
-        }).format(value);
+        }).format(Number(value));
     };
 
     return (

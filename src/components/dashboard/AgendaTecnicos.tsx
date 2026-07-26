@@ -25,8 +25,8 @@ interface Tecnico {
 interface OSDoTecnico {
     id: string;
     numero_os: string;
-    nome_cliente_digitavel: string;
-    modelo_maquina: string;
+    nome_cliente_digitavel: string | null;
+    modelo_maquina: string | null;
     status_atual: string;
     data_abertura: string;
 }
@@ -65,7 +65,7 @@ export function AgendaTecnicos() {
         try {
             // Buscar técnicos
             const { data: tecnicosData, error: tecError } = await supabase
-                .from('tecnicos' as any)
+                .from('tecnicos')
                 .select('id, nome_completo, especialidade')
                 .order('nome_completo');
 
@@ -89,13 +89,13 @@ export function AgendaTecnicos() {
             if (osError) throw osError;
 
             // Mapear OS para cada técnico
-            const tecnicosComOS = (tecnicosData || []).map((tec: any) => ({
+            const tecnicosComOS: Tecnico[] = (tecnicosData || []).map((tec) => ({
                 ...tec,
-                ordens_servico: (osData || []).filter((os: any) => os.tecnico_id === tec.id)
+                ordens_servico: (osData || []).filter((os) => os.tecnico_id === tec.id)
             }));
 
             // Ordenar por quantidade de OS (maior primeiro)
-            tecnicosComOS.sort((a: any, b: any) => b.ordens_servico.length - a.ordens_servico.length);
+            tecnicosComOS.sort((a, b) => b.ordens_servico.length - a.ordens_servico.length);
 
             setTecnicos(tecnicosComOS);
         } catch (error) {
