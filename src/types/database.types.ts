@@ -85,6 +85,8 @@ export interface Database {
                     data_aprovacao: string | null;
                     updated_at: string;
                     observacoes: string | null;
+                    pdf_nbs_url: string | null;
+                    itens_orcamento: Json | null;
                 };
                 Insert: {
                     id?: string;
@@ -106,6 +108,8 @@ export interface Database {
                     data_aprovacao?: string | null;
                     updated_at?: string;
                     observacoes?: string | null;
+                    pdf_nbs_url?: string | null;
+                    itens_orcamento?: Json | null;
                 };
                 Update: {
                     id?: string;
@@ -127,6 +131,8 @@ export interface Database {
                     data_aprovacao?: string | null;
                     updated_at?: string;
                     observacoes?: string | null;
+                    pdf_nbs_url?: string | null;
+                    itens_orcamento?: Json | null;
                 };
                 Relationships: [
                     {
@@ -267,6 +273,7 @@ export interface Database {
                     data_faturamento_fabrica: string | null;
                     link_pdf_os: string | null;
                     orcamento_id: string | null;
+                    itens_orcamento: Json | null;
                 };
                 Insert: {
                     id?: string;
@@ -312,6 +319,7 @@ export interface Database {
                     localizacao_atual?: string | null;
                     roteiro?: string | null;
                     orcamento_id?: string | null;
+                    itens_orcamento?: Json | null;
                 };
                 Update: {
                     id?: string;
@@ -357,6 +365,7 @@ export interface Database {
                     localizacao_atual?: string | null;
                     roteiro?: string | null;
                     orcamento_id?: string | null;
+                    itens_orcamento?: Json | null;
                 };
                 Relationships: [
                     {

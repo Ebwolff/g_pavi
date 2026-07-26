@@ -1,7 +1,10 @@
 import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 import { sanitizePostgrestFilterValue } from '@/lib/utils';
-import type { Database, StatusOrcamento } from '@/types/database.types';
+import { ordemServicoService } from '@/services/ordemServico.service';
+import type { Database, StatusOrcamento, TipoDiagnostico } from '@/types/database.types';
+
+const TIPOS_DIAGNOSTICO_VALIDOS: TipoDiagnostico[] = ['SIMPLES', 'COMPLEXO', 'ESPECIALIZADO'];
 
 export type OrcamentoServico = Database['public']['Tables']['orcamentos_servico']['Row'] & {
     cliente?: Database['public']['Tables']['clientes']['Row'] | null;
@@ -104,10 +107,10 @@ class OrcamentoService {
     /**
      * Cria um novo orçamento
      */
-    async create(orcamentoData: any): Promise<OrcamentoServico> {
+    async create(orcamentoData: Database['public']['Tables']['orcamentos_servico']['Insert']): Promise<OrcamentoServico> {
         const { data, error } = await supabase
             .from('orcamentos_servico')
-            .insert(orcamentoData as Database['public']['Tables']['orcamentos_servico']['Insert'])
+            .insert(orcamentoData)
             .select()
             .single();
 
@@ -122,11 +125,11 @@ class OrcamentoService {
     /**
      * Atualiza um orçamento
      */
-    async update(id: string, orcamentoData: any): Promise<OrcamentoServico> {
-        const updateData = {
+    async update(id: string, orcamentoData: Database['public']['Tables']['orcamentos_servico']['Update']): Promise<OrcamentoServico> {
+        const updateData: Database['public']['Tables']['orcamentos_servico']['Update'] = {
             ...orcamentoData,
             updated_at: new Date().toISOString()
-        } as Database['public']['Tables']['orcamentos_servico']['Update'];
+        };
 
         const { data, error } = await supabase
             .from('orcamentos_servico')
@@ -146,8 +149,8 @@ class OrcamentoService {
     /**
      * Atualiza o Status do Orçamento
      */
-    async updateStatus(id: string, status: string): Promise<OrcamentoServico> {
-        const updateData: Database['public']['Tables']['orcamentos_servico']['Update'] = { status_orcamento: status as any };
+    async updateStatus(id: string, status: StatusOrcamento): Promise<OrcamentoServico> {
+        const updateData: Database['public']['Tables']['orcamentos_servico']['Update'] = { status_orcamento: status };
         
         if (status === 'APROVADO') {
             updateData.data_aprovacao = new Date().toISOString();
@@ -174,7 +177,10 @@ class OrcamentoService {
      * 2. Insere na tabela ordens_servico (vinculando orcamento_id)
      * 3. Atualiza o status do orçamento para "CONVERTIDO_OS"
      */
-    async converterParaOS(orcamentoId: string, osDataPreenchida: any): Promise<any> {
+    async converterParaOS(
+        orcamentoId: string,
+        osDataPreenchida: Partial<Database['public']['Tables']['ordens_servico']['Insert']>
+    ): Promise<Database['public']['Tables']['ordens_servico']['Row']> {
         const orcamento = await this.getById(orcamentoId);
         if (!orcamento) throw new Error("Orçamento não encontrado");
         
@@ -183,8 +189,11 @@ class OrcamentoService {
         }
 
         // 1. Inserir a OS com os dados herdados do Orçamento + Adicionais
+        const numeroOS = await ordemServicoService.getNextOSNumber();
+
         const osPayload: Database['public']['Tables']['ordens_servico']['Insert'] = {
             ...osDataPreenchida,
+            numero_os: numeroOS,
             tipo_os: 'NORMAL', // Sempre Normal, pois fluxo Garantia não passa por aqui
             status_atual: 'AGUARDANDO_ATRIBUICAO',
             data_abertura: new Date().toISOString(),
@@ -198,7 +207,11 @@ class OrcamentoService {
             valor_pecas: orcamento.valor_pecas,
             valor_deslocamento: orcamento.valor_deslocamento,
             valor_liquido_total: orcamento.valor_liquido_total,
-            tipo_diagnostico: orcamento.tipo_diagnostico || 'MANUTENCAO',
+            // ordens_servico.tipo_diagnostico tem CHECK constraint (SIMPLES/COMPLEXO/ESPECIALIZADO/NULL);
+            // orcamentos_servico.tipo_diagnostico é texto livre e pode não bater com nenhum valor válido.
+            tipo_diagnostico: TIPOS_DIAGNOSTICO_VALIDOS.includes(orcamento.tipo_diagnostico as TipoDiagnostico)
+                ? (orcamento.tipo_diagnostico as TipoDiagnostico)
+                : null,
             consultor_id: orcamento.consultor_id,
             orcamento_id: orcamento.id
         };

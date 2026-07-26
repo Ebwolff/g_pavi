@@ -107,7 +107,10 @@ describe('orcamentoService', () => {
                     return chainable({ data: orcamentoAprovado, error: null });
                 }
                 if (table === 'ordens_servico') {
-                    const builder = chainable({ data: novaOS, error: null });
+                    // Sem .single(): getNextOSNumber() consulta o maior numero_os existente (lista vazia = ano-0001).
+                    // Com .single(): retorno do .insert(...).select().single() da OS recém-criada.
+                    const builder = chainable({ data: [], error: null });
+                    builder.single = vi.fn(() => Promise.resolve({ data: novaOS, error: null }));
                     builder.insert = vi.fn((payload: any) => {
                         osInsertPayload = payload;
                         return builder;
@@ -132,7 +135,39 @@ describe('orcamentoService', () => {
                 tipo_os: 'NORMAL',
                 status_atual: 'AGUARDANDO_ATRIBUICAO',
                 data_agendamento: '2026-01-01',
+                tipo_diagnostico: 'SIMPLES',
             });
+            // numero_os é obrigatório (NOT NULL + UNIQUE no banco) e precisa ser gerado,
+            // não apenas herdado do orçamento.
+            expect(osInsertPayload.numero_os).toEqual(expect.any(String));
+        });
+
+        it('não propaga tipo_diagnostico inválido para a OS (ordens_servico tem CHECK constraint)', async () => {
+            const novaOS = { id: 'os-2', numero_os: 'OS-002' };
+            let osInsertPayload: any = null;
+            const orcamentoComTipoInvalido = { ...orcamentoAprovado, tipo_diagnostico: 'MANUTENCAO' };
+
+            (supabase.from as any).mockImplementation((table: string) => {
+                if (table === 'orcamentos_servico') {
+                    return chainable({ data: orcamentoComTipoInvalido, error: null });
+                }
+                if (table === 'ordens_servico') {
+                    const builder = chainable({ data: [], error: null });
+                    builder.single = vi.fn(() => Promise.resolve({ data: novaOS, error: null }));
+                    builder.insert = vi.fn((payload: any) => {
+                        osInsertPayload = payload;
+                        return builder;
+                    });
+                    return builder;
+                }
+                return chainable({ data: null, error: null });
+            });
+
+            await orcamentoService.converterParaOS('orc-1', {});
+
+            // 'MANUTENCAO' não é SIMPLES/COMPLEXO/ESPECIALIZADO: precisa virar null,
+            // senão o INSERT falha no banco por violar check_tipo_diagnostico.
+            expect(osInsertPayload.tipo_diagnostico).toBeNull();
         });
     });
 

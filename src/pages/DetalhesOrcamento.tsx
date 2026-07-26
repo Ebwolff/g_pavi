@@ -8,15 +8,13 @@ import {
 } from 'lucide-react';
 
 import { orcamentoService } from '@/services/orcamento.service';
+import type { StatusOrcamento } from '@/types/database.types';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { CustomBadge } from '@/components/ui/StatusBadge';
 import { formatarValor, formatarData } from '@/utils/osHelpers';
 
-// Tipo helper temporário
-type StatusOrcamentoType = 'EM_ELABORACAO' | 'ENVIADO_CLIENTE' | 'APROVADO' | 'REPROVADO' | 'CONVERTIDO_OS';
-
-const statusConfig: Record<StatusOrcamentoType, { label: string, color: 'blue' | 'yellow' | 'green' | 'red' | 'gray' }> = {
+const statusConfig: Record<StatusOrcamento, { label: string, color: 'blue' | 'yellow' | 'green' | 'red' | 'gray' }> = {
     EM_ELABORACAO: { label: 'Em Elaboração', color: 'gray' },
     ENVIADO_CLIENTE: { label: 'Enviado ao Cliente', color: 'blue' },
     APROVADO: { label: 'Aprovado', color: 'green' },
@@ -38,7 +36,7 @@ export function DetalhesOrcamento() {
     });
 
     const statusMutation = useMutation({
-        mutationFn: (novoStatus: string) => orcamentoService.updateStatus(id!, novoStatus),
+        mutationFn: (novoStatus: StatusOrcamento) => orcamentoService.updateStatus(id!, novoStatus),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['orcamento', id] });
             queryClient.invalidateQueries({ queryKey: ['orcamentos'] });
@@ -89,7 +87,7 @@ export function DetalhesOrcamento() {
 
     if (!orcamento) return null;
 
-    const stat = statusConfig[orcamento.status_orcamento as StatusOrcamentoType] || { label: orcamento.status_orcamento, color: 'gray' };
+    const stat = statusConfig[orcamento.status_orcamento] || { label: orcamento.status_orcamento, color: 'gray' };
 
     return (
         <AppLayout>

@@ -39,7 +39,7 @@ class TecnicoService {
         const tecnicosMap = new Map<string, Tecnico>();
 
         // Adicionar da tabela tecnicos
-        (tecnicosData || []).forEach((t: any) => {
+        (tecnicosData || []).forEach((t) => {
             tecnicosMap.set(t.id, {
                 id: t.id,
                 nome: t.nome_completo || 'Técnico sem nome',
@@ -50,7 +50,7 @@ class TecnicoService {
         });
 
         // Adicionar do profiles (se não existir na tabela tecnicos)
-        (profilesData || []).forEach((p: any) => {
+        (profilesData || []).forEach((p) => {
             // Verificar se já existe um técnico com este user_id
             const existing = Array.from(tecnicosMap.values()).find(t => t.userId === p.id);
             if (!existing) {
@@ -85,13 +85,13 @@ class TecnicoService {
         const osList = osData || [];
 
         return tecnicos.map(t => {
-            const osDoTecnico = osList.filter((os: any) => os.tecnico_id === t.id);
+            const osDoTecnico = osList.filter((os) => os.tecnico_id === t.id);
             return {
                 ...t,
                 stats: {
                     osAtribuidas: osDoTecnico.length,
-                    osEmExecucao: osDoTecnico.filter((os: any) => os.status_atual === 'EM_EXECUCAO').length,
-                    osConcluidas: osDoTecnico.filter((os: any) => os.status_atual === 'CONCLUIDA').length
+                    osEmExecucao: osDoTecnico.filter((os) => os.status_atual === 'EM_EXECUCAO').length,
+                    osConcluidas: osDoTecnico.filter((os) => os.status_atual === 'CONCLUIDA').length
                 }
             };
         });

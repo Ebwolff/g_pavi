@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 
 import { orcamentoService } from '@/services/orcamento.service';
+import type { Database } from '@/types/database.types';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { AppLayout } from '@/components/AppLayout';
@@ -29,7 +30,7 @@ export function OrcamentoForm() {
         valor_mao_de_obra: '0',
         valor_pecas: '0',
         valor_deslocamento: '0',
-        tipo_diagnostico: 'MANUTENCAO',
+        tipo_diagnostico: '',
         observacoes: ''
     });
 
@@ -40,13 +41,13 @@ export function OrcamentoForm() {
     const [itensOrcamento, setItensOrcamento] = useState<ItemOrcamento[]>([]);
 
     const createMutation = useMutation({
-        mutationFn: (data: any) => orcamentoService.create(data),
+        mutationFn: (data: Database['public']['Tables']['orcamentos_servico']['Insert']) => orcamentoService.create(data),
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['orcamentos'] });
             alert('Orçamento criado com sucesso!');
             navigate(`/orcamentos/${data.id}`);
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             logger.error('Erro ao criar Orçamento:', error);
             alert(`Erro ao criar Orçamento: ${error.message || 'Ocorreu um erro'}`);
         },
@@ -130,12 +131,12 @@ export function OrcamentoForm() {
             valor_mao_de_obra: parseFloat(formData.valor_mao_de_obra) || 0,
             valor_pecas: parseFloat(formData.valor_pecas) || 0,
             valor_deslocamento: parseFloat(formData.valor_deslocamento) || 0,
-            tipo_diagnostico: formData.tipo_diagnostico,
+            tipo_diagnostico: formData.tipo_diagnostico || null,
             observacoes: formData.observacoes || null,
             status_orcamento: 'EM_ELABORACAO',
             consultor_id: profile?.id,
             pdf_nbs_url: pdfNbsUrl,
-            itens_orcamento: itensOrcamento.length > 0 ? itensOrcamento : null
+            itens_orcamento: itensOrcamento.length > 0 ? (itensOrcamento as unknown as Database['public']['Tables']['orcamentos_servico']['Insert']['itens_orcamento']) : null
         });
     };
 
