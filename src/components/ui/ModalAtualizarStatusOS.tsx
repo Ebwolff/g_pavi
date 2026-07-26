@@ -13,7 +13,8 @@ import {
     Truck,
     Search,
     PauseCircle,
-    CheckCircle2
+    CheckCircle2,
+    type LucideIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -46,7 +47,7 @@ interface ModalAtualizarStatusOSProps {
     numeroOS: string;
 }
 
-const STATUS_OPTIONS: { value: StatusOS; label: string; description: string; icon: any; color: string }[] = [
+const STATUS_OPTIONS: { value: StatusOS; label: string; description: string; icon: LucideIcon; color: string }[] = [
     { value: 'EM_EXECUCAO', label: 'Em Execução', description: 'OS está sendo trabalhada ativamente', icon: Activity, color: 'blue' },
     { value: 'AGUARDANDO_APROVACAO_ORCAMENTO', label: 'Aguardando Orçamento', description: 'Aguardando aprovação do orçamento pelo cliente', icon: ClipboardList, color: 'amber' },
     { value: 'AGUARDANDO_PECAS', label: 'Aguardando Peças', description: 'Aguardando chegada de peças', icon: Settings, color: 'yellow' },
@@ -111,8 +112,8 @@ export const ModalAtualizarStatusOS: React.FC<ModalAtualizarStatusOSProps> = ({
             }
             await onConfirm(formData);
             onClose();
-        } catch (err: any) {
-            setError(err.message || 'Erro ao atualizar status');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Erro ao atualizar status');
         } finally {
             setIsLoading(false);
         }

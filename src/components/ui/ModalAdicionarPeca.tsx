@@ -81,7 +81,7 @@ export function ModalAdicionarPeca({ isOpen, onClose, osId, onSuccess }: ModalAd
                         valor_unitario: 0,
                         status_separacao: 'PENDENTE',
                         status_aprovacao: 'PENDENTE_CONSULTOR'
-                    })) as any
+                    }))
                 );
 
             if (error) throw error;
@@ -93,14 +93,14 @@ export function ModalAdicionarPeca({ isOpen, onClose, osId, onSuccess }: ModalAd
             // Atualizar status da OS para AGUARDANDO_PECAS
             await supabase
                 .from('ordens_servico')
-                .update({ status_atual: 'AGUARDANDO_PECAS' } as any)
+                .update({ status_atual: 'AGUARDANDO_PECAS' })
                 .eq('id', osId);
 
             onSuccess();
             onClose();
-        } catch (error: any) {
+        } catch (error) {
             logger.error('Erro ao adicionar peças:', error);
-            alert(`Erro ao adicionar peças: ${error.message || 'Erro desconhecido.'}`);
+            alert(`Erro ao adicionar peças: ${error instanceof Error ? error.message : 'Erro desconhecido.'}`);
         } finally {
             setLoading(false);
         }

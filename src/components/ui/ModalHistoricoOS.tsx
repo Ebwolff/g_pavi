@@ -14,9 +14,10 @@ import {
     AlertCircle,
     FastForward,
     ImageIcon,
-    FileText
+    FileText,
+    type LucideIcon
 } from 'lucide-react';
-import { ordemServicoService } from '@/services/ordemServico.service';
+import { ordemServicoService, type OrdemServico } from '@/services/ordemServico.service';
 import { anexosService, Anexo } from '@/services/anexosService';
 import { format, differenceInHours, differenceInDays, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -40,7 +41,7 @@ interface ItemHistorico {
 export function ModalHistoricoOS({ isOpen, onClose, osId, osNumero }: ModalHistoricoOSProps) {
     const [historico, setHistorico] = useState<ItemHistorico[]>([]);
     const [anexos, setAnexos] = useState<Anexo[]>([]);
-    const [os, setOs] = useState<any>(null);
+    const [os, setOs] = useState<OrdemServico | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -59,7 +60,7 @@ export function ModalHistoricoOS({ isOpen, onClose, osId, osNumero }: ModalHisto
             ]);
 
             // Processar durações (cronologia ASC para cálculo)
-            const sortedHist = [...(histData as any[])].sort((a, b) =>
+            const sortedHist = [...histData].sort((a, b) =>
                 new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
             );
 
@@ -97,7 +98,7 @@ export function ModalHistoricoOS({ isOpen, onClose, osId, osNumero }: ModalHisto
     };
 
     const getStatusConfig = (status: string) => {
-        const configs: Record<string, { color: string; bg: string; icon: any; label: string }> = {
+        const configs: Record<string, { color: string; bg: string; icon: LucideIcon; label: string }> = {
             'AGUARDANDO_ATRIBUICAO': { color: 'text-slate-400', bg: 'bg-slate-500/10', icon: Clock, label: 'Triagem' },
             'EM_EXECUCAO': { color: 'text-blue-400', bg: 'bg-blue-500/10', icon: Wrench, label: 'Execução' },
             'AGUARDANDO_PECAS': { color: 'text-orange-400', bg: 'bg-orange-500/10', icon: Package, label: 'Aguardando Peças' },
