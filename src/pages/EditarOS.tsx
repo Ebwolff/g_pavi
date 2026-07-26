@@ -13,8 +13,9 @@ import { AnchoredValue } from '@/components/cognitive-bias';
 import { ModalLancarDespesa } from '@/components/ui/ModalLancarDespesa';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
-import { RentalAnalysis } from '@/components/ui/RentalAnalysis';
+import { RentalAnalysis, type ProfitabilityData } from '@/components/ui/RentalAnalysis';
 import { statsService } from '@/services/statsService';
+import type { StatusOS, TipoOS } from '@/types/database.types';
 import {
     ArrowLeft,
     Save,
@@ -41,11 +42,19 @@ import {
     Loader2,
     Download,
     FileText,
-    Paperclip
+    Paperclip,
+    type LucideIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const TabButton = ({ children, active, onClick, highlight }: any) => (
+interface TabButtonProps {
+    children: React.ReactNode;
+    active: boolean;
+    onClick: () => void;
+    highlight?: boolean;
+}
+
+const TabButton = ({ children, active, onClick, highlight }: TabButtonProps) => (
     <button
         onClick={onClick}
         className={cn(
@@ -84,7 +93,7 @@ export function EditarOS() {
     const [loadingDespesas, setLoadingDespesas] = useState(false);
     const [loadingAnexos, setLoadingAnexos] = useState(false);
     const [uploadingAnexo, setUploadingAnexo] = useState(false);
-    const [profitabilityData, setProfitabilityData] = useState<any>(null);
+    const [profitabilityData, setProfitabilityData] = useState<ProfitabilityData | null>(null);
     const [loadingProfit, setLoadingProfit] = useState(false);
     const [activeTab, setActiveTab] = useState<'dados' | 'financeiro' | 'fotos' | 'rentabilidade'>('dados');
 
@@ -190,7 +199,7 @@ export function EditarOS() {
         }
     };
 
-    const tiposDespesaIcons: Record<TipoDespesa, { icon: any; color: string }> = {
+    const tiposDespesaIcons: Record<TipoDespesa, { icon: LucideIcon; color: string }> = {
         'KM': { icon: Car, color: 'text-blue-400 bg-blue-500/10' },
         'ABASTECIMENTO': { icon: Fuel, color: 'text-amber-400 bg-amber-500/10' },
         'ALIMENTACAO': { icon: Utensils, color: 'text-emerald-400 bg-emerald-500/10' },
@@ -203,25 +212,25 @@ export function EditarOS() {
     const totalDespesas = despesas.reduce((sum, d) => sum + (d.valor_total || 0), 0);
 
     const updateOSMutation = useMutation({
-        mutationFn: (data: any) => ordemServicoService.update(id!, data),
+        mutationFn: (data: Parameters<typeof ordemServicoService.update>[1]) => ordemServicoService.update(id!, data),
         onSuccess: () => navigate('/os/lista'),
-        onError: (error: any) => logger.error('Erro ao atualizar OS:', error),
+        onError: (error: Error) => logger.error('Erro ao atualizar OS:', error),
     });
 
     const deleteOSMutation = useMutation({
         mutationFn: () => ordemServicoService.delete(id!),
         onSuccess: () => navigate('/os/lista'),
-        onError: (error: any) => logger.error('Erro ao deletar OS:', error),
+        onError: (error: Error) => logger.error('Erro ao deletar OS:', error),
     });
 
-    const handleInputChange = (field: string, value: any) => {
+    const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
     const handleSubmit = () => {
         const data = {
             tipo_os: formData.tipoOS,
-            status_atual: formData.statusOS as any,
+            status_atual: formData.statusOS as StatusOS,
             nome_cliente_digitavel: formData.nomeCliente || null,
             modelo_maquina: formData.modeloMaquina || null,
             chassi: formData.chassi || null,
@@ -282,7 +291,7 @@ export function EditarOS() {
                         <div>
                             <div className="flex items-center gap-3">
                                 <h1 className="text-3xl font-black text-white tracking-tight">Editar OS #{formData.numeroOS}</h1>
-                                <StatusBadge status={formData.statusOS as any} />
+                                <StatusBadge status={formData.statusOS as StatusOS} />
                             </div>
                             <p className="text-[var(--text-muted)] font-medium mt-1">Gerenciamento técnico e financeiro do registro</p>
                         </div>
@@ -355,7 +364,7 @@ export function EditarOS() {
                                         <div className="relative group">
                                             <select
                                                 value={formData.tipoOS}
-                                                onChange={(e) => handleInputChange('tipoOS', e.target.value as any)}
+                                                onChange={(e) => handleInputChange('tipoOS', e.target.value as TipoOS)}
                                                 className="w-full bg-[var(--surface-light)] border border-[var(--border-subtle)] rounded-2xl px-5 py-4 text-[var(--text-primary)] font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none appearance-none cursor-pointer"
                                             >
                                                 <option value="NORMAL">Venda Normal</option>

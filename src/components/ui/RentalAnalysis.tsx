@@ -7,9 +7,12 @@ import {
     Wrench,
     Car,
     ArrowUpRight,
-    Briefcase
+    Briefcase,
+    FileQuestion,
+    type LucideIcon
 } from 'lucide-react';
 import { Card } from './Card';
+import { EmptyState } from './EmptyState';
 import { cn } from '@/lib/utils';
 
 export interface ProfitabilityData {
@@ -32,7 +35,7 @@ export interface ProfitabilityData {
 }
 
 interface RentalAnalysisProps {
-    data: ProfitabilityData;
+    data: ProfitabilityData | null;
     isLoading?: boolean;
 }
 
@@ -44,6 +47,16 @@ export function RentalAnalysis({ data, isLoading }: RentalAnalysisProps) {
                     <div key={i} className="h-32 bg-white/5 rounded-2xl border border-white/5" />
                 ))}
             </div>
+        );
+    }
+
+    if (!data) {
+        return (
+            <EmptyState
+                icon={FileQuestion}
+                title="Sem dados de rentabilidade"
+                description="Ainda não há informações financeiras suficientes para calcular a rentabilidade desta OS."
+            />
         );
     }
 
@@ -173,7 +186,15 @@ export function RentalAnalysis({ data, isLoading }: RentalAnalysisProps) {
     );
 }
 
-function RevenueItem({ label, value, icon: Icon, color, total }: any) {
+interface RevenueItemProps {
+    label: string;
+    value: number;
+    icon: LucideIcon;
+    color: 'blue' | 'emerald' | 'amber';
+    total: number;
+}
+
+function RevenueItem({ label, value, icon: Icon, color, total }: RevenueItemProps) {
     const percent = total > 0 ? (value / total) * 100 : 0;
     return (
         <Card className="p-4 bg-white/[0.02] border-white/[0.05] hover:border-white/10 transition-all">
@@ -198,7 +219,14 @@ function RevenueItem({ label, value, icon: Icon, color, total }: any) {
     );
 }
 
-function CostItem({ label, value, icon: Icon, total }: any) {
+interface CostItemProps {
+    label: string;
+    value: number;
+    icon: LucideIcon;
+    total: number;
+}
+
+function CostItem({ label, value, icon: Icon, total }: CostItemProps) {
     const percent = total > 0 ? (value / total) * 100 : 0;
     return (
         <Card className="p-4 bg-white/[0.02] border-white/[0.05] hover:border-rose-500/10 transition-all border-l-2 border-l-rose-500/20">
