@@ -1,6 +1,20 @@
 import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 import { getUserProfile } from '../lib/supabase';
+import type { Database } from '@/types/database.types';
+
+type OSRow = Database['public']['Tables']['ordens_servico']['Row'];
+type OSStatsRow = Pick<OSRow, 'status_atual' | 'tipo_os' | 'valor_liquido_total' | 'data_abertura' | 'data_fechamento' | 'nivel_urgencia'>;
+type PendenciaRow = Pick<Database['public']['Tables']['pendencias_os']['Row'], 'status'>;
+type AlertaRow = Pick<Database['public']['Tables']['alertas']['Row'], 'lido'>;
+type ConsultorOSRow = Pick<OSRow, 'consultor_id' | 'status_atual' | 'valor_liquido_total' | 'tipo_os'> & {
+    consultor: Pick<Database['public']['Tables']['profiles']['Row'], 'first_name' | 'last_name'> | Pick<Database['public']['Tables']['profiles']['Row'], 'first_name' | 'last_name'>[] | null;
+};
+type TendenciaRow = Pick<OSRow, 'data_abertura' | 'tipo_os' | 'valor_liquido_total'>;
+type DistribuicaoRow = Pick<OSRow, 'status_atual' | 'tipo_os'>;
+type TopClienteRow = Pick<OSRow, 'nome_cliente_digitavel' | 'valor_liquido_total' | 'tipo_os'>;
+type ProfitabilityRow = Database['public']['Views']['vw_os_profitability']['Row'];
+
 export interface DashboardStats {
     // Métricas principais
     totalOS: number;
@@ -78,7 +92,7 @@ export const statsService = {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) return null;
 
-            const profile = await getUserProfile() as any;
+            const profile = await getUserProfile();
             const role = profile?.role?.toUpperCase();
 
             if (role === 'CONSULTOR_GARANTIA') return 'GARANTIA';
@@ -107,7 +121,7 @@ export const statsService = {
 
             let query = supabase
                 .from('ordens_servico')
-                .select('status_atual, tipo_os, valor_liquido_total, data_abertura, data_fechamento')
+                .select('status_atual, tipo_os, valor_liquido_total, data_abertura, data_fechamento, nivel_urgencia')
                 .gte('data_abertura', twoYearsAgo.toISOString());
 
             if (tipoOS) {
@@ -118,19 +132,19 @@ export const statsService = {
             if (osData.error) throw osData.error;
 
             // Busca de pendências e alertas (lógica simplificada para brevidade)
-            let pendencias: any[] = [];
+            let pendencias: PendenciaRow[] = [];
             try {
                 const pResp = await supabase.from('pendencias_os').select('status');
                 if (!pResp.error) pendencias = pResp.data || [];
             } catch (e) { logger.warn('pendencias_os não encontrada'); }
 
-            let alertas: any[] = [];
+            let alertas: AlertaRow[] = [];
             try {
                 const aResp = await supabase.from('alertas').select('lido');
                 if (!aResp.error) alertas = aResp.data || [];
             } catch (e) { logger.warn('alertas não encontrada'); }
 
-            const os = (osData.data || []) as any[];
+            const os: OSStatsRow[] = osData.data || [];
             const osAbertas = os.filter(o => !['CONCLUIDA', 'FATURADA', 'CANCELADA'].includes(o.status_atual));
             const osConcluidas = os.filter(o => ['CONCLUIDA', 'FATURADA'].includes(o.status_atual));
             const osCanceladas = os.filter(o => o.status_atual === 'CANCELADA');
@@ -138,8 +152,8 @@ export const statsService = {
             const osNormal = os.filter(o => o.tipo_os === 'NORMAL');
             const osGarantia = os.filter(o => o.tipo_os === 'GARANTIA');
 
-            const sumValor = (items: any[]) => items.reduce((sum, o) => sum + (parseFloat(o.valor_liquido_total) || 0), 0);
-            const calcularDiasAberto = (ab: string, fc?: string) => {
+            const sumValor = (items: Pick<OSStatsRow, 'valor_liquido_total'>[]) => items.reduce((sum, o) => sum + (parseFloat(String(o.valor_liquido_total)) || 0), 0);
+            const calcularDiasAberto = (ab: string, fc?: string | null) => {
                 const a = new Date(ab);
                 const f = fc ? new Date(fc) : new Date();
                 return Math.max(0, Math.floor((f.getTime() - a.getTime()) / (1000 * 60 * 60 * 24)));
@@ -168,10 +182,10 @@ export const statsService = {
 
                 osNormal: osNormal.length,
                 osGarantia: osGarantia.length,
-                osCriticas: osAbertas.filter((o: any) => o.nivel_urgencia === 'CRITICO').length,
-                osAltas: osAbertas.filter((o: any) => o.nivel_urgencia === 'ALTO').length,
-                osMedias: osAbertas.filter((o: any) => o.nivel_urgencia === 'MEDIO').length,
-                osNormais: osAbertas.filter((o: any) => !o.nivel_urgencia || o.nivel_urgencia === 'NORMAL').length,
+                osCriticas: osAbertas.filter((o) => o.nivel_urgencia === 'CRITICO').length,
+                osAltas: osAbertas.filter((o) => o.nivel_urgencia === 'ALTO').length,
+                osMedias: osAbertas.filter((o) => o.nivel_urgencia === 'MEDIO').length,
+                osNormais: osAbertas.filter((o) => !o.nivel_urgencia || o.nivel_urgencia === 'NORMAL').length,
                 valorTotal: sumValor(os),
                 valorNormal: sumValor(osNormal),
                 valorGarantia: sumValor(osGarantia),
@@ -180,9 +194,9 @@ export const statsService = {
                 tempoMedioResolucao: tmed,
                 diasMedioEmAberto: dmed,
                 totalPendencias: pendencias.length,
-                pendenciasAbertas: pendencias.filter((p: any) => p.status !== 'RESOLVIDO').length,
+                pendenciasAbertas: pendencias.filter((p) => p.status !== 'RESOLVIDO').length,
                 totalAlertas: alertas.length,
-                alertasNaoLidos: alertas.filter((a: any) => !a.lido).length,
+                alertasNaoLidos: alertas.filter((a) => !a.lido).length,
                 taxaConversao: os.length > 0 ? (osConcluidas.length / os.length) * 100 : 0,
                 nps: 0,
                 retornoGarantia: (osGarantia.length / Math.max(1, os.length)) * 100,
@@ -217,7 +231,8 @@ export const statsService = {
             const { data: osData, error } = await query;
             if (error || !osData) return [];
 
-            const grouped = osData.reduce((acc: any, os: any) => {
+            type ConsultorGroup = { consultor_id: string; consultor_nome: string; os_list: ConsultorOSRow[] };
+            const grouped = (osData as ConsultorOSRow[]).reduce<Record<string, ConsultorGroup>>((acc, os) => {
                 const id = os.consultor_id || 'sem_consultor';
                 let nome = 'Sem Consultor';
                 if (os.consultor) {
@@ -229,15 +244,15 @@ export const statsService = {
                 return acc;
             }, {});
 
-            return Object.values(grouped).map((g: any) => {
-                const concluidas = g.os_list.filter((o: any) => ['CONCLUIDA', 'FATURADA'].includes(o.status_atual));
+            return Object.values(grouped).map((g) => {
+                const concluidas = g.os_list.filter((o) => ['CONCLUIDA', 'FATURADA'].includes(o.status_atual));
                 return {
                     consultor_id: g.consultor_id,
                     consultor_nome: g.consultor_nome,
                     total_os: g.os_list.length,
                     os_concluidas: concluidas.length,
-                    os_em_andamento: g.os_list.filter((o: any) => o.status_atual === 'EM_EXECUCAO').length,
-                    valor_total: g.os_list.reduce((s: number, o: any) => s + (o.valor_liquido_total || 0), 0),
+                    os_em_andamento: g.os_list.filter((o) => o.status_atual === 'EM_EXECUCAO').length,
+                    valor_total: g.os_list.reduce((s, o) => s + (o.valor_liquido_total || 0), 0),
                     tempo_medio: 0,
                     taxa_conclusao: g.os_list.length > 0 ? Math.round((concluidas.length / g.os_list.length) * 100) : 0
                 };
@@ -264,7 +279,7 @@ export const statsService = {
             const { data, error } = await query;
             if (error) throw error;
 
-            const grouped = (data || []).reduce((acc: any, os: any) => {
+            const grouped = ((data || []) as TendenciaRow[]).reduce<Record<string, TendenciaOS>>((acc, os) => {
                 const ds = new Date(os.data_abertura).toISOString().split('T')[0];
                 if (!acc[ds]) acc[ds] = { data: ds, total: 0, normal: 0, garantia: 0, valor: 0 };
                 acc[ds].total++;
@@ -274,7 +289,7 @@ export const statsService = {
                 return acc;
             }, {});
 
-            return Object.values(grouped).sort((a: any, b: any) => a.data.localeCompare(b.data)) as TendenciaOS[];
+            return Object.values(grouped).sort((a, b) => a.data.localeCompare(b.data));
         } catch (e) { return []; }
     },
 
@@ -290,12 +305,12 @@ export const statsService = {
             const { data, error } = await query;
             if (error) throw error;
 
-            const dist = (data || []).reduce((acc: any, os: any) => {
+            const dist = ((data || []) as DistribuicaoRow[]).reduce<Record<string, number>>((acc, os) => {
                 acc[os.status_atual] = (acc[os.status_atual] || 0) + 1;
                 return acc;
             }, {});
 
-            return Object.entries(dist).map(([status, count]) => ({ status, count: count as number }));
+            return Object.entries(dist).map(([status, count]) => ({ status, count }));
         } catch (e) { return []; }
     },
 
@@ -311,7 +326,8 @@ export const statsService = {
             const { data, error } = await query;
             if (error) throw error;
 
-            const grouped = (data || []).reduce((acc: any, os: any) => {
+            type ClienteGroup = { cliente: string; valor: number; quantidade: number };
+            const grouped = ((data || []) as TopClienteRow[]).reduce<Record<string, ClienteGroup>>((acc, os) => {
                 const c = os.nome_cliente_digitavel || 'Sem Nome';
                 if (!acc[c]) acc[c] = { cliente: c, valor: 0, quantidade: 0 };
                 acc[c].valor += os.valor_liquido_total || 0;
@@ -319,13 +335,13 @@ export const statsService = {
                 return acc;
             }, {});
 
-            return Object.values(grouped).sort((a: any, b: any) => b.valor - a.valor).slice(0, limit);
+            return Object.values(grouped).sort((a, b) => b.valor - a.valor).slice(0, limit);
         } catch (e) { return []; }
     },
 
-    async getOSProfitability(osId: string): Promise<any> {
+    async getOSProfitability(osId: string): Promise<ProfitabilityRow | null> {
         try {
-            const { data, error } = await (supabase as any)
+            const { data, error } = await supabase
                 .from('vw_os_profitability')
                 .select('*')
                 .eq('os_id', osId)
@@ -339,16 +355,16 @@ export const statsService = {
         }
     },
 
-    async getGlobalProfitabilityStats(dataInicio: string): Promise<any> {
+    async getGlobalProfitabilityStats(dataInicio: string) {
         try {
-            const { data, error } = await (supabase as any)
+            const { data, error } = await supabase
                 .from('vw_os_profitability')
                 .select('*')
                 .gte('data_abertura', dataInicio);
 
             if (error) throw error;
 
-            const stats = (data || []).reduce((acc: any, row: any) => ({
+            const stats = (data || []).reduce((acc, row) => ({
                 receitaTotal: acc.receitaTotal + (row.receita_total || 0),
                 custoTotal: acc.custoTotal + (row.custo_total || 0),
                 lucroBruto: acc.lucroBruto + (row.lucro_bruto || 0),

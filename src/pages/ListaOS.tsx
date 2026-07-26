@@ -70,7 +70,7 @@ export function ListaOS({ onlyFaturadas = false }: ListaOSProps = {}) {
         setPage(1);
     };
 
-    const handleOpenStatusModal = (os: any) => {
+    const handleOpenStatusModal = (os: { id: string; numero_os: string; status_atual: StatusOS }) => {
         setSelectedOS({ id: os.id, numero_os: os.numero_os, status_atual: os.status_atual as StatusOS });
         setIsStatusModalOpen(true);
     };
@@ -80,7 +80,7 @@ export function ListaOS({ onlyFaturadas = false }: ListaOSProps = {}) {
         setSelectedOS(null);
     };
 
-    const handleConfirmStatusUpdate = async (statusData: any) => {
+    const handleConfirmStatusUpdate = async (statusData: Parameters<typeof ordemServicoService.updateStatus>[1]) => {
         if (!selectedOS) return;
         await ordemServicoService.updateStatus(selectedOS.id, statusData);
         queryClient.invalidateQueries({ queryKey: ['ordens-servico'] });
@@ -166,7 +166,7 @@ export function ListaOS({ onlyFaturadas = false }: ListaOSProps = {}) {
                                 </TR>
                             </THead>
                             <TBody>
-                                {data.data.map((os: any) => (
+                                {data.data.map((os) => (
                                     <TR key={os.id}>
                                         <TD className="font-bold text-white tracking-wider">{os.numero_os}</TD>
                                         <TD><TipoBadge tipo={os.tipo_os} /></TD>

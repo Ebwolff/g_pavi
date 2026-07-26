@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
-import type { Database, StatusOS } from '@/types/database.types';
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import type { Database, StatusOS, TipoDiagnostico } from '@/types/database.types';
 import { notifyOSCreated, notifyTecnicoAssigned, notifyOSStatusChanged } from '@/lib/notificationHelper';
 import { sanitizePostgrestFilterValue } from '@/lib/utils';
 
@@ -27,7 +28,7 @@ export interface OSFilters {
 }
 
 export interface OSListResponse {
-    data: any[];
+    data: OrdemServico[];
     count: number;
 }
 
@@ -107,7 +108,7 @@ class OrdemServicoService {
         if (error) throw error;
 
         return {
-            data: data || [],
+            data: (data || []) as unknown as OrdemServico[],
             count: count || 0,
         };
     }
@@ -145,7 +146,7 @@ class OrdemServicoService {
                 ...os,
                 consultor_id: user.user?.id,
                 status_atual: 'AGUARDANDO_ATRIBUICAO'
-            } as any)
+            } as OrdemServicoInsert)
             .select(`
         *,
         tecnico:tecnicos(*),
@@ -157,12 +158,14 @@ class OrdemServicoService {
 
         if (error) throw error;
 
+        const novaOS = data as unknown as OrdemServico;
+
         // Fire-and-forget: notify CHEFE_OFICINA about new OS
-        if ((data as any)?.numero_os) {
-            notifyOSCreated((data as any).id, (data as any).numero_os).catch(() => {});
+        if (novaOS?.numero_os) {
+            notifyOSCreated(novaOS.id, novaOS.numero_os).catch(() => {});
         }
 
-        return data;
+        return novaOS;
     }
 
     /**
@@ -176,7 +179,7 @@ class OrdemServicoService {
 
         const { data, error } = await supabase
             .from('ordens_servico')
-            .update(updates as any)
+            .update(updates)
             .eq('id', id)
             .select(`
         *,
@@ -189,17 +192,19 @@ class OrdemServicoService {
 
         if (error) throw error;
 
+        const osAtualizada = data as unknown as OrdemServico;
+
         // Fire-and-forget: notify when tecnico is assigned
-        if (updates.tecnico_id && (data as any)?.id) {
-            notifyTecnicoAssigned((data as any).id, updates.tecnico_id as string).catch(() => {});
+        if (updates.tecnico_id && osAtualizada?.id) {
+            notifyTecnicoAssigned(osAtualizada.id, updates.tecnico_id).catch(() => {});
         }
 
         // Fire-and-forget: notify when status changes
-        if (updates.status_atual && (data as any)?.id) {
-            notifyOSStatusChanged((data as any).id, updates.status_atual as string).catch(() => {});
+        if (updates.status_atual && osAtualizada?.id) {
+            notifyOSStatusChanged(osAtualizada.id, updates.status_atual).catch(() => {});
         }
 
-        return data;
+        return osAtualizada;
     }
 
     /**
@@ -217,7 +222,7 @@ class OrdemServicoService {
     /**
      * Subscreve a mudanças em tempo real
      */
-    subscribeToChanges(callback: (payload: any) => void) {
+    subscribeToChanges(callback: (payload: RealtimePostgresChangesPayload<OrdemServico>) => void) {
         return supabase
             .channel('ordens_servico_changes')
             .on(
@@ -247,7 +252,7 @@ class OrdemServicoService {
                 descricao: item.descricao,
                 quantidade: item.quantidade,
                 valor_unitario: item.valorUnitario,
-            } as any)
+            })
             .select()
             .single();
 
@@ -300,20 +305,20 @@ class OrdemServicoService {
      * Atualiza status da OS com campos específicos de motivo
      */
     async updateStatus(id: string, statusData: {
-        novoStatus: string;
+        novoStatus: StatusOS;
         numero_orcamento?: string;
         data_envio_orcamento?: string;
         numero_pedido?: string;
         previsao_chegada_pecas?: string;
         data_conclusao_servico?: string;
         valor_servico?: number;
-        tipo_diagnostico?: string;
+        tipo_diagnostico?: TipoDiagnostico;
         previsao_retorno?: string;
         localizacao_atual?: string;
         roteiro?: string;
         motivo_pausa?: string;
     }) {
-        const updates: any = {
+        const updates: OrdemServicoUpdate = {
             status_atual: statusData.novoStatus,
         };
 

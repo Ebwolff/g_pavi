@@ -685,6 +685,7 @@ export interface Database {
                     descricao: string;
                     quantidade: number;
                     valor_unitario: number;
+                    valor_total: number;
                     status_separacao: string;
                     solicitacao_compra_id: string | null;
                     codigo_peca: string | null;
@@ -697,6 +698,7 @@ export interface Database {
                     descricao: string;
                     quantidade: number;
                     valor_unitario: number;
+                    valor_total?: number;
                     status_separacao?: string;
                     solicitacao_compra_id?: string | null;
                     codigo_peca?: string | null;
@@ -709,6 +711,7 @@ export interface Database {
                     descricao?: string;
                     quantidade?: number;
                     valor_unitario?: number;
+                    valor_total?: number;
                     status_separacao?: string;
                     solicitacao_compra_id?: string | null;
                     codigo_peca?: string | null;
