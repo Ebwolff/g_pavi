@@ -77,8 +77,8 @@ export default function PainelAlmoxarifado() {
             if (e1) throw e1;
 
             const osMap = new Map<string, OSAgrupada>();
-            (estoque || []).forEach((item: any) => {
-                const os = item.ordens_servico;
+            (estoque || []).forEach((item) => {
+                const os = Array.isArray(item.ordens_servico) ? item.ordens_servico[0] : item.ordens_servico;
                 if (!os) return;
                 if (!osMap.has(os.id)) {
                     osMap.set(os.id, {
@@ -108,8 +108,8 @@ export default function PainelAlmoxarifado() {
             if (e2) throw e2;
 
             const osChegMap = new Map<string, OSChegando>();
-            (compras || []).forEach((item: any) => {
-                const os = item.ordens_servico;
+            (compras || []).forEach((item) => {
+                const os = Array.isArray(item.ordens_servico) ? item.ordens_servico[0] : item.ordens_servico;
                 const osId = os?.id || item.ordem_servico_id || 'sem-os';
                 if (!osChegMap.has(osId)) {
                     osChegMap.set(osId, {
@@ -141,7 +141,7 @@ export default function PainelAlmoxarifado() {
     const separarPeca = async (itemId: string) => {
         setProcessando(prev => ({ ...prev, [itemId]: true }));
         try {
-            const { error } = await (supabase.from('itens_os') as any)
+            const { error } = await supabase.from('itens_os')
                 .update({ status_separacao: 'AGUARDANDO_RETIRADA' })
                 .eq('id', itemId);
             if (error) throw error;
@@ -151,8 +151,8 @@ export default function PainelAlmoxarifado() {
                     itens: selectedOS.itens.map(i => i.id === itemId ? { ...i, status_separacao: 'AGUARDANDO_RETIRADA' } : i)
                 });
             }
-        } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+        } catch (error) {
+            alert(`Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         } finally {
             setProcessando(prev => ({ ...prev, [itemId]: false }));
         }
@@ -162,16 +162,16 @@ export default function PainelAlmoxarifado() {
     const confirmarChegada = async (solicitacaoId: string) => {
         setProcessando(prev => ({ ...prev, [solicitacaoId]: true }));
         try {
-            const { error: e1 } = await (supabase.from('solicitacoes_compra') as any)
+            const { error: e1 } = await supabase.from('solicitacoes_compra')
                 .update({ status: 'ENTREGUE', data_entrega_real: new Date().toISOString() })
                 .eq('id', solicitacaoId);
             if (e1) throw e1;
 
             const { data: sol } = await supabase.from('solicitacoes_compra').select('item_os_id').eq('id', solicitacaoId).single();
-            if ((sol as any)?.item_os_id) {
-                await (supabase.from('itens_os') as any)
+            if (sol?.item_os_id) {
+                await supabase.from('itens_os')
                     .update({ status_separacao: 'SOLICITADO_ESTOQUE' })
-                    .eq('id', (sol as any).item_os_id);
+                    .eq('id', sol.item_os_id);
             }
 
             // Remover do modal local
@@ -184,8 +184,8 @@ export default function PainelAlmoxarifado() {
                 }
             }
             carregarDados();
-        } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+        } catch (error) {
+            alert(`Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         } finally {
             setProcessando(prev => ({ ...prev, [solicitacaoId]: false }));
         }
@@ -197,11 +197,11 @@ export default function PainelAlmoxarifado() {
     const liberarParaRetirada = async () => {
         if (!selectedOS) return;
         try {
-            await ordemServicoService.update(selectedOS.id, { status_atual: 'AGUARDANDO_ATRIBUICAO' } as any);
+            await ordemServicoService.update(selectedOS.id, { status_atual: 'AGUARDANDO_ATRIBUICAO' });
             setSelectedOS(null);
             carregarDados();
-        } catch (error: any) {
-            alert(`Erro ao liberar OS: ${error.message}`);
+        } catch (error) {
+            alert(`Erro ao liberar OS: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         }
     };
 
