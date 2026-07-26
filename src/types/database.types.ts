@@ -455,7 +455,22 @@ export interface Database {
                     localizacao_atual?: string | null;
                     motivo_pausa?: string | null;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: "historico_status_os_ordem_servico_id_fkey";
+                        columns: ["ordem_servico_id"];
+                        isOneToOne: false;
+                        referencedRelation: "ordens_servico";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "historico_status_os_usuario_id_fkey";
+                        columns: ["usuario_id"];
+                        isOneToOne: false;
+                        referencedRelation: "profiles";
+                        referencedColumns: ["id"];
+                    }
+                ];
             };
             pendencias_os: {
                 Row: {
@@ -547,7 +562,15 @@ export interface Database {
                     usuario_id?: string | null;
                     created_at?: string;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: "alertas_os_id_fkey";
+                        columns: ["os_id"];
+                        isOneToOne: false;
+                        referencedRelation: "ordens_servico";
+                        referencedColumns: ["id"];
+                    }
+                ];
             };
             auditoria_os: {
                 Row: {
@@ -586,7 +609,15 @@ export interface Database {
                     ip_address?: string | null;
                     timestamp?: string;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: "auditoria_os_os_id_fkey";
+                        columns: ["os_id"];
+                        isOneToOne: false;
+                        referencedRelation: "ordens_servico";
+                        referencedColumns: ["id"];
+                    }
+                ];
             };
             metas: {
                 Row: {
@@ -904,7 +935,15 @@ export interface Database {
                     created_at?: string;
                     updated_at?: string;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: "tecnicos_user_id_fkey";
+                        columns: ["user_id"];
+                        isOneToOne: true;
+                        referencedRelation: "profiles";
+                        referencedColumns: ["id"];
+                    }
+                ];
             };
             veiculos: {
                 Row: {

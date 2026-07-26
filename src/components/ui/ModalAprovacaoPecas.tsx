@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Button } from './Button';
 import { notifyAlmoxarifado } from '@/lib/notificationHelper';
 
-interface ItemAprovacao {
+export interface ItemAprovacao {
     id: string;
     codigo_peca: string | null;
     descricao: string;
@@ -13,7 +13,7 @@ interface ItemAprovacao {
     status_aprovacao: string;
 }
 
-interface OSData {
+export interface OSAprovacaoPecas {
     id: string;
     numero_os: string;
     nome_cliente_digitavel: string | null;
@@ -22,7 +22,7 @@ interface OSData {
 }
 
 interface ModalAprovacaoPecasProps {
-    os: OSData;
+    os: OSAprovacaoPecas;
     onClose: () => void;
     onSuccess: () => void;
 }
@@ -61,7 +61,7 @@ export function ModalAprovacaoPecas({ os, onClose, onSuccess }: ModalAprovacaoPe
                 const decisao = decisoes[item.id];
                 return supabase
                     .from('itens_os')
-                    .update({ status_aprovacao: decisao } as any)
+                    .update({ status_aprovacao: decisao })
                     .eq('id', item.id);
             });
 
@@ -80,9 +80,9 @@ export function ModalAprovacaoPecas({ os, onClose, onSuccess }: ModalAprovacaoPe
                     ordem_servico_id: os.id,
                     status_anterior: 'AGUARDANDO_PECAS',
                     status_novo: 'AGUARDANDO_PECAS', // Mantém, mas registra
-                    observacoes: 'Consultor realizou a aprovação das requisições extras do técnico.',
+                    motivo_mudanca: 'Consultor realizou a aprovação das requisições extras do técnico.',
                     usuario_id: (await supabase.auth.getUser()).data.user?.id
-                } as any);
+                });
 
             onSuccess();
 
@@ -92,9 +92,9 @@ export function ModalAprovacaoPecas({ os, onClose, onSuccess }: ModalAprovacaoPe
                 const descricoes = pecasAprovadas.map(p => p.descricao).join(', ');
                 notifyAlmoxarifado(os.id, descricoes).catch(() => {});
             }
-        } catch (error: any) {
+        } catch (error) {
             logger.error('Erro ao salvar aprovações:', error);
-            alert(`Erro ao salvar: ${error.message}`);
+            alert(`Erro ao salvar: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         } finally {
             setLoading(false);
         }

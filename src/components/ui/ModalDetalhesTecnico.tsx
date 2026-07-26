@@ -10,13 +10,14 @@ import {
 import { StatusBadge } from './StatusBadge';
 import { Button } from './Button';
 import { useNavigate } from 'react-router-dom';
+import type { StatusOS } from '@/types/database.types';
 
 interface OSShort {
     id: string;
     numero_os: string;
     nome_cliente_digitavel: string | null;
     modelo_maquina: string | null;
-    status_atual: string;
+    status_atual: StatusOS;
     data_abertura: string;
 }
 
@@ -110,7 +111,7 @@ export const ModalDetalhesTecnico: React.FC<ModalDetalhesTecnicoProps> = ({ isOp
                                         <div className="flex-1 min-w-0 pr-4">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="text-[10px] font-black text-blue-400">#{os.numero_os}</span>
-                                                <StatusBadge status={os.status_atual as any} size="sm" />
+                                                <StatusBadge status={os.status_atual} size="sm" />
                                             </div>
                                             <h4 className="text-sm font-black text-[var(--text-primary)] uppercase truncate">
                                                 {os.nome_cliente_digitavel || 'S/ Proprietário'}

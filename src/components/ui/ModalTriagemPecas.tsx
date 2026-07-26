@@ -14,7 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from './Button';
 import { notifyCompras, notifyAlmoxarifado } from '@/lib/notificationHelper';
 
-interface ItemOS {
+export interface ItemOS {
     id: string;
     ordem_servico_id: string;
     codigo_peca: string | null;
@@ -24,7 +24,7 @@ interface ItemOS {
     valor_unitario: number;
 }
 
-interface OSComPecasPendentes {
+export interface OSComPecasPendentes {
     id: string;
     numero_os: string;
     nome_cliente_digitavel: string | null;
@@ -62,8 +62,8 @@ export function ModalTriagemPecas({ isOpen, onClose, os, onSuccess }: ModalTriag
         setLoading(prev => ({ ...prev, [item.id]: true }));
         try {
             // Atualizar status do item para SOLICITADO_ESTOQUE
-            const { error } = await (supabase
-                .from('itens_os') as any)
+            const { error } = await supabase
+                .from('itens_os')
                 .update({ status_separacao: 'SOLICITADO_ESTOQUE' })
                 .eq('id', item.id);
 
@@ -74,8 +74,8 @@ export function ModalTriagemPecas({ isOpen, onClose, os, onSuccess }: ModalTriag
 
             // Fire-and-forget: notify ALMOXARIFADO to separate the part
             notifyAlmoxarifado(os.id, item.descricao).catch(() => {});
-        } catch (error: any) {
-            alert(`Erro ao solicitar do estoque: ${error.message}`);
+        } catch (error) {
+            alert(`Erro ao solicitar do estoque: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         } finally {
             setLoading(prev => ({ ...prev, [item.id]: false }));
         }
@@ -97,8 +97,8 @@ export function ModalTriagemPecas({ isOpen, onClose, os, onSuccess }: ModalTriag
             });
 
             // 2. Atualizar status do item
-            const { error } = await (supabase
-                .from('itens_os') as any)
+            const { error } = await supabase
+                .from('itens_os')
                 .update({ status_separacao: 'SOLICITADO_COMPRA' })
                 .eq('id', item.id);
 
@@ -109,8 +109,8 @@ export function ModalTriagemPecas({ isOpen, onClose, os, onSuccess }: ModalTriag
 
             // Fire-and-forget: notify COMPRAS about purchase request
             notifyCompras(os.id, item.descricao).catch(() => {});
-        } catch (error: any) {
-            alert(`Erro ao solicitar compra: ${error.message}`);
+        } catch (error) {
+            alert(`Erro ao solicitar compra: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         } finally {
             setLoading(prev => ({ ...prev, [item.id]: false }));
         }

@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
-import { StatusOS, TipoOS } from '@/types/database.types';
+import { StatusOS, TipoOS, type Database } from '@/types/database.types';
 import { Paperclip } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
@@ -33,8 +33,8 @@ import { DistribuicaoOperacionalChart } from '@/components/ui/Charts';
 import { PedidoPeca } from '@/components/consultor/PedidoPeca';
 import { ModalGaleriaImagens } from '@/components/ui/ModalGaleriaImagens';
 import { ModalHistoricoOS } from '@/components/ui/ModalHistoricoOS';
-import { ModalTriagemPecas } from '@/components/ui/ModalTriagemPecas';
-import { ModalAprovacaoPecas } from '@/components/ui/ModalAprovacaoPecas';
+import { ModalTriagemPecas, type OSComPecasPendentes } from '@/components/ui/ModalTriagemPecas';
+import { ModalAprovacaoPecas, type OSAprovacaoPecas } from '@/components/ui/ModalAprovacaoPecas';
 import { Card } from '@/components/ui/Card';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -55,10 +55,8 @@ interface OSDoConsultor {
     data_abertura: string;
     valor_liquido_total: number;
     dias_em_aberto: number;
-    tecnico?: {
-        nome: string;
-        veiculos?: { placa: string }[];
-    };
+    tecnico?: Pick<Database['public']['Tables']['tecnicos']['Row'], 'nome_completo'> | null;
+    despesas?: Pick<Database['public']['Tables']['despesas_os']['Row'], 'comprovante_url'>[] | null;
     link_pdf_os?: string | null;
     data_faturamento?: string | null;
 }
@@ -95,10 +93,10 @@ export default function PainelConsultor() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOSForGallery, setSelectedOSForGallery] = useState<{ id: string, numero: string } | null>(null);
     const [selectedOSForHistorico, setSelectedOSForHistorico] = useState<{ id: string; numero: string } | null>(null);
-    const [osComPecasPendentes, setOsComPecasPendentes] = useState<any[]>([]);
-    const [selectedOSTriagem, setSelectedOSTriagem] = useState<any | null>(null);
-    const [osComAprovacaoPendente, setOsComAprovacaoPendente] = useState<any[]>([]);
-    const [selectedOSAprovacao, setSelectedOSAprovacao] = useState<any | null>(null);
+    const [osComPecasPendentes, setOsComPecasPendentes] = useState<OSComPecasPendentes[]>([]);
+    const [selectedOSTriagem, setSelectedOSTriagem] = useState<OSComPecasPendentes | null>(null);
+    const [osComAprovacaoPendente, setOsComAprovacaoPendente] = useState<OSAprovacaoPecas[]>([]);
+    const [selectedOSAprovacao, setSelectedOSAprovacao] = useState<OSAprovacaoPecas | null>(null);
 
     const isGerente = ['GERENTE', 'CHEFE_OFICINA'].includes(profile?.role?.toUpperCase() || '');
     const isGarantia = profile?.role?.toUpperCase() === 'CONSULTOR_GARANTIA';
@@ -127,31 +125,33 @@ export default function PainelConsultor() {
             const { data, error } = await query;
             if (error) throw error;
 
-            const osComDias = (data || []).map((os: any) => ({
+            const osComDias: OSDoConsultor[] = (data || []).map((os) => ({
                 ...os,
+                tecnico: Array.isArray(os.tecnico) ? os.tecnico[0] : os.tecnico,
+                despesas: Array.isArray(os.despesas) ? os.despesas : (os.despesas ? [os.despesas] : []),
                 dias_em_aberto: Math.floor(
                     (Date.now() - new Date(os.data_abertura).getTime()) / (1000 * 60 * 60 * 24)
                 ),
-            })) as OSDoConsultor[];
+            }));
 
             setOsList(osComDias);
 
-            const todasOS = data || [];
-            const abertas = todasOS.filter((o: any) => !['CONCLUIDA', 'FATURADA', 'CANCELADA', 'AGUARDANDO_PAGAMENTO'].includes(o.status_atual));
-            const concluidas = todasOS.filter((o: any) => ['CONCLUIDA', 'FATURADA', 'AGUARDANDO_PAGAMENTO'].includes(o.status_atual));
+            const todasOS = osComDias;
+            const abertas = todasOS.filter((o) => !['CONCLUIDA', 'FATURADA', 'CANCELADA', 'AGUARDANDO_PAGAMENTO'].includes(o.status_atual));
+            const concluidas = todasOS.filter((o) => ['CONCLUIDA', 'FATURADA', 'AGUARDANDO_PAGAMENTO'].includes(o.status_atual));
 
             const limite60Dias = new Date();
             limite60Dias.setDate(limite60Dias.getDate() - 60);
-            const criticas = abertas.filter((o: any) => new Date(o.data_abertura) < limite60Dias);
+            const criticas = abertas.filter((o) => new Date(o.data_abertura) < limite60Dias);
 
             setEstatisticas({
                 totalOS: todasOS.length,
                 osAbertas: abertas.length,
                 osConcluidas: concluidas.length,
-                valorAberto: abertas.reduce((sum: number, o: any) => sum + (Number(o.valor_liquido_total) || 0), 0),
+                valorAberto: abertas.reduce((sum, o) => sum + (Number(o.valor_liquido_total) || 0), 0),
                 valorFaturado: todasOS
-                    .filter((o: any) => o.status_atual === 'FATURADA')
-                    .reduce((sum: number, o: any) => sum + (Number(o.valor_liquido_total) || 0), 0),
+                    .filter((o) => o.status_atual === 'FATURADA')
+                    .reduce((sum, o) => sum + (Number(o.valor_liquido_total) || 0), 0),
                 osCriticas: criticas.length,
             });
 
@@ -185,9 +185,9 @@ export default function PainelConsultor() {
             if (error) throw error;
 
             // Agrupar por OS
-            const osMap = new Map<string, any>();
-            (itens || []).forEach((item: any) => {
-                const os = item.ordens_servico;
+            const osMap = new Map<string, OSComPecasPendentes>();
+            (itens || []).forEach((item) => {
+                const os = Array.isArray(item.ordens_servico) ? item.ordens_servico[0] : item.ordens_servico;
                 if (!os) return;
                 if (!osMap.has(os.id)) {
                     osMap.set(os.id, {
@@ -198,7 +198,7 @@ export default function PainelConsultor() {
                         itens: []
                     });
                 }
-                osMap.get(os.id).itens.push({
+                osMap.get(os.id)!.itens.push({
                     id: item.id,
                     ordem_servico_id: item.ordem_servico_id,
                     codigo_peca: item.codigo_peca,
@@ -231,9 +231,9 @@ export default function PainelConsultor() {
             if (error) throw error;
 
             // Agrupar por OS
-            const osMap = new Map<string, any>();
-            (itens || []).forEach((item: any) => {
-                const os = item.ordens_servico;
+            const osMap = new Map<string, OSAprovacaoPecas>();
+            (itens || []).forEach((item) => {
+                const os = Array.isArray(item.ordens_servico) ? item.ordens_servico[0] : item.ordens_servico;
                 if (!os) return;
                 if (!osMap.has(os.id)) {
                     osMap.set(os.id, {
@@ -244,7 +244,13 @@ export default function PainelConsultor() {
                         itens: []
                     });
                 }
-                osMap.get(os.id).itens.push(item);
+                osMap.get(os.id)!.itens.push({
+                    id: item.id,
+                    codigo_peca: item.codigo_peca,
+                    descricao: item.descricao,
+                    quantidade: item.quantidade,
+                    status_aprovacao: item.status_aprovacao,
+                });
             });
 
             setOsComAprovacaoPendente(Array.from(osMap.values()));
@@ -529,12 +535,12 @@ export default function PainelConsultor() {
                                         <p className="text-xs text-[var(--text-muted)]">Reveja as solicitações feitas pelos técnicos antes de irem para o estoque</p>
                                     </div>
                                     <span className="ml-auto px-3 py-1 bg-amber-500/10 text-amber-400 rounded-full text-xs font-bold border border-amber-500/20">
-                                        {osComAprovacaoPendente.reduce((sum: number, os: any) => sum + os.itens.length, 0)} solicitações
+                                        {osComAprovacaoPendente.reduce((sum, os) => sum + os.itens.length, 0)} solicitações
                                     </span>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {osComAprovacaoPendente.map((os: any) => (
+                                    {osComAprovacaoPendente.map((os) => (
                                         <div
                                             key={os.id}
                                             onClick={() => setSelectedOSAprovacao(os)}
@@ -573,12 +579,12 @@ export default function PainelConsultor() {
                                         <p className="text-xs text-[var(--text-muted)]">Decida se cada peça será retirada do estoque ou solicitada para compra</p>
                                     </div>
                                     <span className="ml-auto px-3 py-1 bg-amber-500/10 text-amber-400 rounded-full text-xs font-bold border border-amber-500/20">
-                                        {osComPecasPendentes.reduce((sum: number, os: any) => sum + os.itens.length, 0)} peças
+                                        {osComPecasPendentes.reduce((sum, os) => sum + os.itens.length, 0)} peças
                                     </span>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {osComPecasPendentes.map((os: any) => (
+                                    {osComPecasPendentes.map((os) => (
                                         <div
                                             key={os.id}
                                             onClick={() => setSelectedOSTriagem(os)}
@@ -675,7 +681,7 @@ export default function PainelConsultor() {
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
                                                             <span className="font-black text-white text-base">#{os.numero_os}</span>
-                                                            {(os as any).despesas?.some((d: any) => d.comprovante_url) && (
+                                                            {os.despesas?.some((d) => d.comprovante_url) && (
                                                                 <span title="Possui comprovantes de despesa">
                                                                     <Paperclip className="w-3 h-3 text-blue-400 opacity-60" />
                                                                 </span>
@@ -693,11 +699,11 @@ export default function PainelConsultor() {
                                                     </td>
                                                     {activeTab === 'faturadas' && (
                                                         <td className="px-6 py-6">
-                                                            <span className="text-xs font-medium text-gray-400">{os.tecnico?.nome || '-'}</span>
+                                                            <span className="text-xs font-medium text-gray-400">{os.tecnico?.nome_completo || '-'}</span>
                                                         </td>
                                                     )}
                                                     <td className="px-6 py-6 text-sm font-medium text-[var(--text-muted)] italic" onClick={() => !isGerente && navigate(`/os/editar/${os.id}`)}>{os.modelo_maquina || '-'}</td>
-                                                    <td className="px-6 py-6" onClick={() => !isGerente && navigate(`/os/editar/${os.id}`)}><StatusBadge status={os.status_atual as any} /></td>
+                                                    <td className="px-6 py-6" onClick={() => !isGerente && navigate(`/os/editar/${os.id}`)}><StatusBadge status={os.status_atual} /></td>
                                                     {activeTab === 'servicos' && <td className="px-6 py-6 text-sm font-black text-gray-400">{os.dias_em_aberto}d</td>}
                                                     {activeTab === 'faturadas' && (
                                                         <td className="px-6 py-6 text-xs text-gray-400">
