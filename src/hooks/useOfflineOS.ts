@@ -107,22 +107,24 @@ export function useOfflineOS(filters?: {
         if (navigator.onLine) {
             // Online: atualizar direto no Supabase
             try {
-                const { _raw, tecnico_nome, consultor_nome, ...cleanUpdates } = updates as any
-                const { error } = await (supabase
-                    .from('ordens_servico') as any)
-                    .update(cleanUpdates)
+                const { _raw, tecnico_nome, consultor_nome, ...cleanUpdates } = updates
+                // OfflineOS usa tipos frouxos (string) para enums vindos do cache local;
+                // `never` deixa a chamada em si (tabela/coluna) checada normalmente.
+                const { error } = await supabase
+                    .from('ordens_servico')
+                    .update(cleanUpdates as never)
                     .eq('id', id)
 
                 if (error) throw error
             } catch (err) {
                 logger.error('[OfflineOS] Erro ao atualizar online, enfileirando:', err)
                 // Fallback: enfileirar para sync posterior
-                const { _raw, tecnico_nome, consultor_nome, ...cleanUpdates } = updates as any
+                const { _raw, tecnico_nome, consultor_nome, ...cleanUpdates } = updates
                 await enqueueAction('ordens_servico', 'update', id, cleanUpdates)
             }
         } else {
             // Offline: enfileirar ação para sync posterior
-            const { _raw, tecnico_nome, consultor_nome, ...cleanUpdates } = updates as any
+            const { _raw, tecnico_nome, consultor_nome, ...cleanUpdates } = updates
             await enqueueAction('ordens_servico', 'update', id, cleanUpdates)
         }
 

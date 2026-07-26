@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
-import { StatusSolicitacaoCompra, UrgenciaCompra } from '@/types/database.types';
+import type { Database, StatusSolicitacaoCompra, UrgenciaCompra } from '@/types/database.types';
 
 export interface SolicitacaoCompra {
     id: string;
@@ -31,7 +31,7 @@ export interface SolicitacaoCompra {
     tipo_os?: 'NORMAL' | 'GARANTIA';
     cliente?: string;
     modelo_maquina?: string;
-    solicitante_nome?: string;
+    solicitante_nome?: string | null;
     dias_aguardando?: number;
 }
 
@@ -97,19 +97,23 @@ class ComprasService {
         }
 
         // Mapear dados para formato mais amigável
-        return (data || []).map((item: any) => ({
-            ...item,
-            numero_os: item.ordens_servico?.numero_os,
-            cliente: item.ordens_servico?.nome_cliente_digitavel,
-            modelo_maquina: item.ordens_servico?.modelo_maquina,
-            tipo_os: item.ordens_servico?.tipo_os,
-            solicitante_nome: item.solicitante
-                ? `${item.solicitante.first_name || ''} ${item.solicitante.last_name || ''}`.trim()
-                : null,
-            dias_aguardando: Math.floor(
-                (Date.now() - new Date(item.data_solicitacao).getTime()) / (1000 * 60 * 60 * 24)
-            ),
-        }));
+        return (data || []).map((item) => {
+            const os = Array.isArray(item.ordens_servico) ? item.ordens_servico[0] : item.ordens_servico;
+            const solicitante = Array.isArray(item.solicitante) ? item.solicitante[0] : item.solicitante;
+            return {
+                ...item,
+                numero_os: os?.numero_os,
+                cliente: os?.nome_cliente_digitavel,
+                modelo_maquina: os?.modelo_maquina,
+                tipo_os: os?.tipo_os,
+                solicitante_nome: solicitante
+                    ? `${solicitante.first_name || ''} ${solicitante.last_name || ''}`.trim()
+                    : null,
+                dias_aguardando: Math.floor(
+                    (Date.now() - new Date(item.data_solicitacao).getTime()) / (1000 * 60 * 60 * 24)
+                ),
+            };
+        });
     }
 
     /**
@@ -140,8 +144,8 @@ class ComprasService {
      * Cria nova solicitação de compra
      */
     async criarSolicitacao(dados: CreateSolicitacaoInput): Promise<SolicitacaoCompra> {
-        const { data, error } = await (supabase
-            .from('solicitacoes_compra') as any)
+        const { data, error } = await supabase
+            .from('solicitacoes_compra')
             .insert({
                 ordem_servico_id: dados.ordem_servico_id || null,
                 item_os_id: dados.item_os_id || null,
@@ -169,7 +173,7 @@ class ComprasService {
      * Atualiza solicitação de compra
      */
     async atualizarSolicitacao(id: string, dados: UpdateSolicitacaoInput): Promise<SolicitacaoCompra> {
-        const updateData: any = { ...dados };
+        const updateData: Database['public']['Tables']['solicitacoes_compra']['Update'] = { ...dados };
 
         // Se marcando como entregue, registra a data
         if (dados.status === 'ENTREGUE') {

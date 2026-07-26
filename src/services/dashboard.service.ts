@@ -12,7 +12,7 @@ export interface DashboardKPIs {
 }
 
 class DashboardService {
-    async getKPIs(): Promise<{ kpis: DashboardKPIs; historico: any[] }> {
+    async getKPIs(): Promise<{ kpis: DashboardKPIs; historico: unknown[] }> {
         const dataFetch = async () => {
             logger.log('📊 [dashboardService] Iniciando getKPIs...');
 
@@ -109,7 +109,7 @@ class DashboardService {
 
         try {
             // Timeout de 15 segundos para feedback rápido
-            const timeoutPromise = new Promise<{ kpis: DashboardKPIs; historico: any[] }>((_, reject) => {
+            const timeoutPromise = new Promise<{ kpis: DashboardKPIs; historico: unknown[] }>((_, reject) => {
                 setTimeout(() => reject(new Error('Timeout ao buscar KPIs. Verifique sua conexão.')), 15000);
             });
 
@@ -151,11 +151,13 @@ class DashboardService {
 
         const tecnicoCount: Record<string, { nome: string; count: number }> = {};
 
-        data?.forEach((os: any) => {
+        data?.forEach((os) => {
             const id = os.tecnico_id;
+            if (!id) return;
+            const tecnico = Array.isArray(os.tecnico) ? os.tecnico[0] : os.tecnico;
             if (!tecnicoCount[id]) {
                 tecnicoCount[id] = {
-                    nome: os.tecnico?.nome_completo || 'Desconhecido',
+                    nome: tecnico?.nome_completo || 'Desconhecido',
                     count: 0,
                 };
             }

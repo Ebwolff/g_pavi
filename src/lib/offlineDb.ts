@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
+import type { Database } from '@/types/database.types'
 
 // Tipos para o banco offline
 export interface OfflineOS {
@@ -28,15 +29,15 @@ export interface OfflineOS {
     tecnico_nome?: string | null
     consultor_nome?: string | null
     // Raw data do Supabase para rehydration
-    _raw?: any
+    _raw?: Record<string, unknown>
 }
 
 export interface SyncAction {
     id?: number
-    table: string
+    table: keyof Database['public']['Tables']
     action: 'create' | 'update' | 'delete'
     recordId: string
-    payload: any
+    payload: Record<string, unknown>
     timestamp: string
     retries: number
     lastError: string | null

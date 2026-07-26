@@ -26,14 +26,14 @@ export async function flushQueue(): Promise<{ success: number; failed: number }>
                 await executeSyncAction(action)
                 await offlineDb.syncQueue.delete(action.id!)
                 success++
-            } catch (err: any) {
+            } catch (err) {
                 failed++
                 logger.error(`[Sync] Falha na ação ${action.action} em ${action.table}:`, err)
 
                 // Incrementar retries e salvar erro
                 await offlineDb.syncQueue.update(action.id!, {
                     retries: (action.retries || 0) + 1,
-                    lastError: err.message || 'Erro desconhecido',
+                    lastError: err instanceof Error ? err.message : 'Erro desconhecido',
                 })
 
                 // Após 5 tentativas, desistir
@@ -62,23 +62,25 @@ async function executeSyncAction(action: SyncAction): Promise<void> {
 
     switch (tipo) {
         case 'create': {
-            const { error } = await (supabase
-                .from(table as any) as any)
-                .insert(payload)
+            // payload vem da fila offline como um blob genérico (pode ser de qualquer tabela);
+            // `never` deixa o `table` (o que realmente importa aqui) checado contra o schema real.
+            const { error } = await supabase
+                .from(table)
+                .insert(payload as never)
             if (error) throw error
             break
         }
         case 'update': {
-            const { error } = await (supabase
-                .from(table as any) as any)
-                .update(payload)
+            const { error } = await supabase
+                .from(table)
+                .update(payload as never)
                 .eq('id', recordId)
             if (error) throw error
             break
         }
         case 'delete': {
-            const { error } = await (supabase
-                .from(table as any) as any)
+            const { error } = await supabase
+                .from(table)
                 .delete()
                 .eq('id', recordId)
             if (error) throw error
@@ -118,7 +120,7 @@ export async function pullFreshData(userId?: string): Promise<void> {
         if (!data || data.length === 0) return
 
         // Mapear para o formato offline
-        const offlineRecords: OfflineOS[] = data.map((os: any) => ({
+        const offlineRecords: OfflineOS[] = data.map((os) => ({
             id: os.id,
             numero_os: os.numero_os,
             tipo_os: os.tipo_os,
@@ -162,10 +164,10 @@ export async function pullFreshData(userId?: string): Promise<void> {
  * Enfileira uma mutation para sync posterior
  */
 export async function enqueueAction(
-    table: string,
+    table: SyncAction['table'],
     action: 'create' | 'update' | 'delete',
     recordId: string,
-    payload: any
+    payload: Record<string, unknown>
 ): Promise<void> {
     await offlineDb.syncQueue.add({
         table,

@@ -822,6 +822,13 @@ export interface Database {
                         isOneToOne: false;
                         referencedRelation: "ordens_servico";
                         referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "solicitacoes_compra_solicitante_id_fkey";
+                        columns: ["solicitante_id"];
+                        isOneToOne: false;
+                        referencedRelation: "profiles";
+                        referencedColumns: ["id"];
                     }
                 ];
             };
