@@ -161,7 +161,7 @@ class FrotaService {
      * Atualiza um veículo
      */
     async atualizarVeiculo(id: string, dados: UpdateVeiculoInput): Promise<Veiculo> {
-        const updateData: any = { ...dados };
+        const updateData: UpdateVeiculoInput = { ...dados };
         if (dados.placa) {
             updateData.placa = dados.placa.toUpperCase().replace(/[^A-Z0-9]/g, '');
         }

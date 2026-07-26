@@ -7,7 +7,7 @@ export interface RelatorioDados {
   titulo: string;
   subtitulo?: string;
   colunas: string[];
-  linhas: any[][];
+  linhas: (string | number | boolean | null | undefined)[][];
   totalizadores?: Record<string, string | number>;
 }
 

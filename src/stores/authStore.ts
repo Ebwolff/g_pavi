@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User } from '@supabase/supabase-js';
+import type { User, Session } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -8,14 +8,14 @@ type Profile = Database['public']['Tables']['profiles']['Row'];
 interface AuthState {
     user: User | null;
     profile: Profile | null;
-    session: any | null;
+    session: Session | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     isHydrated: boolean;
     sessionChecked: boolean; // Novo flag para evitar loops
     setUser: (user: User | null) => void;
     setProfile: (profile: Profile | null) => void;
-    setSession: (session: any | null) => void;
+    setSession: (session: Session | null) => void;
     setLoading: (loading: boolean) => void;
     setHydrated: (hydrated: boolean) => void;
     setSessionChecked: (checked: boolean) => void;

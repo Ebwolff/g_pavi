@@ -1,5 +1,6 @@
 import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
+import type { Database } from '@/types/database.types';
 
 let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
 let currentUserId: string | null = null;
@@ -85,13 +86,13 @@ export function startPushListener(userId: string) {
                 filter: `usuario_id=eq.${userId}`,
             },
             (payload) => {
-                const alerta = payload.new as any;
+                const alerta = payload.new as Database['public']['Tables']['alertas']['Row'];
                 logger.log('[Push] New alert received:', alerta.titulo);
 
                 showNotification(
                     alerta.titulo || 'Nova Notificação',
                     alerta.mensagem || '',
-                    alerta.os_id
+                    alerta.os_id || undefined
                 );
             }
         )

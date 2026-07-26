@@ -3,8 +3,14 @@ import { isTauri } from './core';
 
 // Interfaces para os módulos do Tauri (carregados dinamicamente)
 // Isso previne que o webpack/vite inclua o código do Tauri no bundle Web se não for usado
-let tauriApp: any = null;
-let tauriProcess: any = null;
+interface TauriAppModule {
+    getVersion: () => Promise<string>;
+}
+interface TauriProcessModule {
+    exit: (code: number) => Promise<void>;
+}
+let tauriApp: TauriAppModule | null = null;
+let tauriProcess: TauriProcessModule | null = null;
 
 // Carregamento dinâmico dos módulos Tauri apenas se estiver no Desktop
 const loadTauriModules = async () => {

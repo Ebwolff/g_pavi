@@ -86,9 +86,9 @@ export function ModalCadastrarVeiculo({ isOpen, onClose, veiculo, onSuccess }: M
 
             onSuccess?.();
             onClose();
-        } catch (error: any) {
+        } catch (error) {
             logger.error('Erro ao salvar veículo:', error);
-            if (error.code === '23505') {
+            if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
                 alert('Esta placa já está cadastrada');
             } else {
                 alert('Erro ao salvar veículo. Tente novamente.');

@@ -39,7 +39,7 @@ export function UploadOrcamentoPDF({ onUploadSuccess }: UploadOrcamentoPDFProps)
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
-                const pageText = textContent.items.map((item: any) => item.str).join(' ');
+                const pageText = textContent.items.map((item) => 'str' in item ? item.str : '').join(' ');
                 extractedText += pageText + '\n';
             }
 
@@ -110,9 +110,9 @@ export function UploadOrcamentoPDF({ onUploadSuccess }: UploadOrcamentoPDFProps)
                 onUploadSuccess(matches);
             }
 
-        } catch (err: any) {
+        } catch (err) {
             logger.error("Erro processando PDF:", err);
-            setError("Ocorreu um erro ao ler o PDF: " + (err.message || 'Erro desconhecido'));
+            setError("Ocorreu um erro ao ler o PDF: " + (err instanceof Error ? err.message : 'Erro desconhecido'));
         } finally {
             setIsProcessing(false);
         }

@@ -8,7 +8,7 @@ export const profileService = {
      * Atualiza o perfil do usuário atual
      */
     async updateProfile(id: string, updates: ProfileUpdate) {
-        const { data, error } = await (supabase as any)
+        const { data, error } = await supabase
             .from('profiles')
             .update(updates)
             .eq('id', id)

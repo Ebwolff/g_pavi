@@ -109,11 +109,12 @@ export const relatoriosService = {
         }
 
         // Agrupar por consultor
-        const porConsultor = (data || []).reduce<Record<string, ConsultorPerformance>>((acc, os: any) => {
+        const porConsultor = (data || []).reduce<Record<string, ConsultorPerformance>>((acc, os) => {
             const id = os.consultor_id || 'sem_consultor';
-            const nome = os.profiles?.first_name
-                ? `${os.profiles.first_name} ${os.profiles.last_name || ''}`.trim()
-                : os.profiles?.username || 'Sem Consultor';
+            const profile = Array.isArray(os.profiles) ? os.profiles[0] : os.profiles;
+            const nome = profile?.first_name
+                ? `${profile.first_name} ${profile.last_name || ''}`.trim()
+                : profile?.username || 'Sem Consultor';
 
             if (!acc[id]) {
                 acc[id] = {

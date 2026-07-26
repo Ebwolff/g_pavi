@@ -64,13 +64,13 @@ export function ModalCadastrarTecnico({ isOpen, onClose, onSuccess }: ModalCadas
             onSuccess();
             onClose();
 
-        } catch (err: any) {
+        } catch (err) {
             logger.error('❌ [ModalCadastrarTecnico] Erro no cadastro:', err);
 
-            let errorMessage = err.message || 'Erro ao cadastrar técnico';
+            let errorMessage = err instanceof Error ? err.message : 'Erro ao cadastrar técnico';
 
             // Tentar extrair detalhes se for erro da função
-            if (err.details) {
+            if (err && typeof err === 'object' && 'details' in err && err.details) {
                 errorMessage = `${errorMessage} (${err.details})`;
             }
 

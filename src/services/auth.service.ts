@@ -1,5 +1,6 @@
 import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import type { UserRole } from '@/types/database.types';
 
 export interface LoginCredentials {
@@ -122,7 +123,7 @@ class AuthService {
     /**
      * Subscreve a mudanças de autenticação
      */
-    onAuthStateChange(callback: (event: string, session: any) => void) {
+    onAuthStateChange(callback: (event: AuthChangeEvent, session: Session | null) => void) {
         return supabase.auth.onAuthStateChange(callback);
     }
 }

@@ -43,7 +43,7 @@ export const pendenciaService = {
         if (error) throw error;
 
         // Transformar dados para garantir que ordens_servico seja objeto único (Supabase joins return arrays sometimes depending on config)
-        return (data || []).map((p: any) => ({
+        return (data || []).map((p) => ({
             ...p,
             ordens_servico: Array.isArray(p.ordens_servico) ? p.ordens_servico[0] : p.ordens_servico
         }));
@@ -64,10 +64,9 @@ export const pendenciaService = {
 
         if (error) throw error;
 
-        const p = data as any;
         return {
-            ...p,
-            ordens_servico: Array.isArray(p.ordens_servico) ? p.ordens_servico[0] : p.ordens_servico
+            ...data,
+            ordens_servico: Array.isArray(data.ordens_servico) ? data.ordens_servico[0] : data.ordens_servico
         };
     },
 

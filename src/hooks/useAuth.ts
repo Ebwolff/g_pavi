@@ -117,7 +117,7 @@ export function useAuth() {
                     }
                     setLoading(false);
                     setSessionChecked(true);
-                } else if (event === 'TokenRefreshed' || event === 'TOKEN_REFRESHED') {
+                } else if (event === 'TOKEN_REFRESHED') {
                     // Apenas atualiza sessão, sem re-renderizar todo o app se user é o mesmo
                     if (session) setSession(session);
                 } else if (event === 'SIGNED_OUT') {

@@ -156,7 +156,7 @@ class FerramentaService {
             .from('movimentacoes_ferramentas')
             .insert({
                 ferramenta_id: ferramentaId,
-                tecnico_id: (ferramenta as any)?.tecnico_id || null,
+                tecnico_id: ferramenta?.tecnico_id || null,
                 tipo: 'DEVOLUCAO',
                 data_movimentacao: new Date().toISOString(),
                 observacoes: obs || null,

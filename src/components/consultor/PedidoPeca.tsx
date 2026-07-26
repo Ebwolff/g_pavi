@@ -16,12 +16,21 @@ import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAuth } from '@/hooks/useAuth';
 
+interface GrupoPedidos {
+    numero_os: string;
+    cliente?: string;
+    modelo_maquina?: string;
+    itens: SolicitacaoCompra[];
+    maxUrgencia: string;
+    dias_aguardando: number;
+}
+
 export function PedidoPeca() {
     const { profile } = useAuth();
     const [pedidos, setPedidos] = useState<SolicitacaoCompra[]>([]);
     const [loading, setLoading] = useState(true);
     const [showNewModal, setShowNewModal] = useState(false);
-    const [selectedGroup, setSelectedGroup] = useState<{ numero_os: string; cliente: string; modelo_maquina: string; itens: SolicitacaoCompra[]; maxUrgencia: string; dias_aguardando: number } | null>(null);
+    const [selectedGroup, setSelectedGroup] = useState<GrupoPedidos | null>(null);
     const [filtroStatus, setFiltroStatus] = useState<string>('');
 
     const isGerente = ['GERENTE', 'CHEFE_OFICINA'].includes(profile?.role?.toUpperCase() || '');
@@ -52,7 +61,7 @@ export function PedidoPeca() {
     }, [profile?.id, profile?.role]);
 
     // Agrupamento por OS
-    const pedidosAgrupados = pedidos.reduce((acc: any, pedido) => {
+    const pedidosAgrupados = pedidos.reduce<Record<string, GrupoPedidos>>((acc, pedido) => {
         if (filtroStatus && pedido.status !== filtroStatus) return acc;
 
         const key = pedido.numero_os || 'SEM_OS';
@@ -76,13 +85,13 @@ export function PedidoPeca() {
         }
 
         if ((pedido.dias_aguardando || 0) > acc[key].dias_aguardando) {
-            acc[key].dias_aguardando = pedido.dias_aguardando;
+            acc[key].dias_aguardando = pedido.dias_aguardando || 0;
         }
 
         return acc;
     }, {});
 
-    const grupos = Object.values(pedidosAgrupados) as any[];
+    const grupos = Object.values(pedidosAgrupados);
 
     const getStatusIcon = (status: string) => {
         switch (status) {

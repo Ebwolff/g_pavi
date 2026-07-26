@@ -56,7 +56,7 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
                 const textContent = await page.getTextContent();
 
                 // Em vez de só concatenar, vamos manter blocos próximos
-                const pageText = textContent.items.map((item: any) => item.str).join(' ');
+                const pageText = textContent.items.map((item) => 'str' in item ? item.str : '').join(' ');
                 extractedTextStr += pageText + ' ';
             }
 
@@ -255,9 +255,9 @@ export function UploadNBS_PDF({ onUploadSuccess }: UploadNBS_PDFProps) {
                 onUploadSuccess(extraidos);
             }
 
-        } catch (err: any) {
+        } catch (err) {
             logger.error("Erro processando PDF do NBS:", err);
-            setError("Falha ao ler o PDF: " + (err.message || 'Verifique se o arquivo não está corrompido.'));
+            setError("Falha ao ler o PDF: " + (err instanceof Error ? err.message : 'Verifique se o arquivo não está corrompido.'));
         } finally {
             setIsProcessing(false);
         }

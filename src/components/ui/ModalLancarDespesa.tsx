@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 import { useState, useEffect, useRef } from 'react';
-import { X, Car, Fuel, Utensils, Hotel, CircleDollarSign, MoreHorizontal, Save, Wrench, Paperclip, Trash2, Camera, Loader2 } from 'lucide-react';
+import { X, Car, Fuel, Utensils, Hotel, CircleDollarSign, MoreHorizontal, Save, Wrench, Paperclip, Trash2, Camera, Loader2, type LucideIcon } from 'lucide-react';
 import { Button } from './Button';
 import { Input } from './Input';
 import { despesasService, TipoDespesa, CreateDespesaInput } from '@/services/despesasService';
@@ -15,7 +15,7 @@ interface ModalLancarDespesaProps {
     onSuccess?: () => void;
 }
 
-const tiposDespesa: { value: TipoDespesa; label: string; icon: any; color: string }[] = [
+const tiposDespesa: { value: TipoDespesa; label: string; icon: LucideIcon; color: string }[] = [
     { value: 'KM', label: 'Quilometragem', icon: Car, color: 'text-blue-400 bg-blue-500/10' },
     { value: 'ABASTECIMENTO', label: 'Abastecimento', icon: Fuel, color: 'text-amber-400 bg-amber-500/10' },
     { value: 'ALIMENTACAO', label: 'Alimentação', icon: Utensils, color: 'text-emerald-400 bg-emerald-500/10' },

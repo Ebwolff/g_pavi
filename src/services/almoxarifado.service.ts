@@ -33,7 +33,7 @@ export const almoxarifadoService = {
 
         if (error) throw error;
 
-        return (data || []).map((p: any) => ({
+        return (data || []).map((p) => ({
             item_id: p.item_id,
             ordem_servico_id: p.ordem_servico_id,
             numero_os: p.numero_os,
