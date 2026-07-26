@@ -40,9 +40,9 @@ export function Login() {
                 navigate(targetRoute);
             }, 50);
 
-        } catch (err: any) {
+        } catch (err) {
             logger.error('❌ [Login] Erro:', err);
-            let msg = err.message || 'Erro ao realizar login.';
+            let msg = err instanceof Error ? err.message : 'Erro ao realizar login.';
             if (msg.includes('Invalid login credentials')) {
                 msg = 'E-mail ou senha incorretos.';
             }

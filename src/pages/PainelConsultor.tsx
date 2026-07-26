@@ -57,7 +57,7 @@ interface OSDoConsultor {
     dias_em_aberto: number;
     tecnico?: Pick<Database['public']['Tables']['tecnicos']['Row'], 'nome_completo'> | null;
     despesas?: Pick<Database['public']['Tables']['despesas_os']['Row'], 'comprovante_url'>[] | null;
-    link_pdf_os?: string | null;
+    pdf_nbs_url?: string | null;
     data_faturamento?: string | null;
 }
 
@@ -713,9 +713,9 @@ export default function PainelConsultor() {
                                                     <td className="px-6 py-6 font-black text-emerald-400 text-base" onClick={() => !isGerente && navigate(`/os/editar/${os.id}`)}>{formatCurrency(os.valor_liquido_total)}</td>
                                                     <td className="px-6 py-6">
                                                         <div className="flex items-center justify-center gap-2">
-                                                            {activeTab === 'faturadas' && os.link_pdf_os && (
+                                                            {activeTab === 'faturadas' && os.pdf_nbs_url && (
                                                                 <a
-                                                                    href={os.link_pdf_os}
+                                                                    href={os.pdf_nbs_url}
                                                                     target="_blank"
                                                                     rel="noreferrer"
                                                                     className="p-2 rounded-xl bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 transition-all border border-violet-500/20"

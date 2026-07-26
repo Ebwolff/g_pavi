@@ -22,8 +22,6 @@ export interface SolicitacaoCompra {
     comprador_id: string | null;
     observacoes: string | null;
     motivo_cancelamento: string | null;
-    aol: string | null;
-    data_faturamento_fabrica: string | null;
     created_at: string;
     updated_at: string;
     // Campos de relacionamento (quando JOIN)

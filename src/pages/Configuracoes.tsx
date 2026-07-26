@@ -5,7 +5,7 @@ import { Settings as SettingsIcon, User, Database, Bell, Shield, LogOut, Save, E
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { useThemeStore } from '@/stores/themeStore';
+import { useThemeStore, type Theme } from '@/stores/themeStore';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { profileService } from '@/services/profile.service';
 import { useAuthStore } from '@/stores/authStore';
@@ -62,9 +62,9 @@ export function Configuracoes() {
             setSaveMessage({ type: 'success', text: 'Perfil atualizado com sucesso!' });
 
             setTimeout(() => setSaveMessage(null), 3000);
-        } catch (error: any) {
+        } catch (error) {
             logger.error('Erro ao salvar perfil:', error);
-            setSaveMessage({ type: 'error', text: error.message || 'Erro ao salvar alterações.' });
+            setSaveMessage({ type: 'error', text: error instanceof Error ? error.message : 'Erro ao salvar alterações.' });
         } finally {
             setIsSaving(false);
         }
@@ -209,7 +209,7 @@ export function Configuracoes() {
                                 ].map((option) => (
                                     <button
                                         key={option.id}
-                                        onClick={() => setTheme(option.id as any)}
+                                        onClick={() => setTheme(option.id as Theme)}
                                         className={`
                                             flex flex-col items-center justify-center p-4 rounded-2xl border transition-all duration-200 gap-3
                                             ${theme === option.id

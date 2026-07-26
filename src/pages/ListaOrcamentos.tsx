@@ -138,8 +138,8 @@ export function ListaOrcamentos() {
                                         </td>
                                     </tr>
                                 ) : data?.data && data.data.length > 0 ? (
-                                    data.data.map((orc: any) => {
-                                        const stat = statusConfig[orc.status_orcamento as StatusOrcamento] || { label: orc.status_orcamento, color: 'gray' };
+                                    data.data.map((orc) => {
+                                        const stat = statusConfig[orc.status_orcamento] || { label: orc.status_orcamento, color: 'gray' };
                                         
                                         return (
                                             <tr 
@@ -155,7 +155,7 @@ export function ListaOrcamentos() {
                                                 <td className="px-6 py-4">
                                                     <div className="flex flex-col">
                                                         <span className="text-sm font-semibold text-[var(--text-primary)] truncate max-w-[200px]">
-                                                            {orc.nome_cliente_digitavel || orc.cliente?.dados?.nome_razao || 'N/I'}
+                                                            {orc.nome_cliente_digitavel || orc.cliente?.nome_cliente || 'N/I'}
                                                         </span>
                                                     </div>
                                                 </td>
@@ -183,9 +183,9 @@ export function ListaOrcamentos() {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
-                                                    <CustomBadge 
-                                                        label={stat.label} 
-                                                        variant={stat.color as any} 
+                                                    <CustomBadge
+                                                        label={stat.label}
+                                                        variant={stat.color}
                                                     />
                                                 </td>
                                             </tr>

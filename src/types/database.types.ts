@@ -270,10 +270,9 @@ export interface Database {
                     localizacao_atual: string | null;
                     roteiro: string | null;
                     aol: string | null;
-                    data_faturamento_fabrica: string | null;
-                    link_pdf_os: string | null;
                     orcamento_id: string | null;
                     itens_orcamento: Json | null;
+                    pdf_nbs_url: string | null;
                 };
                 Insert: {
                     id?: string;
@@ -320,6 +319,8 @@ export interface Database {
                     roteiro?: string | null;
                     orcamento_id?: string | null;
                     itens_orcamento?: Json | null;
+                    aol?: string | null;
+                    pdf_nbs_url?: string | null;
                 };
                 Update: {
                     id?: string;
@@ -366,6 +367,8 @@ export interface Database {
                     roteiro?: string | null;
                     orcamento_id?: string | null;
                     itens_orcamento?: Json | null;
+                    aol?: string | null;
+                    pdf_nbs_url?: string | null;
                 };
                 Relationships: [
                     {
@@ -786,8 +789,6 @@ export interface Database {
                     data_solicitacao: string;
                     data_entrega_real: string | null;
                     numero_pedido_fornecedor: string | null;
-                    aol: string | null;
-                    data_faturamento_fabrica: string | null;
                     solicitante_id: string | null;
                     comprador_id: string | null;
                     observacoes: string | null;
@@ -813,8 +814,6 @@ export interface Database {
                     data_solicitacao?: string;
                     data_entrega_real?: string | null;
                     numero_pedido_fornecedor?: string | null;
-                    aol?: string | null;
-                    data_faturamento_fabrica?: string | null;
                     solicitante_id?: string | null;
                     comprador_id?: string | null;
                     observacoes?: string | null;
@@ -838,8 +837,6 @@ export interface Database {
                     data_solicitacao?: string;
                     data_entrega_real?: string | null;
                     numero_pedido_fornecedor?: string | null;
-                    aol?: string | null;
-                    data_faturamento_fabrica?: string | null;
                     solicitante_id?: string | null;
                     comprador_id?: string | null;
                     observacoes?: string | null;

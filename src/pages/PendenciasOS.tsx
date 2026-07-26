@@ -270,7 +270,7 @@ export function PendenciasOS() {
                                             </div>
                                         </TD>
                                         <TD>
-                                            <StatusBadge status={pendencia.status as any} />
+                                            <StatusBadge status={pendencia.status} />
                                         </TD>
                                         <TD className="text-right">
                                             <Button

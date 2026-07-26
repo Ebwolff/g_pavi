@@ -72,7 +72,7 @@ export default function PainelDiretoria() {
         gargalos: [],
         performanceConsultores: [],
     });
-    const [profitStats, setProfitStats] = useState<any>({
+    const [profitStats, setProfitStats] = useState<NonNullable<Awaited<ReturnType<typeof statsService.getGlobalProfitabilityStats>>>>({
         receitaTotal: 0,
         custoTotal: 0,
         lucroBruto: 0,
@@ -252,7 +252,7 @@ export default function PainelDiretoria() {
                     <div className="flex items-center gap-3 bg-[var(--surface-light)] p-1.5 rounded-xl border border-[var(--border-subtle)]">
                         <select
                             value={periodo}
-                            onChange={(e) => setPeriodo(e.target.value as any)}
+                            onChange={(e) => setPeriodo(e.target.value as '7d' | '30d' | '90d' | 'ano')}
                             className="bg-transparent text-sm font-bold text-[var(--text-primary)] px-3 py-1.5 focus:outline-none border-none"
                         >
                             <option value="7d">Últimos 7 dias</option>

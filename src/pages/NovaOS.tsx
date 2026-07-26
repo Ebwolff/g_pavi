@@ -15,7 +15,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { formatarValor } from '@/utils/osHelpers';
 import { UploadNBS_PDF, ExtractedNBS, ItemOrcamento } from '@/components/ui/UploadNBS_PDF';
-import { orcamentoService } from '@/services/orcamento.service';
+import { orcamentoService, type OrcamentoServico } from '@/services/orcamento.service';
+import type { Database } from '@/types/database.types';
 
 export function NovaOS() {
     const navigate = useNavigate();
@@ -39,13 +40,13 @@ export function NovaOS() {
     const queryClient = useQueryClient();
 
     const createOSMutation = useMutation({
-        mutationFn: (data: any) => ordemServicoService.create(data),
+        mutationFn: (data: Parameters<typeof ordemServicoService.create>[0]) => ordemServicoService.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['ordens-servico'] });
             alert('OS criada com sucesso!');
             navigate('/os/lista');
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             logger.error('Erro ao criar OS:', error);
             if (error.message?.includes('numero_os_key') || error.message?.includes('duplicate key')) {
                 alert(`O número de OS "${formData.numero_os}" já existe no sistema. Use outro número ou clique em "Gerar Próximo Disponível".`);
@@ -72,7 +73,7 @@ export function NovaOS() {
     const [pdfFile, setPdfFile] = useState<File | null>(null);
 
     // Orçamento vinculado
-    const [orcamentoVinculado, setOrcamentoVinculado] = useState<any>(null);
+    const [orcamentoVinculado, setOrcamentoVinculado] = useState<OrcamentoServico | null>(null);
     const [itensOrcamento, setItensOrcamento] = useState<ItemOrcamento[]>([]);
     const [numOrcamentoInput, setNumOrcamentoInput] = useState('');
     const [buscandoOrc, setBuscandoOrc] = useState(false);
@@ -196,7 +197,7 @@ export function NovaOS() {
             data_abertura: new Date(formData.data_abertura).toISOString(),
             aol: formData.aol || null,
             orcamento_id: orcamentoVinculado?.id || null,
-            itens_orcamento: itensOrcamento.length > 0 ? itensOrcamento : null,
+            itens_orcamento: itensOrcamento.length > 0 ? (itensOrcamento as unknown as Database['public']['Tables']['ordens_servico']['Insert']['itens_orcamento']) : null,
             pdf_nbs_url: pdfNbsUrl,
         });
     };

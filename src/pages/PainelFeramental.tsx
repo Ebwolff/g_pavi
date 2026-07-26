@@ -643,7 +643,7 @@ export default function PainelFeramental() {
                             {['TODOS', 'DISPONIVEL', 'EM_USO', 'MANUTENCAO', 'INATIVO'].map((status) => (
                                 <button
                                     key={status}
-                                    onClick={() => setFiltroStatus(status as any)}
+                                    onClick={() => setFiltroStatus(status as StatusVeiculo | 'TODOS')}
                                     className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${filtroStatus === status
                                         ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20'
                                         : 'bg-[var(--surface-light)] text-[var(--text-muted)] hover:bg-white/10 border border-[var(--border-subtle)]'
@@ -1203,8 +1203,8 @@ export default function PainelFeramental() {
                                                             {mov.tipo === 'RETIRADA' ? 'Retirada' : 'Devolução'}
                                                         </span>
                                                     </td>
-                                                    <td className="px-4 py-3 text-xs font-bold text-[var(--text-primary)]">{(mov.ferramenta as any)?.nome || '—'}</td>
-                                                    <td className="px-4 py-3 text-xs text-[var(--text-secondary)]">{(mov.tecnico as any)?.nome_completo || '—'}</td>
+                                                    <td className="px-4 py-3 text-xs font-bold text-[var(--text-primary)]">{mov.ferramenta?.nome || '—'}</td>
+                                                    <td className="px-4 py-3 text-xs text-[var(--text-secondary)]">{mov.tecnico?.nome_completo || '—'}</td>
                                                     <td className="px-4 py-3 font-mono text-xs text-[var(--text-secondary)]">{formatDate(mov.data_movimentacao)}</td>
                                                     <td className="px-4 py-3 text-xs text-[var(--text-muted)] truncate max-w-[200px]">{mov.observacoes || '—'}</td>
                                                 </tr>
