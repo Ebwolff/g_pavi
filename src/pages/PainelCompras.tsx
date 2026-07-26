@@ -16,6 +16,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Card } from '@/components/ui/Card';
+import type { Database, StatusSolicitacaoCompra } from '@/types/database.types';
 
 interface SolicitacaoItem {
     id: string;
@@ -79,8 +80,8 @@ export default function PainelCompras() {
 
             // Agrupar por OS
             const osMap = new Map<string, OSAgrupada>();
-            (data || []).forEach((item: any) => {
-                const os = item.ordens_servico;
+            (data || []).forEach((item) => {
+                const os = Array.isArray(item.ordens_servico) ? item.ordens_servico[0] : item.ordens_servico;
                 const osId = os?.id || item.ordem_servico_id || 'sem-os';
                 if (!osMap.has(osId)) {
                     osMap.set(osId, {
@@ -123,10 +124,10 @@ export default function PainelCompras() {
 
     useEffect(() => { carregarDados(); }, [carregarDados]);
 
-    const atualizarStatus = async (id: string, novoStatus: string) => {
+    const atualizarStatus = async (id: string, novoStatus: StatusSolicitacaoCompra) => {
         setProcessando(prev => ({ ...prev, [id]: true }));
         try {
-            const { error } = await (supabase.from('solicitacoes_compra') as any)
+            const { error } = await supabase.from('solicitacoes_compra')
                 .update({ status: novoStatus })
                 .eq('id', id);
             if (error) throw error;
@@ -138,8 +139,8 @@ export default function PainelCompras() {
                     itens: selectedOS.itens.map(i => i.id === id ? { ...i, status: novoStatus } : i),
                 });
             }
-        } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+        } catch (error) {
+            alert(`Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         } finally {
             setProcessando(prev => ({ ...prev, [id]: false }));
         }
@@ -147,12 +148,12 @@ export default function PainelCompras() {
 
     const registrarCompra = async (id: string, fornecedor: string, valor: number, previsao: string) => {
         try {
-            const updateData: any = { fornecedor, valor_unitario: valor, status: 'COMPRADO' };
+            const updateData: Database['public']['Tables']['solicitacoes_compra']['Update'] = { fornecedor, valor_unitario: valor, status: 'COMPRADO' };
             if (previsao) {
                 updateData.data_previsao_entrega = previsao;
                 updateData.status = 'AGUARDANDO_ENTREGA';
             }
-            const { error } = await (supabase.from('solicitacoes_compra') as any)
+            const { error } = await supabase.from('solicitacoes_compra')
                 .update(updateData)
                 .eq('id', id);
             if (error) throw error;
@@ -163,8 +164,8 @@ export default function PainelCompras() {
                     itens: selectedOS.itens.map(i => i.id === id ? { ...i, ...updateData } : i),
                 });
             }
-        } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+        } catch (error) {
+            alert(`Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         }
     };
 

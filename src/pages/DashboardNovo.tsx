@@ -3,7 +3,7 @@ import { logger } from '@/lib/logger';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '../components/AppLayout';
-import { statsService, DashboardStats } from '../services/statsService';
+import { statsService, DashboardStats, TendenciaOS } from '../services/statsService';
 import { useAuth } from '../hooks/useAuth';
 import { relatoriosService } from '../services/relatoriosService';
 import { Card, MiniCard } from '../components/ui/Card';
@@ -31,10 +31,10 @@ import { formatarValor } from '../utils/osHelpers';
 export function DashboardNovo() {
     const navigate = useNavigate();
     const [stats, setStats] = useState<DashboardStats | null>(null);
-    const [tendencia, setTendencia] = useState<any[]>([]);
-    const [distribuicao, setDistribuicao] = useState<any[]>([]);
-    const [profitStats, setProfitStats] = useState<any>(null);
-    const [_topClientes, setTopClientes] = useState<any[]>([]);
+    const [tendencia, setTendencia] = useState<TendenciaOS[]>([]);
+    const [distribuicao, setDistribuicao] = useState<Awaited<ReturnType<typeof statsService.getDistribuicaoStatus>>>([]);
+    const [profitStats, setProfitStats] = useState<Awaited<ReturnType<typeof statsService.getGlobalProfitabilityStats>>>(null);
+    const [_topClientes, setTopClientes] = useState<Awaited<ReturnType<typeof statsService.getTopClientes>>>([]);
     const [loading, setLoading] = useState(true);
     const [_atualizando, setAtualizando] = useState(false);
     const [erro, setErro] = useState<string | null>(null);
@@ -75,9 +75,9 @@ export function DashboardNovo() {
                 const statsData = await statsService.getDashboardStats();
                 logger.log('✅ Stats recebidos:', statsData);
                 setStats(statsData);
-            } catch (e: any) {
+            } catch (e) {
                 logger.error('❌ Erro em getDashboardStats:', e);
-                setErro(e.message || 'Erro ao carregar estatísticas');
+                setErro(e instanceof Error ? e.message : 'Erro ao carregar estatísticas');
                 setLoading(false);
                 setAtualizando(false);
                 return; // Parar execução se o principal falhar
@@ -127,7 +127,7 @@ export function DashboardNovo() {
             }
 
             logger.log('✅ Todos os dados processados!');
-        } catch (error: any) {
+        } catch (error) {
             logger.error('❌ Erro geral ao carregar dashboard:', error);
             setErro('generico');
         } finally {
