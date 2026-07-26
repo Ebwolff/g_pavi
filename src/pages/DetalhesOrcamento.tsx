@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 
 import { orcamentoService } from '@/services/orcamento.service';
+import type { ItemOrcamento } from '@/components/ui/UploadNBS_PDF';
 import type { StatusOrcamento } from '@/types/database.types';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/Button';
@@ -58,7 +59,7 @@ export function DetalhesOrcamento() {
             alert('Orçamento convertido com sucesso! Redirecionando para a nova O.S.');
             navigate(`/os/editar/${novaOS.id}`);
         },
-        onError: (e: any) => {
+        onError: (e: Error) => {
             logger.error('Erro ao converter:', e);
             alert(`Erro ao converter: ${e.message}`);
         }
@@ -88,6 +89,7 @@ export function DetalhesOrcamento() {
     if (!orcamento) return null;
 
     const stat = statusConfig[orcamento.status_orcamento] || { label: orcamento.status_orcamento, color: 'gray' };
+    const itensOrcamento = (orcamento.itens_orcamento as unknown as ItemOrcamento[] | null) || [];
 
     return (
         <AppLayout>
@@ -107,9 +109,9 @@ export function DetalhesOrcamento() {
                                 <h1 className="text-2xl font-black tracking-tight text-[var(--text-primary)]">
                                     {orcamento.numero_orcamento}
                                 </h1>
-                                <CustomBadge 
-                                    label={stat.label} 
-                                    variant={stat.color as any} 
+                                <CustomBadge
+                                    label={stat.label}
+                                    variant={stat.color}
                                 />
                             </div>
                             <p className="text-sm text-[var(--text-muted)] flex items-center gap-2">
@@ -221,11 +223,11 @@ export function DetalhesOrcamento() {
                         </section>
 
                         {/* Relação de Peças */}
-                        {(orcamento as any).itens_orcamento && (orcamento as any).itens_orcamento.length > 0 && (
+                        {itensOrcamento.length > 0 && (
                             <section className="bg-[var(--surface-light)] rounded-2xl p-6 border border-[var(--border-subtle)]">
                                 <h3 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-2">
                                     <Package className="w-4 h-4" />
-                                    Relação de Peças ({(orcamento as any).itens_orcamento.length} {(orcamento as any).itens_orcamento.length === 1 ? 'item' : 'itens'})
+                                    Relação de Peças ({itensOrcamento.length} {itensOrcamento.length === 1 ? 'item' : 'itens'})
                                 </h3>
                                 <div className="overflow-hidden rounded-xl border border-[var(--border-subtle)]">
                                     <table className="w-full text-sm">
@@ -239,7 +241,7 @@ export function DetalhesOrcamento() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {(orcamento as any).itens_orcamento.map((item: any, idx: number) => (
+                                            {itensOrcamento.map((item, idx) => (
                                                 <tr key={idx} className="border-t border-[var(--border-subtle)] hover:bg-[var(--surface-hover)] transition-colors">
                                                     <td className="px-4 py-3 font-mono text-xs text-blue-400">{item.codigo}</td>
                                                     <td className="px-4 py-3 text-[var(--text-primary)]">{item.descricao}</td>
@@ -259,14 +261,14 @@ export function DetalhesOrcamento() {
                         )}
 
                         {/* PDF NBS Anexado */}
-                        {(orcamento as any).pdf_nbs_url && (
+                        {orcamento.pdf_nbs_url && (
                             <section className="bg-[var(--surface-light)] rounded-2xl p-6 border border-[var(--border-subtle)]">
                                 <h3 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-2">
                                     <FileDown className="w-4 h-4" />
                                     PDF NBS Anexado
                                 </h3>
                                 <a
-                                    href={(orcamento as any).pdf_nbs_url}
+                                    href={orcamento.pdf_nbs_url}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-all group"
