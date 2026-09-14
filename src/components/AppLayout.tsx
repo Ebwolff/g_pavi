@@ -25,6 +25,9 @@ import {
     Sun,
     Moon,
     CheckCircle,
+    AlertCircle,
+    Bell,
+    UserCog,
     Menu,
     X
 } from 'lucide-react';
@@ -109,6 +112,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         { icon: List, label: 'Lista de OS', path: '/os/lista' },
         { icon: CheckCircle, label: 'OS Faturadas', path: '/os/faturadas' },
         { icon: ClipboardList, label: 'Orçamentos', path: '/orcamentos' },
+        { icon: AlertCircle, label: 'Pendências', path: '/pendencias' },
         { icon: Users, label: 'Consultor', path: '/consultor' },
         { icon: Hammer, label: 'Chefe de Oficina', path: '/chefe-oficina' },
         { icon: Wrench, label: 'Técnico', path: '/tecnico' },
@@ -117,6 +121,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         { icon: Car, label: 'Feramental', path: '/feramental' },
         { icon: BarChart3, label: 'Diretoria', path: '/diretoria' },
         { icon: TrendingUp, label: 'Relatórios', path: '/relatorios' },
+        { icon: Bell, label: 'Alertas', path: '/alertas' },
+        { icon: UserCog, label: 'Usuários', path: '/usuarios' },
         { icon: Settings, label: 'Configurações', path: '/configuracoes' },
     ];
 
@@ -165,6 +171,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                         return (
                             <button
                                 key={item.path}
+                                data-menu-path={item.path}
                                 onClick={() => navigate(item.path)}
                                 className={`
                                     w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative overflow-hidden
