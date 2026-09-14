@@ -16,6 +16,7 @@ export type AppRoute =
     | '/os/faturadas'
     | '/os/editar'
     | '/orcamentos'
+    | '/pendencias'
     | '/consultor'
     | '/chefe-oficina'
     | '/tecnico'
@@ -36,6 +37,7 @@ const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
         '/os/faturadas',
         '/os/editar',
         '/orcamentos',
+        '/pendencias',
         '/consultor',
         '/chefe-oficina',
         '/tecnico',
@@ -56,6 +58,7 @@ const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
         '/os/faturadas',
         '/os/editar',
         '/orcamentos',
+        '/pendencias',
         '/consultor',
         '/alertas',
         '/configuracoes',
@@ -69,6 +72,7 @@ const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
         '/os/faturadas',
         '/os/editar',
         '/orcamentos',
+        '/pendencias',
         '/consultor',
         '/alertas',
         '/configuracoes',
@@ -78,6 +82,7 @@ const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
     CHEFE_OFICINA: [
         '/os/lista',
         '/os/editar',
+        '/pendencias',
         '/chefe-oficina',
         '/configuracoes',
     ],

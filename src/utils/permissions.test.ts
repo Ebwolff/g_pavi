@@ -59,6 +59,16 @@ describe('permissions', () => {
             expect(hasPermission('COMPRAS', '/compras')).toBe(true);
             expect(hasPermission('COMPRAS', '/almoxarifado')).toBe(false);
         });
+
+        it('/pendencias fica restrita aos papéis de gestão, espelhando o RLS da tabela', () => {
+            expect(hasPermission('GERENTE', '/pendencias')).toBe(true);
+            expect(hasPermission('CONSULTOR_GARANTIA', '/pendencias')).toBe(true);
+            expect(hasPermission('CONSULTOR_POS_VENDA', '/pendencias')).toBe(true);
+            expect(hasPermission('CHEFE_OFICINA', '/pendencias')).toBe(true);
+            expect(hasPermission('TECNICO', '/pendencias')).toBe(false);
+            expect(hasPermission('ALMOXARIFADO', '/pendencias')).toBe(false);
+            expect(hasPermission('COMPRAS', '/pendencias')).toBe(false);
+        });
     });
 
     describe('getPermittedRoutes', () => {

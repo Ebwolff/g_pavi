@@ -8,7 +8,8 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
-import { pendenciaService } from '@/services/pendencia.service';
+import { ModalPendencia } from '@/components/ui/ModalPendencia';
+import { pendenciaService, type PendenciaComOS } from '@/services/pendencia.service';
 import { formatarData } from '@/utils/osHelpers';
 import type { TipoPendencia, StatusPendencia } from '@/types/database.types';
 import {
@@ -25,6 +26,8 @@ import {
 
 export function PendenciasOS() {
     const navigate = useNavigate();
+    const [modalAberto, setModalAberto] = useState(false);
+    const [pendenciaEmEdicao, setPendenciaEmEdicao] = useState<PendenciaComOS | null>(null);
     const [uiFilters, setUiFilters] = useState<{
         busca: string;
         tipo: TipoPendencia | 'TODOS';
@@ -53,6 +56,16 @@ export function PendenciasOS() {
             resolvidas: pendencias.filter(p => p.status === 'RESOLVIDO').length,
         };
     }, [pendencias]);
+
+    const abrirNova = () => {
+        setPendenciaEmEdicao(null);
+        setModalAberto(true);
+    };
+
+    const abrirEdicao = (pendencia: PendenciaComOS) => {
+        setPendenciaEmEdicao(pendencia);
+        setModalAberto(true);
+    };
 
     const getIconeTipo = (tipo: string) => {
         const colors: Record<string, string> = {
@@ -95,7 +108,7 @@ export function PendenciasOS() {
                         </Button>
                         <Button
                             variant="primary"
-                            onClick={() => navigate('/pendencias/nova')}
+                            onClick={abrirNova}
                             leftIcon={<Plus className="w-4 h-4" />}
                             className="shadow-lg shadow-blue-500/20"
                         >
@@ -276,7 +289,7 @@ export function PendenciasOS() {
                                             <Button
                                                 variant="secondary"
                                                 size="sm"
-                                                onClick={() => navigate(`/pendencias/editar/${pendencia.id}`)}
+                                                onClick={() => abrirEdicao(pendencia)}
                                                 className="h-8 py-0 px-3 bg-white/5 border-white/10 hover:bg-white/10"
                                             >
                                                 Ver Detalhes
@@ -298,7 +311,7 @@ export function PendenciasOS() {
                                     if (uiFilters.busca || uiFilters.tipo !== 'TODOS' || uiFilters.status !== 'TODOS') {
                                         setUiFilters({ busca: '', tipo: 'TODOS', status: 'TODOS' });
                                     } else {
-                                        navigate('/pendencias/nova');
+                                        abrirNova();
                                     }
                                 }
                             }}
@@ -306,6 +319,13 @@ export function PendenciasOS() {
                     </div>
                 )}
             </div>
+
+            <ModalPendencia
+                isOpen={modalAberto}
+                onClose={() => setModalAberto(false)}
+                pendencia={pendenciaEmEdicao}
+                onSuccess={refetch}
+            />
         </AppLayout>
     );
 }
