@@ -26,10 +26,33 @@ export type AppRoute =
     | '/feramental'
     | '/relatorios'
     | '/alertas'
+    | '/usuarios'
     | '/configuracoes';
 
 // Mapeamento de permissões: quais roles podem acessar quais rotas
 const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
+    // Admin: acesso irrestrito, incluindo a gestão de usuários
+    ADMIN: [
+        '/dashboard',
+        '/os/nova',
+        '/os/lista',
+        '/os/faturadas',
+        '/os/editar',
+        '/orcamentos',
+        '/pendencias',
+        '/consultor',
+        '/chefe-oficina',
+        '/tecnico',
+        '/compras',
+        '/almoxarifado',
+        '/feramental',
+        '/diretoria',
+        '/relatorios',
+        '/alertas',
+        '/usuarios',
+        '/configuracoes',
+    ],
+
     // Gerente: acesso total (exceto criação de OS conforme solicitado)
     GERENTE: [
         '/dashboard',
@@ -113,8 +136,22 @@ const ROLE_PERMISSIONS: Record<UserRole, AppRoute[]> = {
     ],
 };
 
+// Nome legível de cada papel, para exibição na interface
+export const ROLE_LABELS: Record<UserRole, string> = {
+    ADMIN: 'Administrador',
+    GERENTE: 'Gerente',
+    CONSULTOR_GARANTIA: 'Consultor de Garantia',
+    CONSULTOR_POS_VENDA: 'Consultor de Pós-Venda',
+    CHEFE_OFICINA: 'Chefe de Oficina',
+    TECNICO: 'Técnico',
+    ALMOXARIFADO: 'Almoxarifado',
+    COMPRAS: 'Compras',
+    FERAMENTAL: 'Ferramental',
+};
+
 // Página inicial padrão para cada role
 export const DEFAULT_ROUTE: Record<UserRole, string> = {
+    ADMIN: '/dashboard',
     GERENTE: '/dashboard',
     CONSULTOR_GARANTIA: '/dashboard',
     CONSULTOR_POS_VENDA: '/dashboard',
@@ -178,8 +215,17 @@ export function getDefaultRoute(role: string | undefined | null): string {
  */
 export function isManagerRole(role: string | undefined | null): boolean {
     if (!role) return false;
-    const managerRoles = ['GERENTE', 'CONSULTOR_GARANTIA', 'CONSULTOR_POS_VENDA', 'CHEFE_OFICINA'];
+    const managerRoles = ['ADMIN', 'GERENTE', 'CONSULTOR_GARANTIA', 'CONSULTOR_POS_VENDA', 'CHEFE_OFICINA'];
     return managerRoles.includes(role.toUpperCase());
+}
+
+/**
+ * Verifica se um role pode criar usuários e definir o papel de cada um.
+ * Espelha a trigger protect_profile_privileges no banco: só ADMIN altera papéis.
+ */
+export function canManageUsers(role: string | undefined | null): boolean {
+    if (!role) return false;
+    return role.toUpperCase() === 'ADMIN';
 }
 
 /**
@@ -187,7 +233,7 @@ export function isManagerRole(role: string | undefined | null): boolean {
  */
 export function canEditOS(role: string | undefined | null): boolean {
     if (!role) return false;
-    const editRoles = ['GERENTE', 'CONSULTOR_GARANTIA', 'CONSULTOR_POS_VENDA', 'CHEFE_OFICINA', 'TECNICO'];
+    const editRoles = ['ADMIN', 'GERENTE', 'CONSULTOR_GARANTIA', 'CONSULTOR_POS_VENDA', 'CHEFE_OFICINA', 'TECNICO'];
     return editRoles.includes(role.toUpperCase());
 }
 
@@ -196,7 +242,7 @@ export function canEditOS(role: string | undefined | null): boolean {
  */
 export function canAssignTechnician(role: string | undefined | null): boolean {
     if (!role) return false;
-    const assignRoles = ['GERENTE', 'CHEFE_OFICINA'];
+    const assignRoles = ['ADMIN', 'GERENTE', 'CHEFE_OFICINA'];
     return assignRoles.includes(role.toUpperCase());
 }
 
@@ -205,7 +251,7 @@ export function canAssignTechnician(role: string | undefined | null): boolean {
  */
 export function canCreateOS(role: string | undefined | null): boolean {
     if (!role) return false;
-    const createRoles = ['GERENTE', 'CONSULTOR_GARANTIA', 'CONSULTOR_POS_VENDA'];
+    const createRoles = ['ADMIN', 'GERENTE', 'CONSULTOR_GARANTIA', 'CONSULTOR_POS_VENDA'];
     return createRoles.includes(role.toUpperCase());
 }
 
@@ -214,6 +260,6 @@ export function canCreateOS(role: string | undefined | null): boolean {
  */
 export function canManageParts(role: string | undefined | null): boolean {
     if (!role) return false;
-    const partsRoles = ['GERENTE', 'TECNICO', 'ALMOXARIFADO'];
+    const partsRoles = ['ADMIN', 'GERENTE', 'TECNICO', 'ALMOXARIFADO'];
     return partsRoles.includes(role.toUpperCase());
 }

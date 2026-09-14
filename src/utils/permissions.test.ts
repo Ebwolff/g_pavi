@@ -8,6 +8,7 @@ import {
     canAssignTechnician,
     canCreateOS,
     canManageParts,
+    canManageUsers,
 } from './permissions';
 
 describe('permissions', () => {
@@ -58,6 +59,21 @@ describe('permissions', () => {
             expect(hasPermission('ALMOXARIFADO', '/compras')).toBe(false);
             expect(hasPermission('COMPRAS', '/compras')).toBe(true);
             expect(hasPermission('COMPRAS', '/almoxarifado')).toBe(false);
+        });
+
+        it('ADMIN acessa tudo, inclusive a gestão de usuários', () => {
+            expect(hasPermission('ADMIN', '/usuarios')).toBe(true);
+            expect(hasPermission('ADMIN', '/dashboard')).toBe(true);
+            expect(hasPermission('ADMIN', '/os/nova')).toBe(true);
+            expect(hasPermission('ADMIN', '/diretoria')).toBe(true);
+            expect(hasPermission('ADMIN', '/feramental')).toBe(true);
+        });
+
+        it('nenhum outro papel alcança a gestão de usuários — nem GERENTE', () => {
+            expect(hasPermission('GERENTE', '/usuarios')).toBe(false);
+            expect(hasPermission('CHEFE_OFICINA', '/usuarios')).toBe(false);
+            expect(hasPermission('CONSULTOR_GARANTIA', '/usuarios')).toBe(false);
+            expect(hasPermission('TECNICO', '/usuarios')).toBe(false);
         });
 
         it('/pendencias fica restrita aos papéis de gestão, espelhando o RLS da tabela', () => {
@@ -135,6 +151,22 @@ describe('permissions', () => {
             expect(canManageParts('ALMOXARIFADO')).toBe(true);
             expect(canManageParts('COMPRAS')).toBe(false);
             expect(canManageParts('CONSULTOR_GARANTIA')).toBe(false);
+        });
+
+        it('canManageUsers é exclusivo do ADMIN, espelhando a trigger do banco', () => {
+            expect(canManageUsers('ADMIN')).toBe(true);
+            expect(canManageUsers('admin')).toBe(true);
+            expect(canManageUsers('GERENTE')).toBe(false);
+            expect(canManageUsers('CHEFE_OFICINA')).toBe(false);
+            expect(canManageUsers(null)).toBe(false);
+        });
+
+        it('ADMIN herda todas as capacidades operacionais', () => {
+            expect(isManagerRole('ADMIN')).toBe(true);
+            expect(canEditOS('ADMIN')).toBe(true);
+            expect(canAssignTechnician('ADMIN')).toBe(true);
+            expect(canCreateOS('ADMIN')).toBe(true);
+            expect(canManageParts('ADMIN')).toBe(true);
         });
     });
 });

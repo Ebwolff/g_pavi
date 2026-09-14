@@ -16,6 +16,7 @@ const Relatorios = lazy(() => import('../pages/Relatorios').then(module => ({ de
 const Configuracoes = lazy(() => import('../pages/Configuracoes').then(module => ({ default: module.Configuracoes })));
 const Alertas = lazy(() => import('../pages/Alertas').then(module => ({ default: module.Alertas })));
 const PendenciasOS = lazy(() => import('../pages/PendenciasOS').then(module => ({ default: module.PendenciasOS })));
+const GestaoUsuarios = lazy(() => import('../pages/GestaoUsuarios').then(module => ({ default: module.GestaoUsuarios })));
 const PainelCompras = lazy(() => import('../pages/PainelCompras'));
 const PainelTecnico = lazy(() => import('../pages/PainelTecnico'));
 const PainelDiretoria = lazy(() => import('../pages/PainelDiretoria'));
@@ -78,6 +79,7 @@ export function AppRoutes() {
                 <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
                 <Route path="/alertas" element={<ProtectedRoute><Alertas /></ProtectedRoute>} />
                 <Route path="/pendencias" element={<ProtectedRoute><PendenciasOS /></ProtectedRoute>} />
+                <Route path="/usuarios" element={<ProtectedRoute><GestaoUsuarios /></ProtectedRoute>} />
 
                 <Route path="/compras" element={<ProtectedRoute><PainelCompras /></ProtectedRoute>} />
                 <Route path="/tecnico" element={<ProtectedRoute><PainelTecnico /></ProtectedRoute>} />
