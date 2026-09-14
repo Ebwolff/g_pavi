@@ -31,39 +31,42 @@ BEGIN
 END $$;
 
 -- ============================================================
--- DADOS TRANSACIONAIS
--- Um único TRUNCATE com todas as tabelas evita o CASCADE, que poderia
--- esvaziar tabelas fora desta lista sem aviso.
+-- DADOS TRANSACIONAIS E CADASTROS BASE
+--
+-- Tudo em um único TRUNCATE, por dois motivos:
+--
+-- 1) O Postgres exige que tabelas ligadas por chave estrangeira sejam
+--    truncadas no mesmo comando. Separar em dois blocos falha com
+--    "cannot truncate a table referenced in a foreign key constraint",
+--    porque ordens_servico referencia clientes e maquinas.
+--
+-- 2) Evita o CASCADE, que esvaziaria tabelas fora desta lista sem aviso.
+--
+-- profiles e tecnicos ficam de fora de propósito: saem adiante, junto com
+-- os usuários, para que a conta ADMIN seja preservada.
 -- ============================================================
 TRUNCATE TABLE
     public.alertas,
     public.anexos_os,
     public.auditoria_os,
+    public.clientes,
     public.despesas_os,
     public.error_logs,
+    public.estoque_pecas,
+    public.ferramentas,
     public.historico_alocacao_veiculos,
     public.historico_status_os,
     public.importacoes_log,
     public.itens_os,
+    public.maquinas,
+    public.metas,
     public.movimentacoes_ferramentas,
     public.orcamentos_servico,
     public.ordens_servico,
     public.pendencias_os,
     public.solicitacoes_compra,
+    public.veiculos,
     public.vistorias_veiculos
-RESTART IDENTITY;
-
--- ============================================================
--- CADASTROS BASE
--- Comente este bloco se quiser preservar clientes, máquinas ou frota.
--- ============================================================
-TRUNCATE TABLE
-    public.clientes,
-    public.estoque_pecas,
-    public.ferramentas,
-    public.maquinas,
-    public.metas,
-    public.veiculos
 RESTART IDENTITY;
 
 -- ============================================================
