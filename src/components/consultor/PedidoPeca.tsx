@@ -33,7 +33,7 @@ export function PedidoPeca() {
     const [selectedGroup, setSelectedGroup] = useState<GrupoPedidos | null>(null);
     const [filtroStatus, setFiltroStatus] = useState<string>('');
 
-    const isGerente = ['GERENTE', 'CHEFE_OFICINA'].includes(profile?.role?.toUpperCase() || '');
+    const isGerente = ['ADMIN', 'GERENTE', 'CHEFE_OFICINA'].includes(profile?.role?.toUpperCase() || '');
     const isGarantia = profile?.role?.toUpperCase() === 'CONSULTOR_GARANTIA';
 
     const loadPedidos = async () => {

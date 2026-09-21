@@ -100,17 +100,20 @@ export async function notifyTecnicoAssigned(osId: string, tecnicoId: string) {
 /**
  * 3. Technician requests parts (PENDENTE_CONSULTOR) → notify CONSULTOR of the OS
  */
-export async function notifyPartsRequested(osId: string, pecaDescricao: string) {
+export async function notifyPartsRequested(osId: string, pecaDescricao: string, ehGarantia = false) {
     try {
         const consultorId = await getOSConsultorId(osId);
         if (!consultorId) return;
 
         const numero = await getOSNumero(osId);
+        // Garantia pula a aprovação financeira e cai direto na triagem: apontar
+        // para a aba errada faria o consultor procurar a peça onde ela não está.
+        const proximoPasso = ehGarantia ? 'Aguardando sua triagem.' : 'Aguardando sua aprovação.';
         await alertasService.criarAlerta({
             usuario_id: consultorId,
             tipo_alerta: 'PECAS_SOLICITADAS',
             titulo: `Peça solicitada na OS #${numero}`,
-            mensagem: `O técnico solicitou: ${pecaDescricao}. Aguardando sua aprovação.`,
+            mensagem: `O técnico solicitou: ${pecaDescricao}. ${proximoPasso}`,
             prioridade: 'NORMAL',
             os_id: osId,
             lido: false,

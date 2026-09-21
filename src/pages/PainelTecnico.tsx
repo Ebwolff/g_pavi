@@ -60,7 +60,7 @@ export default function PainelTecnico() {
     const navigate = useNavigate();
     const { user, profile } = useAuth();
     const queryClient = useQueryClient();
-    const gerenteRoles = ['GERENTE', 'CHEFE_OFICINA', 'DIRETORIA'];
+    const gerenteRoles = ['ADMIN', 'GERENTE', 'CHEFE_OFICINA', 'DIRETORIA'];
     const isGerente = gerenteRoles.includes(profile?.role?.toUpperCase() || '');
 
     const [selectedOS, setSelectedOS] = useState<string | null>(null);

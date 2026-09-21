@@ -98,7 +98,7 @@ export default function PainelConsultor() {
     const [osComAprovacaoPendente, setOsComAprovacaoPendente] = useState<OSAprovacaoPecas[]>([]);
     const [selectedOSAprovacao, setSelectedOSAprovacao] = useState<OSAprovacaoPecas | null>(null);
 
-    const isGerente = ['GERENTE', 'CHEFE_OFICINA'].includes(profile?.role?.toUpperCase() || '');
+    const isGerente = ['ADMIN', 'GERENTE', 'CHEFE_OFICINA'].includes(profile?.role?.toUpperCase() || '');
     const isGarantia = profile?.role?.toUpperCase() === 'CONSULTOR_GARANTIA';
     const isPosVenda = profile?.role?.toUpperCase() === 'CONSULTOR_POS_VENDA';
     const isConsultorNormal = !isGerente && !isGarantia;

@@ -139,7 +139,7 @@ const PainelChefeOficina: React.FC = () => {
     const [expandedOS, setExpandedOS] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'dashboard' | 'gestao'>('dashboard');
     const { profile } = useAuth();
-    const isGerente = profile?.role === 'GERENTE';
+    const isGerente = ['ADMIN', 'GERENTE'].includes(profile?.role?.toUpperCase() || '');
 
     // Refs para scroll suave
     const tecnicosRef = React.useRef<HTMLDivElement>(null);

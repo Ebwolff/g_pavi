@@ -69,7 +69,18 @@ export function ModalAdicionarPeca({ isOpen, onClose, osId, onSuccess }: ModalAd
                 return;
             }
 
-            // Inserir peças
+            // OS de garantia não passa por aprovação financeira — quem paga é a
+            // fábrica. O PainelConsultor nem carrega a lista de aprovação nesse
+            // caso, então a peça precisa nascer aprovada, ou ficaria presa em
+            // PENDENTE_CONSULTOR sem nunca alcançar a triagem.
+            const { data: os } = await supabase
+                .from('ordens_servico')
+                .select('tipo_os')
+                .eq('id', osId)
+                .single();
+
+            const ehGarantia = os?.tipo_os === 'GARANTIA';
+
             const { error } = await supabase
                 .from('itens_os')
                 .insert(
@@ -80,7 +91,7 @@ export function ModalAdicionarPeca({ isOpen, onClose, osId, onSuccess }: ModalAd
                         quantidade: peca.quantidade,
                         valor_unitario: 0,
                         status_separacao: 'PENDENTE',
-                        status_aprovacao: 'PENDENTE_CONSULTOR'
+                        status_aprovacao: ehGarantia ? 'APROVADO' : 'PENDENTE_CONSULTOR'
                     }))
                 );
 
@@ -88,7 +99,7 @@ export function ModalAdicionarPeca({ isOpen, onClose, osId, onSuccess }: ModalAd
 
             // Fire-and-forget: notify consultor about parts request
             const descricoes = pecasValidas.map(p => p.descricao).join(', ');
-            notifyPartsRequested(osId, descricoes).catch(() => {});
+            notifyPartsRequested(osId, descricoes, ehGarantia).catch(() => {});
 
             // Atualizar status da OS para AGUARDANDO_PECAS
             await supabase

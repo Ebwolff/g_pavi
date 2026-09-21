@@ -26,7 +26,7 @@ export function ListaOS({ onlyFaturadas = false }: ListaOSProps = {}) {
     const [page, setPage] = useState(1);
     const ITEMS_PER_PAGE = 25;
 
-    const isGerente = ['GERENTE', 'CHEFE_OFICINA'].includes(profile?.role?.toUpperCase() || '');
+    const isGerente = ['ADMIN', 'GERENTE', 'CHEFE_OFICINA'].includes(profile?.role?.toUpperCase() || '');
     const isGarantia = profile?.role?.toUpperCase() === 'CONSULTOR_GARANTIA';
 
     const [uiFilters, setUiFilters] = useState<UIOSFilters>({
